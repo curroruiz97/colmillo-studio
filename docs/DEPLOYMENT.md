@@ -1,14 +1,22 @@
 # COLMILLO STUDIO - DEPLOYMENT
 
-Deployment has not started.
+An explicitly authorized temporary demonstration is deployed on Vercel at
+`https://colmillo-studio.vercel.app/`. It is not a final client release.
 
 ## Current Policy
 
-- Do not push.
-- Do not deploy.
+- The Vercel project temporarily overrides the build command with
+  `npm run build:demo` and the output directory with `dist-demo`.
+- Keep all fictional-content notices visible while this exception is active.
+- Keep the deployment `noindex` and retain the blocking `robots.txt`.
+- Do not treat this public demo as approval of its provisional content.
 - Do not create production hosting resources.
 - Do not change DNS.
 - Do not add analytics or tracking without explicit approval.
+
+Rollback: restore the Vercel Build Command and Output Directory overrides to
+their Astro defaults, then redeploy. The repository's standard `npm run build`
+continues to produce the protected `dist/` artifact.
 
 ## Prepared Static Build Contract
 

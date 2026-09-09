@@ -286,3 +286,19 @@ during real back/forward testing in the 834 px and 390 px touch profiles. The
 visual gain did not justify a history-navigation regression. Removing the
 feature also avoids dormant transition metadata and keeps the fallback
 deterministic.
+
+## 2026-09-09 - Explicitly Authorized Public Demo on Vercel
+
+Decision: Publish the isolated demonstration temporarily at
+`https://colmillo-studio.vercel.app/` by overriding the Vercel project build
+command to `npm run build:demo` and its output directory to `dist-demo`. Keep
+all `DEMO FICTICIA — NO PUBLICAR` notices visible and retain the prelaunch
+`noindex`/blocking robots safeguards.
+
+Reason: After being told that the local experience contains fictional projects
+and provisional copy, the user explicitly authorized publishing it. Keeping
+the exception in Vercel rather than changing `npm run build` preserves the
+repository's clean production artifact and makes rollback a two-setting
+operation. This authorization does not approve the fictional content as real
+client work, remove the outstanding content requirements or authorize search
+indexing.

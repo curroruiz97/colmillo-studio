@@ -137,6 +137,18 @@ placeholder has been promoted to production.
 - Prelaunch indexing: `noindex` and blocking `robots.txt` remain active.
 - Header brand assets: supplied transparent black 906×242 and cream 865×232
   PNG wordmarks under `public/assets/brand/`.
+- Current Vercel production deployment: `https://colmillo-studio.vercel.app/`,
+  initially ready from commit `6032d56`. On 2026-09-09 the user explicitly
+  authorized a temporary public demonstration; the Vercel project now
+  overrides its build command with `npm run build:demo` and output directory
+  with `dist-demo`. Deployment `HS87WdN3Xcf53FVTTCTzsz7cPj1v` reached Ready
+  and was assigned to the public domain. The standard repository build remains
+  unchanged.
+- The local branch contains one unpushed documentation-only commit for this
+  authorization. The repository policy rejected `git push` because the user
+  authorized publication but did not explicitly request a source-control push.
+  The unrelated pre-existing `package-lock.json` modification remains
+  untouched.
 
 ## Last Successful Validations
 
@@ -172,8 +184,34 @@ placeholder has been promoted to production.
   stable files, manifest self-entry excluded.
 - `npm.cmd audit`: found 0 vulnerabilities.
 - The invalid-environment probe rejected `PUBLIC_RELEASE_APPROVED=yes`.
-- Release-mode asset intake intentionally exited 1 and listed the 11 missing
+- Release-mode asset intake intentionally exited 1 and listed the 13 missing
   official files/font slots.
+- Live/local deployment diagnosis on 2026-09-09: Vercel built nine pages from
+  commit `6032d56`; its CSS/JavaScript asset hashes match the freshly generated
+  local `dist/`. The live page and `dist/` contain only `#inicio` and
+  `#contacto`, while development and `dist-demo/` render seven home sections.
+  The discrepancy is the intentional `DEV`/`demo` content gate, not stale
+  deployment or browser cache. The live browser console reported no warnings
+  or errors.
+- Vercel framework settings saved on 2026-09-09 with the explicitly authorized
+  temporary public-demo override. The demo remains visibly marked, `noindex`
+  and blocked by `robots.txt`; final content and release gates remain open.
+- Pre-deployment demo verification on 2026-09-09: `npm.cmd run
+  test:e2e:demo` passed with 29 tests and 10 intentional capability skips after
+  installing the matching Playwright Chromium headless shell. The standard
+  nine-page build, production integrity, internal links, brand assets and hero
+  contract also passed; the demo build generated all twelve expected pages.
+- Targeted Prettier validation passed for `docs/DECISIONS.md`,
+  `docs/DEPLOYMENT.md` and `docs/EXECUTION_STATE.md`. The repository-wide
+  `format:check` currently reports the existing Windows checkout line-ending
+  mismatch across 79 otherwise unmodified files, so no mass reformat was
+  performed.
+- Post-deployment browser QA on 2026-09-09 confirmed seven home sections, three
+  visible fictional-demo notices, the horizontal project rail and all three
+  demo project links on `https://colmillo-studio.vercel.app/`. The Fauce
+  Elástica detail route and chained project navigation rendered successfully;
+  metadata remains `noindex, nofollow` and the public browser console reported
+  no warnings or errors.
 
 ## Expected Failing Gates
 
@@ -181,7 +219,7 @@ placeholder has been promoted to production.
   prerequisites — canonical HTTPS origin, release approval and indexing
   approval.
 - `REQUIRE_CLIENT_ASSETS=true npm run check:assets`: intentionally blocked by
-  the 11 remaining official asset/font slots listed above. The two wordmarks
+  the 13 remaining official asset/font slots listed above. The two wordmarks
   are no longer reported missing.
 
 ## Changed Files
@@ -203,6 +241,9 @@ placeholder has been promoted to production.
   replaced the text wordmark with responsive supplied-image variants.
 - Updated package scripts, environment declarations/examples, ignore rules and
   all affected project documentation.
+- Documented the explicitly authorized temporary Vercel demo exception and its
+  rollback procedure in `docs/DECISIONS.md`, `docs/DEPLOYMENT.md` and this
+  state file.
 - Rebuilt the global menu/header composition and added `EditorialMotion.ts` and
   `SurfaceTone.ts`; refined hero, stack, project and cursor controllers plus
   their responsive styles and Playwright contracts.
