@@ -1,0 +1,52 @@
+# Colmillo Studio safety rules.
+# Rules are evaluated by Codex execpolicy when commands request execution outside
+# the sandbox. They are intentionally conservative for destructive operations.
+
+prefix_rule(
+    pattern = ["git", "reset"],
+    decision = "forbidden",
+    justification = "Do not discard local work. Inspect git status and ask the user if a reset is genuinely required.",
+    match = ["git reset --hard", "git reset HEAD~1"],
+)
+
+prefix_rule(
+    pattern = ["git", "clean"],
+    decision = "forbidden",
+    justification = "Do not remove untracked user files. List files and ask the user if cleanup is genuinely required.",
+    match = ["git clean -fd"],
+)
+
+prefix_rule(
+    pattern = ["git", "checkout", "--"],
+    decision = "forbidden",
+    justification = "Do not revert files with git checkout. Inspect the diff and preserve user work.",
+    match = ["git checkout -- ."],
+)
+
+prefix_rule(
+    pattern = ["git", "restore"],
+    decision = "forbidden",
+    justification = "Do not restore files destructively. Inspect the diff and ask if reverting is required.",
+    match = ["git restore ."],
+)
+
+prefix_rule(
+    pattern = ["git", "push"],
+    decision = "forbidden",
+    justification = "No pushes are allowed for Colmillo unless the user explicitly asks in the active session.",
+    match = ["git push", "git push --force"],
+)
+
+prefix_rule(
+    pattern = ["vercel", "deploy"],
+    decision = "forbidden",
+    justification = "No deployment is allowed without explicit user approval in the active session.",
+    match = ["vercel deploy", "vercel deploy --prod"],
+)
+
+prefix_rule(
+    pattern = ["npm", "publish"],
+    decision = "forbidden",
+    justification = "Publishing packages is outside the Colmillo website build scope.",
+    match = ["npm publish"],
+)

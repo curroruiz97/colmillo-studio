@@ -1,0 +1,24 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  image?: string | undefined;
+  imageAlt?: string | undefined;
+}
+
+const { title, description, image, imageAlt } = Astro.props;
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  ogType="article"
+  ogImage={image}
+  ogImageAlt={imageAlt}
+>
+  <article class="content-shell project-page">
+    <slot />
+  </article>
+</BaseLayout>

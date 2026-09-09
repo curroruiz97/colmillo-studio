@@ -1,0 +1,34 @@
+---
+import { demoMode } from '@/data/projects';
+---
+
+<section
+  id="studio"
+  class="stack-section stack-section--orange studio-section"
+  aria-labelledby="studio-title"
+  data-stack-section
+  data-surface-tone="accent"
+>
+  <div class="content-shell studio-section__grid">
+    <p class="section-index" aria-hidden="true">03</p>
+    <h2 id="studio-title" class="studio-section__title">
+      <span>COLMILLO</span>
+      <span>STUDIO</span>
+    </h2>
+    <div class="studio-section__seal" aria-hidden="true" data-deformable>
+      <span>Presión</span>
+      <span>Materia</span>
+      <span>Movimiento</span>
+    </div>
+    <a class="section-route" href="/studio/" data-cursor-label="Abrir">
+      Abrir Studio <span aria-hidden="true">↗</span>
+    </a>
+    {
+      demoMode && (
+        <p class="dev-note" data-dev-placeholder>
+          El texto de estudio se incorporará cuando el cliente apruebe el copy.
+        </p>
+      )
+    }
+  </div>
+</section>

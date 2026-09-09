@@ -1,0 +1,27 @@
+---
+import { demoMode } from '@/data/projects';
+---
+
+{
+  demoMode && (
+    <section
+      id="servicios"
+      class="stack-section stack-section--ink services-section"
+      aria-labelledby="services-title"
+      data-stack-section
+      data-surface-tone="dark"
+      data-dev-placeholder
+    >
+      <div class="content-shell">
+        <p class="section-index" aria-hidden="true">
+          02
+        </p>
+        <h2 id="services-title">Servicios</h2>
+        <p class="dev-note dev-note--dark">
+          Esta sección solo existe en desarrollo hasta recibir el listado de
+          servicios aprobado.
+        </p>
+      </div>
+    </section>
+  )
+}

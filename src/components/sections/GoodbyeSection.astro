@@ -1,0 +1,56 @@
+---
+import { goodbyeMedia } from '@/config/assets';
+import { demoMode } from '@/data/projects';
+---
+
+<section
+  class="goodbye-section"
+  aria-labelledby="goodbye-title"
+  data-stack-section
+  data-surface-tone="accent"
+>
+  {
+    goodbyeMedia ? (
+      <video
+        class="goodbye-section__media"
+        muted
+        loop
+        playsinline
+        preload="none"
+        poster={goodbyeMedia.poster}
+        width={goodbyeMedia.width}
+        height={goodbyeMedia.height}
+        data-motion-video
+        aria-hidden="true"
+      >
+        <source src={goodbyeMedia.mobile.webm} type="video/webm" />
+        <source src={goodbyeMedia.mobile.mp4} type="video/mp4" />
+        <source src={goodbyeMedia.desktop.webm} type="video/webm" />
+        <source src={goodbyeMedia.desktop.mp4} type="video/mp4" />
+      </video>
+    ) : (
+      <div class="goodbye-section__bite" aria-hidden="true" data-goodbye-bite>
+        <span class="goodbye-section__jaw goodbye-section__jaw--top" />
+        <p class="goodbye-section__word" data-goodbye-word>
+          <>
+            <span>AD</span>
+            <span>IÓS</span>
+          </>
+        </p>
+        <span class="goodbye-section__jaw goodbye-section__jaw--bottom" />
+      </div>
+    )
+  }
+  <div class="content-shell goodbye-section__content">
+    <p class="section-kicker">Hasta pronto</p>
+    <h2 id="goodbye-title">Nos vemos en la próxima mordida.</h2>
+    {
+      demoMode && (
+        <p class="dev-note dev-note--dark" data-dev-placeholder>
+          La despedida utiliza una composición estática hasta recibir la
+          animación oficial.
+        </p>
+      )
+    }
+  </div>
+</section>

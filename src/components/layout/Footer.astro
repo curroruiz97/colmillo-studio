@@ -1,0 +1,21 @@
+---
+import { legalNavigation } from '@/config/navigation';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <p class="site-footer__brand"><strong>Colmillo</strong> Studio</p>
+  <nav aria-label="Información legal">
+    <ul class="site-footer__nav" role="list">
+      {
+        legalNavigation.map((item) => (
+          <li>
+            <a href={item.href}>{item.label}</a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+  <p>© {year}</p>
+</footer>

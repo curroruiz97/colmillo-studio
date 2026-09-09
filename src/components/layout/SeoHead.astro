@@ -1,0 +1,55 @@
+---
+import { siteConfig } from '@/config/site';
+import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+
+interface Props {
+  title?: string | undefined;
+  description?: string | undefined;
+  noindex?: boolean | undefined;
+  image?: string | undefined;
+  imageAlt?: string | undefined;
+  type?: 'website' | 'article' | undefined;
+}
+
+const {
+  title = siteConfig.defaultTitle,
+  description = siteConfig.defaultDescription,
+  noindex = siteConfig.isPrelaunch,
+  image = siteConfig.socialImage ?? undefined,
+  imageAlt = siteConfig.socialImageAlt ?? undefined,
+  type = 'website',
+} = Astro.props;
+
+const pageTitle =
+  title === siteConfig.name ? title : `${title} — ${siteConfig.name}`;
+const canonical = siteConfig.siteUrl
+  ? new URL(Astro.url.pathname, siteConfig.siteUrl).toString()
+  : null;
+const socialImage =
+  image && siteConfig.siteUrl
+    ? new URL(image, siteConfig.siteUrl).toString()
+    : null;
+const faviconExists = existsSync(
+  fileURLToPath(
+    new URL('../../../public/assets/brand/favicon.svg', import.meta.url),
+  ),
+);
+---
+
+<title>{pageTitle}</title>
+<meta name="description" content={description} />
+<meta name="generator" content={Astro.generator} />
+<meta name="color-scheme" content="light" />
+<meta name="theme-color" content="#fceeda" />
+{noindex && <meta name="robots" content="noindex, nofollow" />}
+{canonical && <link rel="canonical" href={canonical} />}
+{faviconExists && <link rel="icon" href="/assets/brand/favicon.svg" />}
+<meta property="og:type" content={type} />
+<meta property="og:locale" content={siteConfig.locale.replace('-', '_')} />
+<meta property="og:site_name" content={siteConfig.name} />
+<meta property="og:title" content={pageTitle} />
+<meta property="og:description" content={description} />
+{canonical && <meta property="og:url" content={canonical} />}
+{socialImage && <meta property="og:image" content={socialImage} />}
+{socialImage && imageAlt && <meta property="og:image:alt" content={imageAlt} />}

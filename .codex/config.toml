@@ -1,0 +1,20 @@
+# COLMILLO STUDIO - PROJECT CODEX CONFIG
+
+# High-effort project default: GPT-5.6 Sol on standard processing, without Fast.
+model = "gpt-5.6-sol"
+model_reasoning_effort = "high"
+service_tier = "default"
+
+# This project benefits from current framework and browser documentation while
+# building the site.
+web_search = "live"
+
+# The root AGENTS.md is deliberately detailed; keep it within the project
+# instruction budget.
+project_doc_max_bytes = 131072
+
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 4
+default_subagent_model = "gpt-5.6-terra"
+default_subagent_reasoning_effort = "medium"

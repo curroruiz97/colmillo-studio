@@ -1,0 +1,63 @@
+---
+import Footer from '@/components/layout/Footer.astro';
+import SeoHead from '@/components/layout/SeoHead.astro';
+import SideMenu from '@/components/layout/SideMenu.astro';
+import SiteHeader from '@/components/layout/SiteHeader.astro';
+import '@/styles/index.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  noindex?: boolean;
+  hideNavigation?: boolean;
+  ogImage?: string | undefined;
+  ogImageAlt?: string | undefined;
+  ogType?: 'website' | 'article';
+}
+
+const {
+  title,
+  description,
+  noindex,
+  hideNavigation = false,
+  ogImage,
+  ogImageAlt,
+  ogType,
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <SeoHead
+      title={title}
+      description={description}
+      noindex={noindex}
+      image={ogImage}
+      imageAlt={ogImageAlt}
+      type={ogType}
+    />
+  </head>
+  <body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+    {!hideNavigation && <SideMenu />}
+    {!hideNavigation && <SiteHeader />}
+    <main id="contenido" tabindex="-1">
+      <slot />
+    </main>
+    {!hideNavigation && <Footer />}
+    <div class="custom-cursor" data-custom-cursor aria-hidden="true">
+      <span class="custom-cursor__shape">
+        <span class="custom-cursor__core"></span>
+        <span class="custom-cursor__label" data-cursor-text></span>
+      </span>
+    </div>
+    <script>
+      import { initMotion } from '@/scripts/motion/MotionController';
+
+      initMotion();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,17 @@
+---
+import LegalLayout from '@/layouts/LegalLayout.astro';
+import { demoMode } from '@/data/projects';
+---
+
+<LegalLayout
+  title="Aviso legal"
+  description="Información legal de Colmillo Studio pendiente de aprobación."
+>
+  {
+    demoMode && (
+      <p class="dev-note" data-dev-placeholder>
+        Documento pendiente de datos legales y texto aprobado por el cliente.
+      </p>
+    )
+  }
+</LegalLayout>

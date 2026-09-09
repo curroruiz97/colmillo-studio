@@ -1,0 +1,29 @@
+---
+import ProjectMedia from './ProjectMedia.astro';
+import type { ProjectRecord } from '@/data/projects';
+
+interface Props {
+  project: ProjectRecord;
+}
+
+const { project } = Astro.props;
+---
+
+<header class="project-hero" data-reveal-block>
+  <div class="project-hero__copy">
+    {project.demo && <strong class="demo-flag">{project.demoNotice}</strong>}
+    <p class="project-hero__meta">{project.year}</p>
+    <h1>{project.title}</h1>
+    <p class="project-hero__summary">{project.summary}</p>
+    {
+      project.services.length > 0 && (
+        <ul class="project-hero__services" aria-label="Servicios" role="list">
+          {project.services.map((service) => (
+            <li>{service}</li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+  <ProjectMedia media={project.cover} eager class="project-hero__media" />
+</header>

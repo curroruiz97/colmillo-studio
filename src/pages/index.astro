@@ -1,0 +1,33 @@
+---
+import { getCollection } from 'astro:content';
+import ContactSection from '@/components/sections/ContactSection.astro';
+import GoodbyeSection from '@/components/sections/GoodbyeSection.astro';
+import HeroSection from '@/components/sections/HeroSection.astro';
+import IntroSection from '@/components/sections/IntroSection.astro';
+import ProjectsHorizontal from '@/components/sections/ProjectsHorizontal.astro';
+import ServicesSection from '@/components/sections/ServicesSection.astro';
+import StudioSection from '@/components/sections/StudioSection.astro';
+import { goodbyeMedia } from '@/config/assets';
+import { contentAvailability } from '@/config/content';
+import { demoMode, demoProjects, normalizeProject } from '@/data/projects';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+const projects = demoMode
+  ? demoProjects
+  : contentAvailability.projects
+    ? (await getCollection('projects'))
+        .filter((project) => !project.data.draft)
+        .map(normalizeProject)
+    : [];
+const showIntro = demoMode || contentAvailability.homeIntro;
+---
+
+<BaseLayout>
+  <HeroSection followHref={showIntro ? '#manifiesto' : '#contacto'} />
+  {showIntro && <IntroSection />}
+  {(demoMode || contentAvailability.services) && <ServicesSection />}
+  <ProjectsHorizontal projects={projects} />
+  {(demoMode || contentAvailability.studio) && <StudioSection />}
+  {(demoMode || goodbyeMedia) && <GoodbyeSection />}
+  <ContactSection />
+</BaseLayout>

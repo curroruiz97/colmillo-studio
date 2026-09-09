@@ -1,0 +1,49 @@
+:root {
+  color: var(--color-text);
+  background: var(--color-background);
+  font-family: var(--font-body);
+  font-synthesis: none;
+}
+
+html {
+  min-inline-size: 0;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-block-size: 100vh;
+  background: var(--color-background);
+  color: var(--color-text);
+  font-size: var(--font-body-size);
+  line-height: 1.55;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+p,
+a,
+strong {
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: currentColor;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+}
+
+a:hover {
+  text-decoration-thickness: 0.14em;
+}
+
+:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 0.25rem;
+}
+
+::selection {
+  background: var(--color-brand-orange);
+  color: var(--color-brand-ink);
+}

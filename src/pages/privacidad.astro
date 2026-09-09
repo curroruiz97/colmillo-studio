@@ -1,0 +1,17 @@
+---
+import LegalLayout from '@/layouts/LegalLayout.astro';
+import { demoMode } from '@/data/projects';
+---
+
+<LegalLayout
+  title="Privacidad"
+  description="Política de privacidad de Colmillo Studio pendiente de aprobación."
+>
+  {
+    demoMode && (
+      <p class="dev-note" data-dev-placeholder>
+        Política pendiente de requisitos de tratamiento y texto legal aprobado.
+      </p>
+    )
+  }
+</LegalLayout>

@@ -1,0 +1,121 @@
+---
+import { demoMode } from '@/data/projects';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Manifiesto"
+  description="Manifiesto creativo de Colmillo Studio."
+>
+  <article
+    class="editorial-page manifesto-page"
+    aria-labelledby="manifesto-page-title"
+  >
+    <header
+      class="editorial-page__hero content-shell"
+      data-surface-tone="light"
+    >
+      <p class="section-index" aria-hidden="true">01 / Manifiesto</p>
+      <div class="editorial-page__title-block">
+        <p class="section-kicker">Colmillo Studio</p>
+        <h1 id="manifesto-page-title">Manifiesto</h1>
+      </div>
+      <div class="editorial-page__mark" data-editorial-mark aria-hidden="true">
+        <span>M</span><span>01</span>
+      </div>
+      {
+        demoMode && (
+          <strong class="demo-flag editorial-page__flag">
+            DEMO FICTICIA — NO PUBLICAR
+          </strong>
+        )
+      }
+    </header>
+
+    {
+      demoMode && (
+        <div class="manifesto-page__body" data-dev-placeholder>
+          <section
+            class="manifesto-statement manifesto-statement--cream"
+            data-stack-section
+            data-surface-tone="light"
+          >
+            <div
+              class="content-shell manifesto-statement__grid"
+              data-reveal-block
+            >
+              <p class="section-index" aria-hidden="true">
+                01
+              </p>
+              <h2>
+                Morder lo <em>previsible.</em>
+              </h2>
+              <p>
+                Texto conceptual ficticio para probar ritmo, jerarquía y
+                lectura. No representa una declaración aprobada del estudio.
+              </p>
+            </div>
+          </section>
+          <section
+            class="manifesto-statement manifesto-statement--orange"
+            data-stack-section
+            data-surface-tone="accent"
+          >
+            <div
+              class="content-shell manifesto-statement__grid"
+              data-reveal-block
+            >
+              <p class="section-index" aria-hidden="true">
+                02
+              </p>
+              <h2>
+                Presionar hasta encontrar una <em>forma propia.</em>
+              </h2>
+              <p>
+                Escena de demostración destinada a comprobar composiciones
+                largas, contraste y adaptación entre pantallas.
+              </p>
+            </div>
+          </section>
+          <section
+            class="manifesto-statement manifesto-statement--ink"
+            data-stack-section
+            data-surface-tone="dark"
+          >
+            <div
+              class="content-shell manifesto-statement__grid"
+              data-reveal-block
+            >
+              <p class="section-index" aria-hidden="true">
+                03
+              </p>
+              <h2>
+                Soltar solo cuando queda <em>marca.</em>
+              </h2>
+              <p>
+                DEMO FICTICIA — NO PUBLICAR. Sustituir todo este bloque por el
+                manifiesto validado por el cliente.
+              </p>
+            </div>
+          </section>
+        </div>
+      )
+    }
+
+    <nav
+      class="editorial-page__next content-shell"
+      aria-label="Continuar el recorrido"
+    >
+      <a href="/studio/" data-cursor-label="Seguir">
+        <span>Siguiente</span>
+        <strong>Studio</strong>
+        <span aria-hidden="true">↘</span>
+      </a>
+      <a href="/contacto/" data-cursor-label="Hablar">
+        <span>Ir a</span>
+        <strong>Contacto</strong>
+        <span aria-hidden="true">↗</span>
+      </a>
+    </nav>
+  </article>
+</BaseLayout>

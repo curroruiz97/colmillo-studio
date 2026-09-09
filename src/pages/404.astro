@@ -1,0 +1,17 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+Astro.response.status = 404;
+---
+
+<BaseLayout
+  title="Página no encontrada"
+  description="La página solicitada no existe en Colmillo Studio."
+  noindex
+>
+  <section class="content-shell" aria-labelledby="not-found-title">
+    <p>Error 404</p>
+    <h1 id="not-found-title">Aquí no hay mordida.</h1>
+    <p><a href="/">Volver al inicio</a></p>
+  </section>
+</BaseLayout>

@@ -1,0 +1,47 @@
+{
+  "name": "colmillo-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "build:demo": "astro build --mode demo --outDir dist-demo",
+    "preview": "astro preview",
+    "check": "astro check",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check:assets": "node scripts/check-client-assets.mjs",
+    "check:brand": "node scripts/check-brand-assets.mjs",
+    "check:production": "node scripts/check-production.mjs",
+    "check:links": "node scripts/check-links.mjs",
+    "check:manifest": "node scripts/check-manifest-idempotence.mjs",
+    "check:hero": "node scripts/check-hero-contract.mjs",
+    "release:check": "node scripts/release-check.mjs",
+    "release:manifest": "node scripts/release-manifest.mjs",
+    "test:e2e": "npm run build && playwright test",
+    "test:e2e:demo": "npm run build:demo && playwright test --config playwright.demo.config.ts",
+    "validate": "npm run check && npm run lint && npm run format:check && npm run check:assets && npm run check:brand && npm run check:hero && npm run build && npm run check:production && npm run check:links"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "3.7.4",
+    "astro": "7.3.1",
+    "gsap": "3.15.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.62.1",
+    "eslint": "10.10.0",
+    "eslint-plugin-astro": "3.1.0",
+    "prettier": "3.9.6",
+    "prettier-plugin-astro": "0.14.1",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.69.0"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

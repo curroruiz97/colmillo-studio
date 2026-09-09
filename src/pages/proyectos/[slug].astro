@@ -1,0 +1,61 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import ProjectGallery from '@/components/projects/ProjectGallery.astro';
+import ProjectHero from '@/components/projects/ProjectHero.astro';
+import ProjectNavigation from '@/components/projects/ProjectNavigation.astro';
+import { contentAvailability } from '@/config/content';
+import {
+  demoMode,
+  demoProjects,
+  normalizeProject,
+  type ProjectRecord,
+} from '@/data/projects';
+import ProjectLayout from '@/layouts/ProjectLayout.astro';
+
+export async function getStaticPaths() {
+  const entries =
+    !demoMode && contentAvailability.projects
+      ? await getCollection('projects', ({ data }) => !data.draft)
+      : [];
+  const projects = demoMode ? demoProjects : entries.map(normalizeProject);
+
+  return projects.map((project, index) => ({
+    params: { slug: project.slug },
+    props: {
+      project,
+      entry: entries[index],
+      previous: projects[(index - 1 + projects.length) % projects.length],
+      next: projects[(index + 1) % projects.length],
+    },
+  }));
+}
+
+interface Props {
+  entry?: CollectionEntry<'projects'>;
+  next: ProjectRecord;
+  previous: ProjectRecord;
+  project: ProjectRecord;
+}
+
+const { entry, next, previous, project } = Astro.props;
+const rendered = entry ? await render(entry) : null;
+const Content = rendered?.Content;
+---
+
+<ProjectLayout
+  title={project.title}
+  description={project.summary}
+  image={project.cover.src}
+  imageAlt={project.cover.alt}
+>
+  <ProjectHero project={project} />
+  <ProjectGallery project={project} />
+  {
+    Content && (
+      <div class="project-story__approved">
+        <Content />
+      </div>
+    )
+  }
+  <ProjectNavigation previous={previous} next={next} />
+</ProjectLayout>

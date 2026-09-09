@@ -1,0 +1,54 @@
+---
+import { getCollection } from 'astro:content';
+import ProjectCard from '@/components/projects/ProjectCard.astro';
+import { contentAvailability } from '@/config/content';
+import { demoMode, demoProjects, normalizeProject } from '@/data/projects';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+const projects = demoMode
+  ? demoProjects
+  : contentAvailability.projects
+    ? (await getCollection('projects'))
+        .filter((project) => !project.data.draft)
+        .map(normalizeProject)
+    : [];
+---
+
+<BaseLayout
+  title="Proyectos"
+  description="Archivo de proyectos de Colmillo Studio."
+>
+  <section
+    class="content-shell projects-index"
+    aria-labelledby="projects-title"
+  >
+    <header class="projects-index__header">
+      <p class="section-kicker">Archivo</p>
+      <h1 id="projects-title">Proyectos</h1>
+      {
+        demoMode && (
+          <strong class="demo-flag">DEMO FICTICIA — NO PUBLICAR</strong>
+        )
+      }
+    </header>
+    {
+      projects.length > 0 && (
+        <ol class="projects-index__grid" role="list">
+          {projects.map((project, index) => (
+            <li class="project-card">
+              <ProjectCard project={project} index={index} />
+            </li>
+          ))}
+        </ol>
+      )
+    }
+    {
+      demoMode && projects.length === 0 && (
+        <p class="dev-note" data-dev-placeholder>
+          La colección está preparada; no se publicarán proyectos hasta recibir
+          contenido real.
+        </p>
+      )
+    }
+  </section>
+</BaseLayout>

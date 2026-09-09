@@ -1,0 +1,24 @@
+---
+import type { ProjectRecord } from '@/data/projects';
+
+interface Props {
+  previous: ProjectRecord;
+  next: ProjectRecord;
+}
+
+const { previous, next } = Astro.props;
+---
+
+<nav class="project-navigation" aria-label="Navegación entre proyectos">
+  <a href={`/proyectos/${previous.slug}/`} rel="prev">
+    <span>← Anterior</span>
+    <strong>{previous.title}</strong>
+  </a>
+  <a class="project-navigation__return" href="/proyectos/">
+    Todos los proyectos
+  </a>
+  <a href={`/proyectos/${next.slug}/`} rel="next">
+    <span>Siguiente →</span>
+    <strong>{next.title}</strong>
+  </a>
+</nav>

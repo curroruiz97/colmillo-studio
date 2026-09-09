@@ -1,0 +1,105 @@
+---
+import { heroMedia } from '@/config/assets';
+import { demoMode } from '@/data/projects';
+
+interface Props {
+  followHref: string;
+}
+
+const { followHref } = Astro.props;
+---
+
+<section
+  id="inicio"
+  class="hero"
+  aria-labelledby="hero-title"
+  data-hero
+  data-surface-tone="dark"
+>
+  {
+    heroMedia ? (
+      <div class="hero__media-frame">
+        <img
+          class="hero__poster"
+          src={heroMedia.poster}
+          alt=""
+          width={heroMedia.width}
+          height={heroMedia.height}
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+          aria-hidden="true"
+        />
+        <video
+          class="hero__media"
+          autoplay
+          muted
+          loop
+          playsinline
+          preload="metadata"
+          poster={heroMedia.poster}
+          width={heroMedia.width}
+          height={heroMedia.height}
+          data-motion-video
+          aria-hidden="true"
+        >
+          <source
+            src={heroMedia.mobile.webm}
+            type="video/webm"
+            media="(max-width: 48rem)"
+          />
+          <source
+            src={heroMedia.mobile.mp4}
+            type="video/mp4"
+            media="(max-width: 48rem)"
+          />
+          <source
+            src={heroMedia.desktop.webm}
+            type="video/webm"
+            media="(min-width: 48.01rem)"
+          />
+          <source
+            src={heroMedia.desktop.mp4}
+            type="video/mp4"
+            media="(min-width: 48.01rem)"
+          />
+        </video>
+      </div>
+    ) : (
+      <div class="hero__stage" data-hero-stage aria-hidden="true">
+        <span class="hero__pressure hero__pressure--one" />
+        <span class="hero__pressure hero__pressure--two" />
+        <span class="hero__pressure hero__pressure--three" />
+        <p class="hero__kinetic" data-hero-word>
+          <>
+            <span>COL</span>
+            <span>MILLO</span>
+          </>
+        </p>
+      </div>
+    )
+  }
+
+  <div class="hero__content content-shell">
+    <p class="hero__eyebrow">Estudio creativo</p>
+    <h1 id="hero-title" class="visually-hidden">Colmillo Studio</h1>
+    <div class="hero__footer">
+      <a class="bite-button" href="#contacto" data-magnetic>
+        <span>Haz que tu marca muerda</span>
+      </a>
+      <a class="hero__scroll" href={followHref}>
+        <span>Seguir</span>
+        <span aria-hidden="true">↓</span>
+      </a>
+    </div>
+  </div>
+
+  {
+    demoMode && (
+      <p class="dev-note hero__dev-note" data-dev-placeholder>
+        El escenario cinético es el fallback provisional. Se sustituirá por el
+        vídeo oficial optimizado cuando llegue el activo del cliente.
+      </p>
+    )
+  }
+</section>

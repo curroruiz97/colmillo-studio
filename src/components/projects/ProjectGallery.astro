@@ -1,0 +1,41 @@
+---
+import ProjectMedia from './ProjectMedia.astro';
+import type { ProjectRecord } from '@/data/projects';
+
+interface Props {
+  project: ProjectRecord;
+}
+
+const { project } = Astro.props;
+---
+
+<div class="project-story">
+  {
+    project.narrative.length > 0 && (
+      <div class="project-story__narrative">
+        {project.narrative.map((paragraph) => (
+          <p>{paragraph}</p>
+        ))}
+      </div>
+    )
+  }
+  {
+    project.gallery.length > 0 && (
+      <div class="project-gallery" aria-label="Galería del proyecto">
+        {project.gallery.map((media, index) => (
+          <figure data-reveal-block>
+            <ProjectMedia media={media} />
+            {media.caption && (
+              <figcaption>
+                <span aria-hidden="true">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                {media.caption}
+              </figcaption>
+            )}
+          </figure>
+        ))}
+      </div>
+    )
+  }
+</div>

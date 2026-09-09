@@ -1,0 +1,28 @@
+---
+import ProjectMedia from './ProjectMedia.astro';
+import type { ProjectRecord } from '@/data/projects';
+
+interface Props {
+  index: number;
+  project: ProjectRecord;
+}
+
+const { index, project } = Astro.props;
+---
+
+<article class="project-card__surface">
+  <a
+    href={`/proyectos/${project.slug}/`}
+    data-magnetic
+    data-cursor-label="Abrir"
+  >
+    {project.demo && <strong class="demo-flag">{project.demoNotice}</strong>}
+    <ProjectMedia media={project.cover} class="project-card__cover" />
+    <div class="project-card__copy">
+      <span aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+      <h3>{project.title}</h3>
+      <p>{project.summary}</p>
+      <span class="project-card__year">{project.year}</span>
+    </div>
+  </a>
+</article>

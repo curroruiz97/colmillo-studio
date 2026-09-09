@@ -1,0 +1,15 @@
+---
+interface Props {
+  eyebrow?: string;
+  title: string;
+  level?: 1 | 2;
+}
+
+const { eyebrow, title, level = 2 } = Astro.props;
+const Heading = `h${level}` as const;
+---
+
+<header class="section-heading">
+  {eyebrow && <p class="section-heading__eyebrow">{eyebrow}</p>}
+  <Heading>{title}</Heading>
+</header>

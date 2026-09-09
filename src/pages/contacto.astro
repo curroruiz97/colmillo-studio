@@ -1,0 +1,89 @@
+---
+import { publishedContactChannels } from '@/config/contact';
+import { demoMode } from '@/data/projects';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Contacto" description="Contacto con Colmillo Studio.">
+  <article class="contact-page" aria-labelledby="contact-page-title">
+    <header class="contact-page__hero content-shell" data-surface-tone="accent">
+      <p class="section-index" aria-hidden="true">04 / Contacto</p>
+      <div class="contact-page__title">
+        <p class="section-kicker">El siguiente movimiento</p>
+        <h1 id="contact-page-title">Haz que tu marca <em>muerda</em></h1>
+      </div>
+      <div
+        class="contact-page__signal"
+        data-editorial-mark
+        data-contact-signal
+        aria-hidden="true"
+      >
+        <span></span><span></span><span></span>
+      </div>
+    </header>
+
+    <section
+      class="contact-page__channels"
+      aria-labelledby="channels-title"
+      data-surface-tone="dark"
+    >
+      <div class="content-shell contact-page__channels-grid">
+        <div>
+          <p class="section-index" aria-hidden="true">Canales</p>
+          <h2 id="channels-title">Hablemos.</h2>
+        </div>
+        {
+          publishedContactChannels.length > 0 ? (
+            <ul role="list">
+              {publishedContactChannels.map((channel, index) => (
+                <li>
+                  <a
+                    href={channel.href}
+                    data-magnetic
+                    data-cursor-label="Abrir"
+                  >
+                    <span aria-hidden="true">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <strong>{channel.label}</strong>
+                    <span aria-hidden="true">↗</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            demoMode && (
+              <div class="contact-page__pending" data-dev-placeholder>
+                <strong class="demo-flag">DEMO FICTICIA — NO PUBLICAR</strong>
+                <p>
+                  Los canales reales aparecerán en este panel cuando el cliente
+                  confirme correo, teléfono y perfiles públicos.
+                </p>
+              </div>
+            )
+          )
+        }
+      </div>
+    </section>
+
+    <nav
+      class="contact-page__routes content-shell"
+      aria-label="Explorar antes de contactar"
+    >
+      <p class="section-index">Mientras tanto</p>
+      <a href="/manifiesto/" data-cursor-label="Leer" data-reveal-block>
+        <span>01</span><strong>Manifiesto</strong><span aria-hidden="true"
+          >↗</span
+        >
+      </a>
+      <a href="/studio/" data-cursor-label="Conocer" data-reveal-block>
+        <span>02</span><strong>Studio</strong><span aria-hidden="true">↗</span>
+      </a>
+      <a href="/proyectos/" data-cursor-label="Ver" data-reveal-block>
+        <span>03</span><strong>Proyectos</strong><span aria-hidden="true"
+          >↗</span
+        >
+      </a>
+    </nav>
+  </article>
+</BaseLayout>

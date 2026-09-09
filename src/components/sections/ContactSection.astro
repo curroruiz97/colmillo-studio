@@ -1,0 +1,39 @@
+---
+import { publishedContactChannels } from '@/config/contact';
+import { demoMode } from '@/data/projects';
+---
+
+<section
+  id="contacto"
+  class="contact-section"
+  aria-labelledby="contact-title"
+  data-stack-section
+  data-surface-tone="light"
+>
+  <div class="content-shell contact-section__grid">
+    <p class="section-index" aria-hidden="true">04</p>
+    <h2 id="contact-title">Haz que tu marca <em>muerda</em></h2>
+    {
+      publishedContactChannels.length > 0 && (
+        <ul class="contact-section__links" role="list">
+          {publishedContactChannels.map((channel) => (
+            <li>
+              <a href={channel.href} data-magnetic>
+                {channel.label}
+                <span aria-hidden="true">↗</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+    {
+      demoMode && publishedContactChannels.length === 0 && (
+        <p class="dev-note" data-dev-placeholder>
+          Los canales se activarán aquí y en el encabezado cuando se confirmen
+          los datos públicos.
+        </p>
+      )
+    }
+  </div>
+</section>

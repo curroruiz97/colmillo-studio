@@ -1,0 +1,103 @@
+---
+import ProjectCard from '@/components/projects/ProjectCard.astro';
+import type { ProjectRecord } from '@/data/projects';
+
+interface Props {
+  projects: ProjectRecord[];
+}
+
+const { projects } = Astro.props;
+---
+
+{
+  projects.length > 0 ? (
+    <section
+      id="proyectos"
+      class="projects-section"
+      aria-labelledby="projects-home-title"
+      data-horizontal-projects
+      data-surface-tone="dark"
+    >
+      <div class="projects-section__header content-shell">
+        <p class="section-index" aria-hidden="true">
+          02
+        </p>
+        <div class="projects-section__heading">
+          <h2 id="projects-home-title">Proyectos</h2>
+          <p>Trabajo que deja marca. Baja para recorrerlo.</p>
+        </div>
+        <p
+          class="projects-section__count"
+          data-project-progress
+          aria-live="polite"
+        >
+          1 / {projects.length}
+        </p>
+        {projects.length > 1 && (
+          <div
+            class="projects-section__controls"
+            aria-label="Navegar proyectos"
+          >
+            <button
+              type="button"
+              data-project-previous
+              aria-label="Proyecto anterior"
+              data-cursor-label="Anterior"
+            >
+              ←
+            </button>
+            <button
+              type="button"
+              data-project-next
+              aria-label="Proyecto siguiente"
+              data-cursor-label="Siguiente"
+            >
+              →
+            </button>
+          </div>
+        )}
+        <div
+          class="projects-section__meter"
+          data-project-meter
+          role="progressbar"
+          aria-label="Progreso del carril de proyectos"
+          aria-valuemin="1"
+          aria-valuemax={projects.length}
+          aria-valuenow="1"
+        >
+          <span />
+        </div>
+      </div>
+      <div class="projects-section__viewport" data-project-viewport>
+        <ol class="projects-section__track" data-project-track>
+          {projects.map((project, index) => (
+            <li class="project-card" data-project-card>
+              <ProjectCard project={project} index={index} />
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+  ) : (
+    import.meta.env.DEV && (
+      <section
+        id="proyectos"
+        class="projects-section projects-section--empty"
+        aria-labelledby="projects-home-title"
+        data-dev-placeholder
+        data-surface-tone="dark"
+      >
+        <div class="content-shell">
+          <p class="section-index" aria-hidden="true">
+            02
+          </p>
+          <h2 id="projects-home-title">Proyectos</h2>
+          <p class="dev-note dev-note--dark">
+            El carril horizontal está preparado y se activará al publicar el
+            primer proyecto aprobado.
+          </p>
+        </div>
+      </section>
+    )
+  )
+}
