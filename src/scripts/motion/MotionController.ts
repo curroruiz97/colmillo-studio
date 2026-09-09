@@ -5,6 +5,7 @@ import { initEditorialMotion } from './EditorialMotion';
 import { initHeroMotion } from './HeroMotion';
 import { initHorizontalProjects } from './HorizontalProjects';
 import { initMagneticElements } from './MagneticElements';
+import { initManifestoMotion } from './ManifestoMotion';
 import { initMotionPreference } from './MotionPreference';
 import { initSectionStack } from './SectionStack';
 import { initSideMenu } from './SideMenu';
@@ -22,6 +23,7 @@ export function initMotion(): void {
   const startEnhancements = () => [
     initCustomCursor(),
     initEditorialMotion(),
+    initManifestoMotion(),
     initHeroMotion(),
     initStickyHeader(),
     initSurfaceTone(),

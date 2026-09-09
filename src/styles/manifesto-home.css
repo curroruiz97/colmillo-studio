@@ -1,0 +1,306 @@
+/* Home manifesto: an editorial poster sequence.
+   The rules below describe the FINAL composition. The scroll timeline in
+   `ManifestoMotion.ts` only applies transform offsets that resolve back to
+   `transform: none`, so reduced motion, coarse pointers and no-JavaScript all
+   inherit this layout as a finished static poster. */
+
+.manifesto-home {
+  /* The words never wrap, so the small-screen ceiling is set by the longest
+     one ("PRESIONAR." plus its indent) rather than by taste. */
+  --manifesto-word: clamp(2.2rem, 12.4vw, 4.6rem);
+  --manifesto-mark: clamp(2.4rem, 13.8vw, 5.2rem);
+  --manifesto-shape: clamp(9rem, 42vw, 15rem);
+}
+
+.manifesto-home__canvas {
+  display: grid;
+  justify-items: start;
+  gap: clamp(1.1rem, 4vw, 2rem);
+  /* The fixed header can wrap to two lines on the narrowest screens. */
+  padding-block: calc(var(--header-height) + clamp(2.5rem, 12vw, 4rem))
+    clamp(4.5rem, 20vw, 7.5rem);
+}
+
+.manifesto-home__index,
+.manifesto-home__kicker,
+.manifesto-home__tag {
+  max-inline-size: none;
+  margin: 0;
+}
+
+.manifesto-home__kicker {
+  color: var(--color-brand-ink-soft);
+}
+
+.manifesto-home__tag {
+  color: var(--color-brand-ink-soft);
+  font-size: var(--font-label);
+  font-weight: 800;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+}
+
+.manifesto-home__rule {
+  inline-size: min(100%, 12rem);
+  block-size: var(--border-width);
+  background: currentColor;
+  opacity: 0.55;
+  transform-origin: 0 50%;
+}
+
+.manifesto-home__title {
+  display: grid;
+  justify-items: start;
+  gap: clamp(0.9rem, 4.5vw, 1.8rem);
+  inline-size: 100%;
+  margin: 0;
+  font-size: inherit;
+}
+
+.manifesto-home__word {
+  display: block;
+  font-family: var(--font-display);
+  font-size: var(--manifesto-word);
+  line-height: 0.88;
+  letter-spacing: -0.055em;
+  text-transform: uppercase;
+  text-wrap: nowrap;
+  white-space: nowrap;
+  will-change: transform;
+}
+
+.manifesto-home__word--presionar {
+  margin-inline-start: 8%;
+}
+
+.manifesto-home__word--marca {
+  color: var(--color-brand-orange);
+  font-family: var(--font-handwritten);
+  font-size: var(--manifesto-mark);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  text-transform: none;
+}
+
+/* Tension + release: a printed graphic being physically pressed.
+   Three layers on purpose — the outer box is positioned, the inner layer
+   travels and scales as one object, and only the skin deforms, so the label
+   never gets squashed. */
+.manifesto-home__shape {
+  position: relative;
+  inline-size: var(--manifesto-shape);
+  aspect-ratio: 1;
+  justify-self: end;
+  margin-inline-end: -6%;
+}
+
+.manifesto-home__shape-inner {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  will-change: transform;
+}
+
+.manifesto-home__skin {
+  position: absolute;
+  inset: 0;
+  border: var(--border-width) solid currentColor;
+  border-radius: 48% 42% 46% 40%;
+  rotate: 5deg;
+  will-change: transform;
+}
+
+/* A chunk taken out of a printed outline, not a second shape: the disc is
+   filled with the surface colour and sits astride the contour, so the stroke
+   simply stops where the bite is. */
+.manifesto-home__bite {
+  position: absolute;
+  inset-block-start: 14%;
+  inset-inline-start: -11%;
+  inline-size: 24%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--color-brand-cream);
+}
+
+.manifesto-home__shape-label {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 0.15rem;
+  font-size: var(--font-label);
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.manifesto-home__cta {
+  grid-column: auto;
+  margin-block-start: clamp(0.5rem, 3vw, 1.5rem);
+}
+
+/* A keyboard user can reach the link before the timeline reveals it. */
+.manifesto-home__cta:focus-visible {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+@media (min-width: 48.01rem) and (max-width: 64rem) {
+  .manifesto-home {
+    --manifesto-word: clamp(4rem, 11vw, 7rem);
+    --manifesto-mark: clamp(4.2rem, 12vw, 7.6rem);
+    --manifesto-shape: clamp(11rem, 26vw, 17rem);
+  }
+
+  .manifesto-home__word--presionar {
+    margin-inline-start: 16%;
+  }
+
+  .manifesto-home__word--marca {
+    margin-inline-start: 6%;
+  }
+}
+
+/* Desktop: one pinned stage, four compositions. */
+@media (min-width: 64.01rem) and (min-height: 40rem) {
+  .manifesto-home {
+    --manifesto-word: clamp(3.4rem, 6.2vw, 6.6rem);
+    --manifesto-mark: clamp(3.8rem, 7.4vw, 8rem);
+    --manifesto-shape: clamp(13rem, 19vw, 19rem);
+
+    /* The tall track owns the scroll; the stage inside it does the pinning,
+       so this section opts out of the shared sticky stack behaviour. */
+    position: relative;
+  }
+
+  .manifesto-home__track {
+    block-size: 300svh;
+  }
+
+  .manifesto-home__stage {
+    position: sticky;
+    inset-block-start: 0;
+    block-size: 100svh;
+    overflow: clip;
+  }
+
+  .manifesto-home__canvas {
+    position: relative;
+    display: block;
+    block-size: 100svh;
+    padding-block: 0;
+  }
+
+  .manifesto-home__canvas > * {
+    position: absolute;
+    margin: 0;
+  }
+
+  .manifesto-home__index {
+    inset-block-start: 12%;
+    inset-inline-start: 0;
+  }
+
+  .manifesto-home__kicker {
+    inset-block-start: 12%;
+    inset-inline-start: 8%;
+  }
+
+  .manifesto-home__rule {
+    inset-block-start: 19%;
+    inset-inline-start: 0;
+    inline-size: 34%;
+  }
+
+  /* Physical offsets on purpose: logical insets resolve against the element's
+     own writing mode, so `vertical-rl` would swap the axes here. */
+  .manifesto-home__tag {
+    top: 56%;
+    right: 0;
+    writing-mode: vertical-rl;
+  }
+
+  .manifesto-home__title {
+    display: block;
+    position: absolute;
+    inset: 0;
+  }
+
+  .manifesto-home__word {
+    position: absolute;
+    margin: 0;
+    transform-origin: 0 0;
+  }
+
+  .manifesto-home__word--morder {
+    inset-block-start: 24%;
+    inset-inline-start: 6%;
+  }
+
+  .manifesto-home__word--presionar {
+    inset-block-start: 44%;
+    inset-inline-start: 28%;
+  }
+
+  .manifesto-home__word--marca {
+    inset-block-start: 62%;
+    inset-inline-start: 12%;
+  }
+
+  .manifesto-home__shape {
+    inset-block-start: 22%;
+    inset-inline-end: 2%;
+    justify-self: auto;
+    margin-inline-end: 0;
+  }
+
+  .manifesto-home__cta {
+    inset-block-end: 8%;
+    inset-inline-start: 6%;
+    margin-block-start: 0;
+  }
+}
+
+/* Ambient pointer response: bounded, subconscious, and driven by the variables
+   CustomCursor already publishes, so no extra listener or frame loop exists. */
+@media (hover: hover) and (pointer: fine) {
+  .manifesto-home__shape {
+    translate: calc(var(--pointer-shift-x, 0px) * 0.38)
+      calc(var(--pointer-shift-y, 0px) * 0.38);
+    transition: translate 420ms var(--ease-bite);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .manifesto-home__shape {
+    translate: none;
+  }
+}
+
+html[data-motion='reduced'] .manifesto-home__shape {
+  translate: none;
+}
+
+/* Reduced motion keeps the finished poster composition, but drops the extra
+   scroll length and the pin: there is no sequence left to drive. */
+@media (min-width: 64.01rem) and (min-height: 40rem) {
+  html[data-motion='reduced'] .manifesto-home__track {
+    block-size: 100svh;
+  }
+
+  html[data-motion='reduced'] .manifesto-home__stage {
+    position: relative;
+  }
+}
+
+@media (min-width: 64.01rem) and (min-height: 40rem) and (prefers-reduced-motion: reduce) {
+  .manifesto-home__track {
+    block-size: 100svh;
+  }
+
+  .manifesto-home__stage {
+    position: relative;
+  }
+}

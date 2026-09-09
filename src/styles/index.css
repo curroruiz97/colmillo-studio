@@ -1,4 +1,4 @@
-@layer reset, tokens, fonts, base, layout, components, utilities, motion;
+@layer reset, tokens, fonts, base, layout, components, sections, utilities, motion;
 
 @import './reset.css' layer(reset);
 @import './tokens.css' layer(tokens);
@@ -6,6 +6,7 @@
 @import './globals.css' layer(base);
 @import './layout.css' layer(layout);
 @import './typography.css' layer(components);
+@import './manifesto-home.css' layer(sections);
 @import './utilities.css' layer(utilities);
 @import './motion.css' layer(motion);
 @import './reduced-motion.css' layer(motion);

@@ -172,12 +172,22 @@ test('project rail exposes contextual cursor and truthful progress', async ({
   await page.goto('/');
   const section = page.locator('[data-horizontal-projects]');
   await expect(section).toHaveAttribute('data-projects-ready');
-  await section.evaluate((element) => {
-    window.scrollTo({
-      top: element.getBoundingClientRect().top + window.scrollY,
-      behavior: 'auto',
+  // The home stacks sticky sections above the rail, so a single absolute jump
+  // computed before scrolling can land short. Re-apply until the rail really
+  // sits at the top of the viewport, then let the pin settle.
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    await section.evaluate((element) => {
+      window.scrollTo({
+        top: element.getBoundingClientRect().top + window.scrollY,
+        behavior: 'auto',
+      });
     });
-  });
+    await page.waitForTimeout(400);
+    const offset = await section.evaluate(
+      (element) => element.getBoundingClientRect().top,
+    );
+    if (Math.abs(offset) < 2) break;
+  }
   await page.waitForTimeout(900);
 
   const firstCard = page.locator('[data-project-card] a').first();
