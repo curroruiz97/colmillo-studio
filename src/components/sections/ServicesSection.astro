@@ -1,26 +1,97 @@
 ---
-import { demoMode } from '@/data/projects';
+import ServiceGlyph from '@/components/ui/ServiceGlyph.astro';
+import { homeServices } from '@/data/services';
+
+const services = homeServices;
+const hasProvisionalCopy = services.some((service) => service.demo);
 ---
 
 {
-  demoMode && (
+  services.length > 0 && (
     <section
       id="servicios"
       class="stack-section stack-section--ink services-section"
       aria-labelledby="services-title"
       data-stack-section
       data-surface-tone="dark"
-      data-dev-placeholder
+      data-services-section
+      {...(hasProvisionalCopy ? { 'data-dev-placeholder': true } : {})}
     >
-      <div class="content-shell">
+      {/* Oversized backdrop word. Purely typographic texture; the readable
+          service titles carry the meaning. */}
+      <p class="services-section__ghost" aria-hidden="true" data-services-ghost>
+        {services[0]?.title}
+      </p>
+
+      <div class="services-section__intro content-shell">
         <p class="section-index" aria-hidden="true">
           02
         </p>
-        <h2 id="services-title">Servicios</h2>
-        <p class="dev-note dev-note--dark">
-          Esta sección solo existe en desarrollo hasta recibir el listado de
-          servicios aprobado.
+        <p class="section-kicker">Colmillo / Servicios</p>
+        <h2 id="services-title" class="services-section__title">
+          Servicios
+        </h2>
+        {hasProvisionalCopy && (
+          <strong class="demo-flag services-section__flag">
+            {services[0]?.demoNotice}
+          </strong>
+        )}
+      </div>
+
+      <div class="services-section__stage">
+        {/* Sticky editorial marker. Keeps the section anchored without a heavy
+            pinned stage, so the rhythm stays lighter than the manifesto. */}
+        <p class="services-section__marker" aria-hidden="true">
+          <span>Servicios</span>
+          <span class="services-section__marker-count" data-services-marker>
+            {services[0]?.number}
+          </span>
         </p>
+
+        <ol class="services-section__composition" role="list">
+          {services.map((service, index) => (
+            <li
+              class="service-entry"
+              data-service-entry
+              data-service-id={service.id}
+              data-service-title={service.title}
+              data-service-number={service.number}
+              style={`--service-index:${index}`}
+            >
+              <div class="service-entry__inner" data-service-inner>
+                <p class="service-entry__number" aria-hidden="true">
+                  {service.number}
+                </p>
+                <span class="service-entry__mark" aria-hidden="true">
+                  <ServiceGlyph variant={service.glyph} />
+                </span>
+                <h3 class="service-entry__title">
+                  {service.href ? (
+                    <a
+                      href={service.href}
+                      data-magnetic
+                      data-cursor-label="Ver"
+                    >
+                      {service.title}
+                    </a>
+                  ) : (
+                    service.title
+                  )}
+                </h3>
+                <p class="service-entry__short">{service.shortDescription}</p>
+                <p class="service-entry__description">{service.description}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <div class="services-section__outro content-shell">
+        <p class="services-section__outro-line" aria-hidden="true" />
+        <a class="section-route" href="/proyectos/" data-cursor-label="Ver">
+          <span>Ver proyectos</span>
+          <span aria-hidden="true">↗</span>
+        </a>
       </div>
     </section>
   )

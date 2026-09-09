@@ -37,13 +37,17 @@ p {
   align-items: center;
   justify-content: center;
   min-block-size: 4rem;
-  max-inline-size: 17rem;
-  padding: 0.9rem 1.35rem;
+  max-inline-size: 18.5rem;
+  /* The rounded bite shape eats into the horizontal edges, so the label needs
+     optical padding to stay centred instead of touching the curve. */
+  padding: 1.05rem 2rem;
   border: var(--border-width) solid var(--color-brand-ink);
   border-radius: 50% 42% 48% 44%;
   background: var(--color-brand-orange);
   color: var(--color-brand-ink);
   font-weight: 800;
-  line-height: 1.1;
+  line-height: 1.15;
+  text-align: center;
   text-decoration: none;
+  text-wrap: balance;
 }

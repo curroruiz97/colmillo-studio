@@ -29,9 +29,15 @@
 
 ## Contact
 
-- Public email address.
-- Public Instagram profile URL.
-- Public phone number.
+Received and published on 2026-09-09:
+
+- Public email address: `hola@colmillostudio.com`.
+- Public Instagram profile: `https://www.instagram.com/colmillo.studio/`.
+
+Still missing:
+
+- Public phone number. The brief asks for telephone quick access in the sticky
+  header; the channel stays unpublished until a real number is confirmed.
 - Contact form requirements, if any.
 - Privacy/legal consent copy if a form is used.
 
@@ -39,7 +45,11 @@
 
 - Final home copy.
 - Final manifesto page copy.
-- Services list.
+- Services list. The home section is built and waiting: replace the flagged
+  demonstration entries in `src/data/services.ts` with approved names, short
+  lines and descriptions, then enable `contentAvailability.services`. Each
+  service can also carry a real destination and a related project when those
+  exist.
 - Studio/about page copy and approved process or methodology, if it should be
   published.
 - Project/client list.

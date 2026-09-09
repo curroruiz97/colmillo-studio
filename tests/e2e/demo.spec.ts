@@ -218,6 +218,85 @@ test('project rail exposes contextual cursor and truthful progress', async ({
   );
 });
 
+test('the pinned project rail stays in view for the whole pin', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'fine-1440');
+  await page.goto('/');
+  const section = page.locator('[data-horizontal-projects]');
+  await expect(section).toHaveAttribute('data-horizontal-enhanced', 'true');
+
+  // No ancestor of the rail may establish a containing block for fixed
+  // descendants. A transform, filter or perspective there makes ScrollTrigger
+  // position the pinned section against that ancestor instead of the viewport,
+  // which scrolls the whole section out of sight mid-pin.
+  const ancestorBreaksFixed = await section.evaluate((element) => {
+    let node = element.parentElement;
+    while (node) {
+      const style = getComputedStyle(node);
+      if (
+        style.transform !== 'none' ||
+        style.perspective !== 'none' ||
+        style.filter !== 'none' ||
+        style.backdropFilter !== 'none'
+      ) {
+        return node.tagName.toLowerCase() + '#' + node.id;
+      }
+      node = node.parentElement;
+    }
+    return null;
+  });
+  expect(ancestorBreaksFixed).toBeNull();
+
+  const pin = await page
+    .locator('.pin-spacer')
+    .first()
+    .evaluate((spacer) => {
+      const rect = spacer.getBoundingClientRect();
+      return { top: rect.top + window.scrollY, height: rect.height };
+    });
+
+  const viewportHeight = page.viewportSize()?.height ?? 0;
+  expect(viewportHeight).toBeGreaterThan(0);
+
+  // Sample across the pin, including both ends.
+  for (const ratio of [0.05, 0.3, 0.55, 0.8]) {
+    const target = pin.top + (pin.height - viewportHeight) * ratio;
+    await page.evaluate((y) => window.scrollTo(0, y), target);
+    await page.waitForTimeout(400);
+
+    const state = await section.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      const track = document.querySelector('[data-project-track]');
+      return {
+        top: Math.round(rect.top),
+        height: Math.round(rect.height),
+        viewportHeight: window.innerHeight,
+        position: getComputedStyle(element).position,
+        trackX: track
+          ? new DOMMatrix(getComputedStyle(track).transform).m41
+          : 0,
+      };
+    });
+
+    if (state.position === 'fixed') {
+      // While pinned the section must sit at the top of the viewport and fit
+      // inside it, because vertical scrolling is frozen for the whole pin.
+      expect(state.top).toBe(0);
+      expect(state.height).toBeLessThanOrEqual(state.viewportHeight + 1);
+    }
+    // The section is on screen at every sampled point of the pin.
+    expect(state.top).toBeLessThan(state.viewportHeight);
+    expect(state.top + state.height).toBeGreaterThan(0);
+  }
+
+  // The rail actually advanced horizontally across the pin.
+  const finalX = await page
+    .locator('[data-project-track]')
+    .evaluate((track) => new DOMMatrix(getComputedStyle(track).transform).m41);
+  expect(finalX).toBeLessThan(-100);
+});
+
 test('side rail reports the current home scene', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'fine-1440');
   await page.goto('/');
@@ -279,6 +358,90 @@ test('reduced motion keeps all project content available', async ({ page }) => {
     'transform',
     'none',
   );
+});
+
+test('the services composition keeps every entry readable in all modes', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const section = page.locator('#servicios');
+  const entries = section.locator('[data-service-entry]');
+  await expect(entries).toHaveCount(4);
+  await expect(section.getByRole('heading', { level: 2 })).toHaveText(
+    'Servicios',
+  );
+  await expect(section.locator('h3')).toHaveCount(4);
+
+  // Provisional copy must stay unmistakably flagged.
+  await expect(
+    section.getByText('DEMO FICTICIA — NO PUBLICAR').first(),
+  ).toBeVisible();
+
+  // No content may sit behind hover, and no placeholder destinations.
+  await expect(section.locator('a[href="#"]')).toHaveCount(0);
+  await expect(
+    section.locator('[tabindex="0"]:not(a):not(button)'),
+  ).toHaveCount(0);
+  const hiddenDescriptions = await section
+    .locator('.service-entry__description')
+    .evaluateAll(
+      (nodes) =>
+        nodes.filter((node) => {
+          const style = getComputedStyle(node);
+          return (
+            style.display === 'none' ||
+            style.visibility === 'hidden' ||
+            Number.parseFloat(style.opacity) < 0.5
+          );
+        }).length,
+    );
+  expect(hiddenDescriptions).toBe(0);
+
+  // Decorative glyphs stay out of the accessibility tree.
+  const exposedGlyphs = await section
+    .locator('.service-glyph')
+    .evaluateAll(
+      (nodes) =>
+        nodes.filter((node) => node.getAttribute('aria-hidden') !== 'true')
+          .length,
+    );
+  expect(exposedGlyphs).toBe(0);
+
+  await expect(section.locator('a[href="/proyectos/"]')).toBeVisible();
+});
+
+test('the services composition is asymmetric on a fine pointer', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'fine-1440');
+  await page.goto('/');
+  const section = page.locator('#servicios');
+  await section.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(600);
+
+  // Designed placement: no two entries share an indent, and none of it is
+  // random, so the same four offsets must appear on every run.
+  const indents = await section
+    .locator('[data-service-entry]')
+    .evaluateAll((nodes) =>
+      nodes.map((node) => Math.round(node.getBoundingClientRect().x)),
+    );
+  expect(new Set(indents).size).toBe(indents.length);
+
+  // Hover emphasis dims the rest without hiding it.
+  const first = section.locator('[data-service-entry]').first();
+  await first.hover();
+  await page.waitForTimeout(350);
+  await expect(first).toHaveAttribute('data-service-active', 'true');
+  const dimmed = await section
+    .locator('[data-service-entry]:not([data-service-active="true"])')
+    .evaluateAll((nodes) =>
+      nodes.map((node) => Number.parseFloat(getComputedStyle(node).opacity)),
+    );
+  for (const opacity of dimmed) {
+    expect(opacity).toBeGreaterThanOrEqual(0.45);
+    expect(opacity).toBeLessThanOrEqual(0.65);
+  }
 });
 
 test('primary and editorial routes fit a compact 320px viewport', async ({

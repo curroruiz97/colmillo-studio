@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test('the home foundation is navigable without invented contact links', async ({
+test('the home foundation publishes only approved contact channels', async ({
   page,
 }) => {
   await page.goto('/');
@@ -17,7 +17,35 @@ test('the home foundation is navigable without invented contact links', async ({
   );
   await expect(page.locator('#contacto')).toHaveCount(1);
   await expect(page.locator('a[href="#"]')).toHaveCount(0);
-  await expect(page.locator('a[href^="mailto:"]')).toHaveCount(0);
+
+  const approvedMail = 'mailto:hola@colmillostudio.com';
+  const approvedInstagram = 'https://www.instagram.com/colmillo.studio/';
+
+  // The contact section publishes both approved channels in the document flow.
+  const contactSection = page.locator('#contacto');
+  await expect(
+    contactSection.locator(`a[href="${approvedMail}"]`),
+  ).toBeVisible();
+  await expect(
+    contactSection.locator(`a[href="${approvedInstagram}"]`),
+  ).toBeVisible();
+
+  // The same channels exist as sticky-header quick access, which stays hidden
+  // until the hero is left behind.
+  const headerNav = page.locator('.site-header__nav');
+  await expect(headerNav.locator(`a[href="${approvedMail}"]`)).toHaveCount(1);
+  await expect(headerNav.locator(`a[href="${approvedInstagram}"]`)).toHaveCount(
+    1,
+  );
+  await expect(headerNav.locator(`a[href="${approvedMail}"]`)).toBeHidden();
+
+  // Every published channel must be one of the approved destinations.
+  const mailHrefs = await page
+    .locator('a[href^="mailto:"]')
+    .evaluateAll((links) => links.map((link) => link.getAttribute('href')));
+  expect(new Set(mailHrefs)).toEqual(new Set([approvedMail]));
+
+  // No telephone number has been supplied yet, so none may be published.
   await expect(page.locator('a[href^="tel:"]')).toHaveCount(0);
 });
 

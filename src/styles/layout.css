@@ -172,6 +172,9 @@
   z-index: 2;
   inset: 50% auto auto 50%;
   inline-size: 100%;
+  /* The display word is not prose: it must ignore the paragraph measure cap,
+     which otherwise wrapped MILLO onto a third line above ~1330px. */
+  max-inline-size: none;
   display: grid;
   translate: -50% -50%;
   color: var(--color-brand-orange);
@@ -183,6 +186,11 @@
   text-align: center;
   text-transform: uppercase;
   text-shadow: 0 0.08em 0 var(--color-brand-cream);
+}
+
+.hero__kinetic span {
+  /* COLMILLO always reads as exactly two lines: COL / MILLO. */
+  white-space: nowrap;
 }
 
 .hero__kinetic span:last-child {
@@ -525,6 +533,46 @@
 .projects-section[data-horizontal-enhanced='true'] .projects-section__viewport {
   overflow: hidden;
   scroll-snap-type: none;
+}
+
+/*
+ * A pinned section freezes vertical scrolling, so anything below the fold is
+ * unreachable for the whole pin. The enhanced rail therefore fits the viewport
+ * exactly and lets the card media absorb the leftover space instead of pushing
+ * the card bottom out of sight. The native overflow fallback used by touch,
+ * reduced motion and no-JavaScript keeps its taller intrinsic layout.
+ */
+.projects-section[data-horizontal-enhanced='true'] {
+  block-size: 100svh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.projects-section[data-horizontal-enhanced='true'] .projects-section__header {
+  padding-block: calc(var(--header-height) + clamp(1rem, 3vh, 3rem))
+    clamp(1rem, 2.5vh, 2.5rem);
+}
+
+.projects-section[data-horizontal-enhanced='true'] .projects-section__viewport {
+  min-block-size: 0;
+}
+
+.projects-section[data-horizontal-enhanced='true'] .projects-section__track {
+  block-size: 100%;
+  /* Clears the fixed menu trigger anchored to the bottom of the viewport. */
+  padding-block-end: clamp(5rem, 9vh, 7rem);
+}
+
+.projects-section[data-horizontal-enhanced='true'] .project-card {
+  min-block-size: 0;
+  block-size: 100%;
+}
+
+.projects-section[data-horizontal-enhanced='true'] .project-card__cover,
+.projects-section[data-horizontal-enhanced='true'] .project-composition {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  aspect-ratio: auto;
 }
 
 .projects-section__track {
@@ -910,12 +958,22 @@
 
 .contact-section__links a {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 2rem;
+  gap: 1rem 2rem;
+  flex-wrap: wrap;
   padding-block: 0.75rem;
   border-block-end: var(--border-width) solid currentColor;
   font-weight: 800;
   text-decoration: none;
+}
+
+.contact-section__value {
+  margin-inline-start: auto;
+  font-size: var(--font-label);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
 }
 
 .editorial-page,
@@ -1274,6 +1332,19 @@
   line-height: 1;
 }
 
+.contact-page__channel {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.contact-page__channel-value {
+  font-size: var(--font-label);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  overflow-wrap: anywhere;
+  text-transform: none;
+}
+
 .contact-page__pending {
   display: grid;
   align-content: start;
@@ -1542,8 +1613,9 @@ body > main > .content-shell {
     gap: 0.75rem;
   }
 
-  .site-header__nav li:not(:last-child) {
-    display: none;
+  /* Every approved quick-contact channel stays reachable on small screens. */
+  .site-header__nav a {
+    letter-spacing: 0.02em;
   }
 
   .site-header__context span:first-child,

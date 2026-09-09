@@ -45,7 +45,14 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
                     <span aria-hidden="true">
                       {String(index + 1).padStart(2, '0')}
                     </span>
-                    <strong>{channel.label}</strong>
+                    <span class="contact-page__channel">
+                      <strong>{channel.label}</strong>
+                      {channel.value && (
+                        <span class="contact-page__channel-value">
+                          {channel.value}
+                        </span>
+                      )}
+                    </span>
                     <span aria-hidden="true">↗</span>
                   </a>
                 </li>

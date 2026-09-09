@@ -19,7 +19,10 @@ import { demoMode } from '@/data/projects';
           {publishedContactChannels.map((channel) => (
             <li>
               <a href={channel.href} data-magnetic>
-                {channel.label}
+                <span>{channel.label}</span>
+                {channel.value && (
+                  <span class="contact-section__value">{channel.value}</span>
+                )}
                 <span aria-hidden="true">↗</span>
               </a>
             </li>

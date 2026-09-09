@@ -15,6 +15,7 @@ const forbidden = [
   'Rastro Naranja',
   'fallback provisional',
   'listado de servicios aprobado',
+  'Texto provisional de demostración',
   'colección está preparada',
 ];
 const limits = {

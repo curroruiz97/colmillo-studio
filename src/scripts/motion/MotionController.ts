@@ -8,6 +8,7 @@ import { initMagneticElements } from './MagneticElements';
 import { initManifestoMotion } from './ManifestoMotion';
 import { initMotionPreference } from './MotionPreference';
 import { initSectionStack } from './SectionStack';
+import { initServicesMotion } from './ServicesMotion';
 import { initSideMenu } from './SideMenu';
 import { initStickyHeader } from './StickyHeader';
 import { initSurfaceTone } from './SurfaceTone';
@@ -29,6 +30,7 @@ export function initMotion(): void {
     initSurfaceTone(),
     initSideMenu(),
     initSectionStack(),
+    initServicesMotion(),
     initHorizontalProjects(),
     initMagneticElements(),
   ];

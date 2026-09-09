@@ -515,11 +515,21 @@ body > main {
   animation: 260ms var(--ease-bite) both page-bite-in;
 }
 
+/*
+ * The page entry must never animate transform, translate, scale, rotate,
+ * filter or perspective on `main`. `animation-fill-mode: both` keeps the
+ * property applied after the animation ends, so a transform here computes to
+ * an identity matrix instead of `none` and turns `main` into the containing
+ * block for every `position: fixed` descendant. That silently broke the
+ * ScrollTrigger pin on the horizontal project rail, which was positioned
+ * against the document origin and scrolled out of view mid-pin.
+ * `clip-path` and `opacity` produce the same bite reveal without that side
+ * effect.
+ */
 @keyframes page-bite-in {
   from {
     opacity: 0;
     clip-path: inset(0 0 6% 0 round 0 0 2.5rem 2.5rem);
-    transform: translateY(0.6rem);
   }
 }
 

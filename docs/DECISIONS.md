@@ -302,3 +302,190 @@ repository's clean production artifact and makes rollback a two-setting
 operation. This authorization does not approve the fictional content as real
 client work, remove the outstanding content requirements or authorize search
 indexing.
+
+## 2026-09-09 - First Approved Contact Channels
+
+Decision: Publish the client-supplied email `hola@colmillostudio.com` and
+Instagram profile `https://www.instagram.com/colmillo.studio/` in the
+centralized contact configuration, and keep `phone` unpublished. Add an
+optional `value` field so the real address is visible where there is room while
+the sticky header keeps short labels.
+
+Reason: The user supplied these two channels directly, so they are approved
+content rather than invented data. Publishing them activates the sticky-header
+quick access required by the brief. No telephone number was supplied, so that
+channel stays `null` and no `tel:` link is emitted. The mobile rule that hid all
+but the last header nav item was removed because it would have hidden the email
+on small screens now that the nav carries real channels.
+
+## 2026-09-09 - Hero Display Word Is Not Prose
+
+Decision: Exempt `.hero__kinetic` from the global `p { max-inline-size:
+var(--reading-width) }` measure cap and force `white-space: nowrap` on its two
+spans.
+
+Reason: The hero word inherited the 48rem readability cap intended for
+paragraphs. Above roughly 1330px the display font grew past 768px, so `MILLO`
+wrapped and the hero read as three lines (`COL` / `MILL` / `O`) instead of the
+intended `COL` / `MILLO`. `nowrap` makes the two-line lockup independent of the
+active font metrics, which also protects it once licensed Bootzy TM arrives.
+`.hero` and `.hero__stage` already clip, so a wider face cannot create document
+overflow.
+
+## 2026-09-09 - CTA Label Centering
+
+Decision: Give `.bite-button` `text-align: center`, `text-wrap: balance`, wider
+optical padding (`1.05rem 2rem`) and a slightly larger `max-inline-size`
+(18.5rem).
+
+Reason: The label was centered as a flex item but its own lines were
+start-aligned, so any font whose metrics forced a second line rendered visibly
+off-center. The rounded bite shape also eats into the horizontal edges, so the
+text needed more optical padding to stop touching the curve. Verified with a
+deliberately wider display face: both wrapped lines now center within 0px of
+the button axis.
+
+## 2026-09-09 - The Page Entry Must Not Animate Transform On `main`
+
+Decision: Remove `transform: translateY(0.6rem)` from the `page-bite-in`
+keyframe. The entry reveal now animates only `opacity` and `clip-path`.
+
+Reason: `body > main` uses `animation: 260ms var(--ease-bite) both
+page-bite-in`. With `animation-fill-mode: both` the animated properties stay
+applied after the animation ends, so `main` kept a computed
+`transform: matrix(1, 0, 0, 1, 0, 0)` instead of `none`. A non-`none` transform
+makes an element the containing block for every `position: fixed` descendant.
+ScrollTrigger pins the horizontal project rail with `position: fixed`, so the
+pinned section resolved against `main` at the document origin instead of the
+viewport: it scrolled out of view for the entire pin and reappeared only when
+the pin released. `clip-path` and `opacity` produce the same bite reveal
+without creating a containing block. A regression test asserts that no ancestor
+of the rail declares transform, perspective, filter or backdrop-filter.
+
+## 2026-09-09 - The Pinned Rail Fits The Viewport
+
+Decision: While `data-horizontal-enhanced` is set, the projects section is
+exactly `100svh` with `grid-template-rows: auto minmax(0, 1fr)`, the track
+fills the remaining row, and the card cover drops its fixed aspect ratio to
+absorb the leftover space. The native overflow fallback used by touch, reduced
+motion and no JavaScript keeps its taller intrinsic layout.
+
+Reason: A pin freezes vertical scrolling, so anything below the fold is
+unreachable for the whole pin. The section measured 1421px against viewports of
+1000px and 800px, which cut off the bottom of every card including its title,
+summary and year. Constraining the section to the viewport is the only way the
+whole card stays reachable while the rail plays. Verified at 1920×1080,
+1440×1000, 1440×800, 1280×720 and 834×1112: the card is fully inside the
+viewport and clears the fixed menu trigger at every size.
+
+## 2026-09-09 - Home Manifesto As A Scroll-Driven Poster Sequence
+
+Decision: Rebuild the home manifesto as one section containing a 300svh track
+with a single `position: sticky` 100svh stage. A scrubbed GSAP timeline moves
+`Morder.`, `Presionar.`, `Dejar marca.`, the tension/release shape and the
+editorial micro-elements through four compositions with deliberate pauses
+between them. The section opts out of the shared `.stack-section` sticky
+behaviour on desktop; the following section still covers it, so the layered
+identity is unchanged.
+
+The CSS describes the final composition and the timeline only applies transform
+offsets that resolve to `transform: none`, so reduced motion, coarse pointers
+and no JavaScript inherit a finished static poster rather than a stripped one.
+Coarse pointers and short viewports get a linear editorial stack with reveals
+and never the pin. The shape is three layers - positioned box, travelling inner
+layer, deforming skin - so it can be compressed and stretched without squashing
+its label, and its bite is a surface-coloured disc astride the contour rather
+than a second outline.
+
+New styles live in `src/styles/manifesto-home.css` under a new `sections`
+cascade layer placed after `components`, and the timeline in
+`src/scripts/motion/ManifestoMotion.ts` mounts through the existing
+`MotionController`.
+
+Reason: The previous composition was a single static grid and read as one
+unchanging block. A sticky stage keeps native vertical scroll, adds no wheel
+interception and no scroll trap, and lets scale, position and emptiness carry
+the personality instead of added effects. The new cascade layer was necessary
+because layer order beats specificity: component-layer rules such as
+`p { max-inline-size: var(--reading-width) }` would otherwise win over the
+section's own layout, which is the same class of bug already recorded for the
+hero display word. Timeline offsets are fractions of the measured canvas with
+`invalidateOnRefresh`, so the choreography survives 1024-1920px and resize
+without per-breakpoint tuning. The pointer response reuses the bounded
+`--pointer-shift-*` variables `CustomCursor` already publishes, so no second
+listener or frame loop was introduced.
+
+## 2026-09-09 - Project Rail Test Scrolls Are Re-Applied, Not Assumed
+
+Decision: In `tests/e2e/demo.spec.ts`, the project rail test re-applies its
+scroll until the rail actually sits at the top of the viewport instead of
+trusting one absolute jump. Its assertions are unchanged.
+
+Reason: The helper computed `getBoundingClientRect().top + scrollY` before
+scrolling and jumped once. With sticky sections above it that reading is not a
+stable document offset, and after the home grew the single jump landed 977px
+short, so the hover point fell outside the viewport and the cursor assertion
+failed against an element that was never hovered. The browser-verified user
+path is unaffected: the hero `#manifiesto` anchor lands at 0px offset at 1366
+and 1440. The fix hardens the harness rather than relaxing the contract.
+
+## 2026-09-09 - Services As A Composition, Not A Card Grid
+
+Decision: Rebuild the home services section as an asymmetric editorial
+composition — "the workshop" — with a typed data source
+(`src/data/services.ts`), an abstract Colmillo glyph per service
+(`src/components/ui/ServiceGlyph.astro`), a sticky vertical marker, an
+oversized backdrop word and pointer emphasis driven by
+`src/scripts/motion/ServicesMotion.ts`.
+
+Reason: The previous section was a bare development placeholder — a title and a
+note — not a card grid. It communicated nothing about the studio's range. The
+new composition takes spatial freedom from one reference and per-service
+editorial depth from another, expressed entirely through Colmillo's existing
+cream/ink/orange system and its bite, pressure and trace vocabulary. Positions
+come from explicit `nth-child` rules, never randomness, so the layout is
+reproducible and reviewable.
+
+## 2026-09-09 - Services Never Hide Content Behind Hover
+
+Decision: Every service always renders its number, glyph, title, short line and
+full description. Pointer and scroll only change emphasis: the active entry
+keeps full opacity, the rest drop to 0.55, the glyph compresses to
+`scale(0.96, 1.03)` and the backdrop word and sticky marker follow. Services
+without an approved destination render as plain articles, never as links with
+`href="#"` and never as `tabindex="0"` pseudo-controls.
+
+Reason: A hover-revealed description would need a focus equivalent, and the
+only honest way to build one for entries that have no real destination is a
+fake control. Keeping all copy in the DOM gives keyboard, touch, screen-reader,
+reduced-motion and no-JavaScript users the complete section, and lets the
+composition stay a pure visual enhancement. The active service is tracked from
+scroll position as well as from the pointer, so the editorial focus is truthful
+without any pointer at all.
+
+## 2026-09-09 - Services Opt Out Of The Sticky Stack
+
+Decision: On screens wider than 64rem the services section is `position:
+relative` with a `min-block-size` of roughly 150svh, and compresses its
+editorial padding and offsets below 58rem of viewport height.
+
+Reason: `.stack-section` is `position: sticky` on desktop, so a section taller
+than the viewport would pin itself and leave its own lower half unreachable —
+the same class of trap as the project rail pin. The manifesto section already
+opts out for the same reason. Height-aware compression keeps the section
+between 1.4 and 2.1 viewport heights at 1920x1080, 1440x900, 1366x768,
+1024x1366, 768x1024, 430x932 and 390x844, so the section never overstays.
+
+## 2026-09-09 - Provisional Services Are Isolated Demo Data
+
+Decision: `src/data/services.ts` ships four flagged demonstration services that
+resolve to an empty array outside development and `demo` mode. The section
+renders a visible `DEMO FICTICIA — NO PUBLICAR` notice, carries
+`data-dev-placeholder`, and `check:production` now also blocks the string
+`Texto provisional de demostración`.
+
+Reason: No approved services list exists, and none may be invented. The repo
+already solved this for case studies with `demoProjects`, so services follow
+the same isolation contract: the composition and its interaction can be
+designed and QA'd now, `dist/` stays clean, and swapping in approved copy is a
+single-file change.
