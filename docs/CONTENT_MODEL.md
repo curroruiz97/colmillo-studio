@@ -46,7 +46,7 @@ When the first approved project arrives:
   downloads.
 - The standard `npm run build` generates no demo detail paths.
 - `check:production` scans `dist/` for the banner, demo slugs and demo titles.
-- `test:e2e:demo` verifies three projects, detail navigation, history,
+- `test:e2e:demo` verifies five projects, detail navigation, history,
   horizontal enhancement, editorial routes, 320 px layouts, 200% text sizing,
   native no-JavaScript overflow and fixed controls.
 

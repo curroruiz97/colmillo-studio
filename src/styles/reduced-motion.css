@@ -17,11 +17,6 @@
     clip-path: none !important;
   }
 
-  .projects-section .project-card {
-    opacity: 1 !important;
-    transform: none !important;
-  }
-
   ::view-transition-old(root),
   ::view-transition-new(root) {
     animation: none !important;
@@ -44,11 +39,6 @@ html[data-motion='reduced'] *::after {
 html[data-motion='reduced'] .stack-section {
   position: relative !important;
   clip-path: none !important;
-}
-
-html[data-motion='reduced'] .projects-section .project-card {
-  opacity: 1 !important;
-  transform: none !important;
 }
 
 html[data-motion='reduced'] .custom-cursor {

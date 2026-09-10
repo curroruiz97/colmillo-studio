@@ -1,5 +1,5 @@
 ---
-import ProjectCard from '@/components/projects/ProjectCard.astro';
+import ProjectTile from '@/components/projects/ProjectTile.astro';
 import type { ProjectRecord } from '@/data/projects';
 
 interface Props {
@@ -16,79 +16,42 @@ const { projects } = Astro.props;
       class="projects-section"
       aria-labelledby="projects-home-title"
       data-horizontal-projects
-      data-surface-tone="dark"
+      data-surface-tone="light"
     >
-      <div class="projects-section__header content-shell">
-        <p class="section-index" aria-hidden="true">
-          02
+      <header class="projects-section__header content-shell">
+        <h2 id="projects-home-title">Proyectos</h2>
+        <p>
+          Trabajo que deja marca.{' '}
+          <span class="projects-section__hint--swipe">
+            Desliza para recorrerlo.
+          </span>
+          <span class="projects-section__hint--scroll">
+            Baja para recorrerlo.
+          </span>
         </p>
-        <div class="projects-section__heading">
-          <h2 id="projects-home-title">Proyectos</h2>
-          <p>Trabajo que deja marca. Baja para recorrerlo.</p>
-        </div>
-        <p
-          class="projects-section__count"
-          data-project-progress
-          aria-live="polite"
-        >
-          1 / {projects.length}
-        </p>
-        {projects.length > 1 && (
-          <div
-            class="projects-section__controls"
-            aria-label="Navegar proyectos"
-          >
-            <button
-              type="button"
-              data-project-previous
-              aria-label="Proyecto anterior"
-              data-cursor-label="Anterior"
-            >
-              ←
-            </button>
-            <button
-              type="button"
-              data-project-next
-              aria-label="Proyecto siguiente"
-              data-cursor-label="Siguiente"
-            >
-              →
-            </button>
-          </div>
-        )}
-        <div
-          class="projects-section__meter"
-          data-project-meter
-          role="progressbar"
-          aria-label="Progreso del carril de proyectos"
-          aria-valuemin="1"
-          aria-valuemax={projects.length}
-          aria-valuenow="1"
-        >
-          <span />
-        </div>
-      </div>
+      </header>
       <div class="projects-section__viewport" data-project-viewport>
-        <ol class="projects-section__track" data-project-track>
-          {projects.map((project, index) => (
-            <li class="project-card" data-project-card>
-              <ProjectCard project={project} index={index} />
-            </li>
-          ))}
-        </ol>
-      </div>
-      {/* The route into the full archive closes the rail. It is the last row of
-          the pinned grid, so it stays on screen for the whole pin instead of
-          sitting below the fold where nobody could reach it. */}
-      <div class="projects-section__outro content-shell">
-        <a
-          class="bite-button projects-section__cta"
-          href="/proyectos/"
-          data-magnetic
-          data-cursor-label="Ver"
-        >
-          <span>Ver proyectos</span>
-        </a>
+        {/* The track is what moves. It holds the pieces and, after the last
+            one, the route into the archive, so the rail ends on it. */}
+        <div class="projects-section__track" data-project-track>
+          <ol class="projects-section__list" role="list">
+            {projects.map((project) => (
+              <li class="project-tile" data-project-card>
+                <ProjectTile project={project} />
+              </li>
+            ))}
+          </ol>
+          <div class="projects-section__outro" data-project-outro>
+            <a
+              class="bite-button projects-section__cta"
+              href="/proyectos/"
+              data-magnetic
+              data-cursor-label="Ver"
+            >
+              <span>Ver proyectos</span>
+            </a>
+          </div>
+        </div>
       </div>
     </section>
   ) : (
@@ -98,14 +61,11 @@ const { projects } = Astro.props;
         class="projects-section projects-section--empty"
         aria-labelledby="projects-home-title"
         data-dev-placeholder
-        data-surface-tone="dark"
+        data-surface-tone="light"
       >
         <div class="content-shell">
-          <p class="section-index" aria-hidden="true">
-            02
-          </p>
           <h2 id="projects-home-title">Proyectos</h2>
-          <p class="dev-note dev-note--dark">
+          <p class="dev-note">
             El carril horizontal está preparado y se activará al publicar el
             primer proyecto aprobado.
           </p>

@@ -4,12 +4,13 @@
  *
  * An editorial block, not a card grid: the heading holds the left third and the
  * four vignettes sit in an even 2x2 across the right two thirds, starting well
- * below the heading's baseline. Deliberately spare — a title, four small
- * drawings, four names and four short lines of copy — so it reads as the calm
- * beat between the manifesto and the project rail. The route onward lives at
- * the end of the projects section, not here.
+ * below the heading's baseline. Deliberately spare — a title, one illustration,
+ * four small drawings, four names and four short lines of copy — so it reads as
+ * the calm beat between the manifesto and the project rail. The route onward
+ * lives at the end of the projects section, not here.
  */
 import ServiceGlyph from '@/components/ui/ServiceGlyph.astro';
+import { servicesIllustration } from '@/config/assets';
 import { homeServices } from '@/data/services';
 
 const services = homeServices;
@@ -32,6 +33,18 @@ const hasProvisionalCopy = services.some((service) => service.demo);
           <h2 id="services-title" class="services-section__title">
             Nuestros servicios
           </h2>
+          {/* Decorative: the heading and the four named services already carry
+              everything this says, and the art has a real alpha channel, so it
+              composites straight onto the ink with no plate behind it. */}
+          <img
+            class="services-section__illustration"
+            src={servicesIllustration.src}
+            width={servicesIllustration.width}
+            height={servicesIllustration.height}
+            alt=""
+            loading="lazy"
+            decoding="async"
+          />
         </div>
 
         <ol class="services-section__list" role="list">

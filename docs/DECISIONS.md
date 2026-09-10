@@ -1104,3 +1104,83 @@ divider, and the bite tab - clipped by the section's own `overflow: clip` -
 only survived as two short ticks hanging from it. This consciously narrows the
 "bordes y muescas inspirados en mordiscos" language in
 `COLMILLO_BUILD_SPEC.md`; bite shapes remain in buttons, glyphs and hero decor.
+
+## 2026-09-10 - The Project Rail Is Images First, On Cream
+
+Decision: The home `#proyectos` section is rebuilt around large upright images
+on the cream surface, following the proportions and rhythm studied on That Lot
+(upright pieces with generous air above and below, wide gaps, a title revealed
+on hover and a closing "view all" at the end of the rail) without taking its
+assets, copy, code or exact layout:
+
+- Background `--color-brand-cream`, ink type, `data-surface-tone="light"`.
+  Orange is limited to the closing button and the hover arrow.
+- New `ProjectTile.astro` replaces `ProjectCard.astro` in the rail only; the
+  archive keeps the card. No number, year, summary, frame, decorative ring or
+  demo flag is rendered in the rail.
+- Tiles alternate a full-height 4:5 and a 0.86-height 3:4 that share the bottom
+  line. Pinned, every size derives from the rail height through container query
+  units, capped at a height of 80cqw on tall, narrow screens.
+- Hover and focus: the frame compresses to 0.982 and its top-right radius
+  grows, the image scales to 1.06, and a cream cut-out with concave fillets
+  rises from the bottom-left corner with the title and an orange arrow. Screens
+  without hover keep the cut-out open.
+- The `1 / n` counter, the arrows and the progress meter are removed. Scroll
+  moves the rail, keyboard focus reveals each tile and native swipe covers
+  touch, so they duplicated the interaction; the counter was also wrong as
+  soon as the number of projects changed.
+- `Ver proyectos` moves from under the rail into the track, after the last
+  tile, so the rail ends on it. This supersedes the placement in "The Archive
+  Route Closes The Project Rail".
+- The home shows at most `HOME_PROJECT_LIMIT` (5) projects, ordered by a new
+  optional `order` field in the collection schema and then by slug; the
+  archive and previous/next navigation use the same order.
+- Two more fictional demo projects (`demo-muesca-doble`,
+  `demo-capas-en-tension`) and two abstract CSS compositions (`bite`,
+  `layers`) fill the five-piece structure in the demo build only. The demo flag
+  stays on the archive and on every case study page; it is no longer repeated
+  on the home tiles, at the user's explicit request.
+- The rail cover is decorative inside its link (`alt=""`) because the visible
+  title names the link; the case study keeps the full alternative text.
+
+Reason: explicit user brief. The previous orange cards clipped at the bottom on
+short desktops, carried five pieces of furniture per card and read as a
+dashboard rather than a portfolio.
+
+## 2026-09-10 - The Services Illustration Is Cropped, Not Padded
+
+Decision: The client's `servicios.png` ships as `servicios-trimmed.png`
+(1202x696), cropped to its drawn ink by `scripts/trim-transparent-png.mjs`. The
+untouched 1536x1024 original moves to `media-src/servicios.png`, beside the hero
+source, so it is preserved in the repo without being published.
+
+Reason: the manifesto illustration keeps its padding because its layout sizes
+the box for the padding. This one is sized by its grid column, so a fifth of the
+column would have been empty pixels and the drawn art would have come out around
+300px wide instead of the 380-470px the composition needs. Cropping is also the
+cheaper artifact: 259 KB against 284 KB, and `dist/` no longer carries 283 KB of
+an image nothing references.
+
+The art needs no plate, border or blend mode. It has a real alpha channel and is
+drawn in `#d25731` and `#f6e5cf` — the brand orange and cream — so on the ink
+surface the outlines read cream, the accents read orange and the clothing is
+transparent, letting the section show through. That is the hero loop's own trick
+inverted, which is why the two read as one hand.
+
+## 2026-09-10 - The Illustration Never Pushes The Services Down
+
+Decision: The services grid is `minmax(0, 0.62fr) minmax(0, 1fr)` — a little
+over a third for the heading column, the rest for the 2x2 — and the list is
+`align-self: center` with no top padding, so the quadrant centres against the
+heading column instead of hanging from the top of the row.
+
+Reason: the illustration lives under the title in the same column, so with the
+previous `align-items: start` plus a top padding it would have set the row height
+and dragged the services down with it. Centring makes the two columns answer each
+other whatever the art's height, and the section still fits the viewport at
+1366x768 (683px), 1440x900 (745px) and 1920x1080 (930px).
+
+The split is also what moves the services right: the art is sized by its column,
+not by a fixed width, so widening the column is the same lever as enlarging the
+illustration. It buys 380-470px of drawn art from 1366 up while the right column
+still holds two entry columns of roughly 280-330px, so nothing is crowded.

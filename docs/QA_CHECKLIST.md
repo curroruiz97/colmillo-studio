@@ -56,9 +56,12 @@
 - The edge rail reports the current numbered scene.
 - Section stacking does not obscure content.
 - Horizontal projects section works and has fallback.
-- Contextual cursor labels and project progress reflect the active card on a
-  fine pointer without replacing native pointer/focus behavior.
-- Three fictional projects exercise the rail, listing, detail gallery and
+- Project tiles reveal their title on hover and keyboard focus, and keep it
+  visible on touch screens; the contextual cursor label never replaces native
+  pointer/focus behavior.
+- No pinned project tile is cut off at the bottom of the viewport, and the
+  closing `Ver proyectos` route ends the rail fully on screen.
+- Five fictional projects exercise the rail, listing, detail gallery and
   circular previous/next navigation in the isolated demo.
 - Goodbye section works or is documented as awaiting asset.
 - Verified at 1440×1000, 834×1112 and 390×844 with Chromium screenshots from

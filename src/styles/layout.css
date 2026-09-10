@@ -143,12 +143,6 @@
   transform: translate(0.2rem, -0.2rem);
 }
 
-/* Services keeps its heading in cream: on that block the orange is reserved
-   for the eyebrow, the accent line and the glyph details. */
-.projects-section h2 {
-  color: var(--color-brand-orange);
-}
-
 .studio-section__title {
   display: grid;
   font-size: var(--font-display-xl);
@@ -166,206 +160,6 @@
   rotate: -7deg;
 }
 
-.projects-section {
-  position: relative;
-  z-index: 8;
-  min-block-size: 100svh;
-  overflow: clip;
-  background: var(--color-brand-ink);
-  color: var(--color-brand-cream);
-}
-
-.projects-section__header {
-  display: grid;
-  grid-template-columns: minmax(3rem, 0.25fr) 1fr auto auto;
-  align-items: end;
-  gap: 2rem;
-  padding-block: calc(var(--header-height) + clamp(2rem, 5vw, 5rem))
-    clamp(2rem, 5vw, 5rem);
-}
-
-.projects-section__heading {
-  display: grid;
-  gap: 0.6rem;
-}
-
-.projects-section__heading p {
-  max-inline-size: 32rem;
-  color: var(--color-brand-cream-deep);
-  font-size: var(--font-body-lg);
-}
-
-.projects-section__count {
-  align-self: center;
-  min-inline-size: 4.5rem;
-  font-variant-numeric: tabular-nums;
-  font-weight: 850;
-  text-align: end;
-}
-
-.projects-section__controls {
-  display: none;
-  gap: 0.5rem;
-}
-
-.projects-section[data-projects-ready='true'] .projects-section__controls {
-  display: flex;
-}
-
-.projects-section__controls button {
-  inline-size: 3rem;
-  aspect-ratio: 1;
-  border: var(--border-width) solid currentColor;
-  border-radius: 50%;
-  background: transparent;
-  color: currentColor;
-  transition:
-    background-color var(--duration-fast) linear,
-    color var(--duration-fast) linear,
-    opacity var(--duration-fast) linear;
-}
-
-.projects-section__controls button:not(:disabled):hover,
-.projects-section__controls button:not(:disabled):focus-visible {
-  background: var(--color-brand-orange);
-  color: var(--color-brand-ink);
-}
-
-.projects-section__controls button:disabled {
-  opacity: 0.32;
-  cursor: not-allowed;
-}
-
-.projects-section__meter {
-  --project-progress: 0;
-  position: relative;
-  grid-column: 2 / -1;
-  block-size: 2px;
-  overflow: hidden;
-  background: var(--color-brand-ink-soft);
-}
-
-.projects-section__meter span {
-  position: absolute;
-  inset: 0;
-  background: var(--color-brand-orange);
-  transform: scaleX(max(0.035, var(--project-progress)));
-  transform-origin: left;
-  transition: transform 140ms linear;
-}
-
-/*
- * Closing route into the archive. It carries the hero's bite shape, with the
- * offset drawn in cream because this surface is ink rather than the hero's
- * cream.
- */
-.projects-section__outro {
-  display: flex;
-  justify-content: flex-start;
-  padding-block: clamp(2.5rem, 6vw, 4.5rem);
-}
-
-.projects-section__cta {
-  box-shadow: 0 0.35rem 0 var(--color-brand-cream);
-}
-
-.projects-section__viewport {
-  overflow-x: auto;
-  overscroll-behavior-inline: contain;
-  scroll-padding-inline: var(--page-gutter);
-  scroll-snap-type: inline proximity;
-  scrollbar-color: var(--color-brand-orange) var(--color-brand-ink-soft);
-  mask-image: linear-gradient(
-    90deg,
-    transparent,
-    #000 var(--page-gutter),
-    #000 calc(100% - var(--page-gutter)),
-    transparent
-  );
-}
-
-.projects-section[data-horizontal-enhanced='true'] .projects-section__viewport {
-  overflow: hidden;
-  scroll-snap-type: none;
-}
-
-/*
- * A pinned section freezes vertical scrolling, so anything below the fold is
- * unreachable for the whole pin. The enhanced rail therefore fits the viewport
- * exactly and lets the card media absorb the leftover space instead of pushing
- * the card bottom out of sight. The native overflow fallback used by touch,
- * reduced motion and no-JavaScript keeps its taller intrinsic layout.
- */
-.projects-section[data-horizontal-enhanced='true'] {
-  block-size: 100svh;
-  display: grid;
-  /* Header, rail, closing route. The rail is the only flexible row, so the CTA
-     can never be pushed past the bottom of a pinned viewport. */
-  grid-template-rows: auto minmax(0, 1fr) auto;
-}
-
-.projects-section[data-horizontal-enhanced='true'] .projects-section__header {
-  padding-block: calc(var(--header-height) + clamp(1rem, 3vh, 3rem))
-    clamp(1rem, 2.5vh, 2.5rem);
-}
-
-.projects-section[data-horizontal-enhanced='true'] .projects-section__viewport {
-  min-block-size: 0;
-}
-
-.projects-section[data-horizontal-enhanced='true'] .projects-section__outro {
-  padding-block: clamp(1rem, 2.5vh, 2.25rem);
-}
-
-/*
- * A pinned rail gets exactly one viewport, so the closing route is spending
- * card height. On a short desktop screen the card summary is the first thing
- * that would be clipped, so the button gives its padding back there.
- */
-@media (min-width: 64.01rem) and (max-height: 58rem) {
-  .projects-section[data-horizontal-enhanced='true'] .projects-section__outro {
-    padding-block: 0.4rem 0.9rem;
-  }
-
-  .projects-section[data-horizontal-enhanced='true'] .projects-section__cta {
-    min-block-size: 3.25rem;
-    padding-block: 0.7rem;
-  }
-}
-
-.projects-section[data-horizontal-enhanced='true'] .projects-section__track {
-  block-size: 100%;
-  /*
-   * The track's `--section-space` bottom padding exists so the native overflow
-   * fallback clears the section edge. A pinned rail has a closing row of its
-   * own under it, so there the padding is dead space the cards need: at
-   * 1280x720 it was more than 150px, and the card summary was paying for it.
-   */
-  padding-block-end: 0;
-  /* Clears the fixed edge-menu rail against the right viewport edge. */
-  padding-inline-end: var(--edge-rail-clearance);
-}
-
-.projects-section[data-horizontal-enhanced='true'] .project-card {
-  min-block-size: 0;
-  block-size: 100%;
-}
-
-.projects-section[data-horizontal-enhanced='true'] .project-card__cover,
-.projects-section[data-horizontal-enhanced='true'] .project-composition {
-  flex: 1 1 auto;
-  min-block-size: 0;
-  aspect-ratio: auto;
-}
-
-.projects-section__track {
-  inline-size: max-content;
-  display: flex;
-  gap: clamp(1rem, 3vw, 3rem);
-  padding: 0 var(--page-gutter) var(--section-space);
-  list-style: none;
-}
-
 .project-card {
   inline-size: min(72vw, 58rem);
   min-block-size: 58vh;
@@ -374,12 +168,6 @@
     opacity var(--duration-medium) linear,
     transform var(--duration-medium) var(--ease-bite);
   transform: translateY(var(--card-lift, 0)) rotate(var(--card-rotate, 0deg));
-}
-
-.projects-section[data-projects-ready='true']
-  .project-card:not([data-active='true']) {
-  opacity: 0.62;
-  transform: translateY(0.75rem) scale(0.945) rotate(var(--card-rotate, 0deg));
 }
 
 .project-card a {
@@ -586,9 +374,60 @@
   border-inline-start-color: transparent;
 }
 
-.projects-section--empty .content-shell {
-  min-block-size: 55svh;
-  padding-block: var(--section-space);
+/* A disc that has lost a round piece: absence as the mark. */
+.project-composition[data-composition='bite'] {
+  background: var(--color-brand-cream-deep);
+}
+
+.project-composition[data-composition='bite'] span {
+  aspect-ratio: 1;
+  border-radius: 50%;
+}
+
+.project-composition[data-composition='bite'] span:nth-child(1) {
+  inset: auto auto 16% -14%;
+  inline-size: 96%;
+  background: var(--color-brand-ink);
+}
+
+.project-composition[data-composition='bite'] span:nth-child(2) {
+  inset: auto 4% 50% auto;
+  inline-size: 44%;
+  background: var(--color-brand-cream-deep);
+}
+
+.project-composition[data-composition='bite'] span:nth-child(3) {
+  inset: 10% auto auto 12%;
+  inline-size: 11%;
+  background: var(--color-brand-orange);
+}
+
+/* Rounded layers pushing up over one another. */
+.project-composition[data-composition='layers'] {
+  background: var(--color-brand-ink-soft);
+}
+
+.project-composition[data-composition='layers'] span {
+  inset-inline: 9%;
+  inset-block-end: -12%;
+  border-radius: 50% 50% 0 0 / 18% 18% 0 0;
+}
+
+.project-composition[data-composition='layers'] span:nth-child(1) {
+  inset-block-start: 14%;
+  background: var(--color-brand-red);
+}
+
+.project-composition[data-composition='layers'] span:nth-child(2) {
+  inset-block-start: 36%;
+  inset-inline: 17% 1%;
+  background: var(--color-brand-orange);
+}
+
+.project-composition[data-composition='layers'] span:nth-child(3) {
+  inset-block-start: 58%;
+  inset-inline: 3% 25%;
+  background: var(--color-brand-cream);
 }
 
 .services-section,
@@ -1357,10 +1196,6 @@ body > main > .content-shell {
     );
     margin-inline: var(--page-gutter) auto;
   }
-
-  .projects-section__viewport {
-    margin-inline-end: 4.75rem;
-  }
 }
 
 @media (max-width: 48rem) {
@@ -1376,17 +1211,8 @@ body > main > .content-shell {
 
   .intro-section__grid,
   .studio-section__grid,
-  .contact-section__grid,
-  .projects-section__header {
+  .contact-section__grid {
     grid-template-columns: 1fr;
-  }
-
-  .projects-section__count {
-    text-align: start;
-  }
-
-  .projects-section__meter {
-    grid-column: 1;
   }
 
   .intro-section__orbit,
@@ -1505,10 +1331,6 @@ body > main > .content-shell {
       100vw - (2 * var(--page-gutter)) - var(--edge-content-rail, 0px)
     );
     min-block-size: 65svh;
-  }
-
-  .projects-section .project-card a {
-    padding-block-end: 6rem;
   }
 
   .projects-index__grid,

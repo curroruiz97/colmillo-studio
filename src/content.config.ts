@@ -35,6 +35,8 @@ const projects = defineCollection({
         )
         .default([]),
       featured: z.boolean().default(false),
+      // Position in the home rail, the archive and previous/next navigation.
+      order: z.number().int().optional(),
       draft: z.boolean().default(true),
     }),
 });

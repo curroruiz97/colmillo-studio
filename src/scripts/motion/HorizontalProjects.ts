@@ -1,5 +1,22 @@
 import gsap from 'gsap';
 
+interface PinnedRail {
+  end: number;
+  progress: number;
+  scroll: (position: number) => void;
+  start: number;
+}
+
+/**
+ * Home project rail. On a wide screen with motion allowed, vertical scroll
+ * scrubs the track sideways while the section is pinned. Everywhere else the
+ * rail is a native horizontal overflow with scroll snap, which is also what
+ * visitors without JavaScript get.
+ *
+ * The travel is never a fixed number: it is the track's real width minus the
+ * width of the window onto it, re-measured on every ScrollTrigger refresh
+ * (resize, load, orientation change). The wheel is never intercepted.
+ */
 export function initHorizontalProjects(): () => void {
   const section = document.querySelector<HTMLElement>(
     '[data-horizontal-projects]',
@@ -8,107 +25,66 @@ export function initHorizontalProjects(): () => void {
   const viewport = section?.querySelector<HTMLElement>(
     '[data-project-viewport]',
   );
-  const cards = track
-    ? [...track.querySelectorAll<HTMLElement>('[data-project-card]')]
-    : [];
-  const progress = section?.querySelector<HTMLElement>(
-    '[data-project-progress]',
-  );
-  const meter = section?.querySelector<HTMLElement>('[data-project-meter]');
-  const previous = section?.querySelector<HTMLButtonElement>(
-    '[data-project-previous]',
-  );
-  const next = section?.querySelector<HTMLButtonElement>('[data-project-next]');
 
-  if (!section || !track || !viewport || cards.length < 2)
-    return () => undefined;
+  if (!section || !track || !viewport) return () => undefined;
 
-  let currentIndex = 0;
-  let progressInitialized = false;
-  let scrollFrame = 0;
-  let pinnedScroll:
-    | { start: number; end: number; scroll: (position: number) => void }
-    | undefined;
-  const updateProgress = (index: number, ratio?: number) => {
-    const safeIndex = Math.max(0, Math.min(cards.length - 1, index));
-    section.style.setProperty(
-      '--project-flow',
-      String(ratio ?? safeIndex / (cards.length - 1)),
+  let pinned: PinnedRail | undefined;
+  const distance = () => Math.max(0, track.scrollWidth - viewport.clientWidth);
+
+  /*
+   * Keyboard focus walks the rail. While pinned, the viewport clips its
+   * overflow and the transform owns the offset, so the page is scrolled to the
+   * point of the pin where the focused piece is entirely in view. Natively the
+   * browser only needs to be asked to reveal it.
+   */
+  const revealFocused = (event: FocusEvent) => {
+    const item = (event.target as Element | null)?.closest<HTMLElement>(
+      '[data-project-card], [data-project-outro]',
     );
-    meter?.style.setProperty(
-      '--project-progress',
-      String(ratio ?? safeIndex / (cards.length - 1)),
-    );
-    if (progressInitialized && safeIndex === currentIndex) return;
-    progressInitialized = true;
-    currentIndex = safeIndex;
-    if (progress)
-      progress.textContent = `${currentIndex + 1} / ${cards.length}`;
-    meter?.setAttribute('aria-valuenow', String(currentIndex + 1));
-    cards.forEach((card, cardIndex) => {
-      card.dataset.active = String(cardIndex === currentIndex);
-      const distance = Math.max(-2, Math.min(2, cardIndex - currentIndex));
-      card.style.setProperty('--card-distance', String(distance));
-      card.style.setProperty('--card-lift', `${Math.abs(distance) * 0.75}rem`);
-      card.style.setProperty('--card-rotate', `${distance * -0.6}deg`);
-    });
-    if (previous) previous.disabled = currentIndex === 0;
-    if (next) next.disabled = currentIndex === cards.length - 1;
-  };
-  const scrollCardIntoView = (index: number) => {
-    const safeIndex = Math.max(0, Math.min(cards.length - 1, index));
-    if (pinnedScroll) {
-      const progress = safeIndex / (cards.length - 1);
-      pinnedScroll.scroll(
-        pinnedScroll.start + (pinnedScroll.end - pinnedScroll.start) * progress,
-      );
-      updateProgress(safeIndex);
+    if (!item) return;
+    if (!pinned) {
+      item.scrollIntoView({
+        behavior:
+          document.documentElement.dataset.motion === 'reduced'
+            ? 'auto'
+            : 'smooth',
+        block: 'nearest',
+        inline: 'nearest',
+      });
       return;
     }
-    cards[safeIndex]?.scrollIntoView({
-      behavior:
-        document.documentElement.dataset.motion === 'reduced'
-          ? 'auto'
-          : 'smooth',
-      block: 'nearest',
-      inline: 'center',
-    });
-    updateProgress(safeIndex);
-  };
-  const showPrevious = () => scrollCardIntoView(currentIndex - 1);
-  const showNext = () => scrollCardIntoView(currentIndex + 1);
-  const syncFocusedCard = (event: FocusEvent) => {
-    const card = (event.target as Element | null)?.closest<HTMLElement>(
-      '[data-project-card]',
+    // Focusing inside an `overflow: hidden` box can still scroll it; the
+    // transform is the only offset the rail may have.
+    viewport.scrollLeft = 0;
+    const travel = distance();
+    if (travel <= 0) return;
+    const trackStyle = getComputedStyle(track);
+    const before = parseFloat(trackStyle.paddingInlineStart) || 0;
+    const after = parseFloat(trackStyle.paddingInlineEnd) || 0;
+    const left =
+      item.getBoundingClientRect().left - track.getBoundingClientRect().left;
+    const right = left + item.offsetWidth;
+    const current = pinned.progress * travel;
+    let offset = current;
+    if (left - before < current) offset = left - before;
+    else if (right + after > current + viewport.clientWidth)
+      offset = right + after - viewport.clientWidth;
+    offset = Math.max(0, Math.min(travel, offset));
+    pinned.scroll(
+      pinned.start + (pinned.end - pinned.start) * (offset / travel),
     );
-    if (!card) return;
-    const index = cards.indexOf(card);
-    if (index >= 0) scrollCardIntoView(index);
-  };
-  const syncNativeScroll = () => {
-    if (pinnedScroll) return;
-    cancelAnimationFrame(scrollFrame);
-    scrollFrame = requestAnimationFrame(() => {
-      const maximum = Math.max(1, viewport.scrollWidth - viewport.clientWidth);
-      const ratio = Math.max(0, Math.min(1, viewport.scrollLeft / maximum));
-      updateProgress(Math.round(ratio * (cards.length - 1)), ratio);
-    });
   };
 
   section.dataset.projectsReady = 'true';
-  updateProgress(0, 0);
-  previous?.addEventListener('click', showPrevious);
-  next?.addEventListener('click', showNext);
-  track.addEventListener('focusin', syncFocusedCard);
-  viewport.addEventListener('scroll', syncNativeScroll, { passive: true });
+  track.addEventListener('focusin', revealFocused);
 
   const matchMedia = gsap.matchMedia();
   matchMedia.add(
     '(min-width: 769px) and (prefers-reduced-motion: no-preference)',
     () => {
+      // Set before measuring: the enhanced layout sizes every tile from the
+      // height of the pinned rail, so the width only exists once it applies.
       section.dataset.horizontalEnhanced = 'true';
-      const distance = () =>
-        Math.max(0, track.scrollWidth - viewport.clientWidth);
       const tween = gsap.to(track, {
         x: () => -distance(),
         ease: 'none',
@@ -119,17 +95,11 @@ export function initHorizontalProjects(): () => void {
           pin: true,
           scrub: 0.65,
           invalidateOnRefresh: true,
-          onUpdate: (self) => {
-            updateProgress(
-              Math.round(self.progress * (cards.length - 1)),
-              self.progress,
-            );
-          },
         },
       });
-      pinnedScroll = tween.scrollTrigger;
+      pinned = tween.scrollTrigger;
       return () => {
-        pinnedScroll = undefined;
+        pinned = undefined;
         delete section.dataset.horizontalEnhanced;
         tween.scrollTrigger?.kill();
       };
@@ -138,18 +108,8 @@ export function initHorizontalProjects(): () => void {
 
   return () => {
     matchMedia.revert();
-    previous?.removeEventListener('click', showPrevious);
-    next?.removeEventListener('click', showNext);
-    track.removeEventListener('focusin', syncFocusedCard);
-    viewport.removeEventListener('scroll', syncNativeScroll);
-    cancelAnimationFrame(scrollFrame);
+    track.removeEventListener('focusin', revealFocused);
     delete section.dataset.projectsReady;
     delete section.dataset.horizontalEnhanced;
-    section.style.removeProperty('--project-flow');
-    cards.forEach((card) => {
-      card.style.removeProperty('--card-distance');
-      card.style.removeProperty('--card-lift');
-      card.style.removeProperty('--card-rotate');
-    });
   };
 }

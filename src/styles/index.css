@@ -9,6 +9,7 @@
 @import './hero-section.css' layer(sections);
 @import './manifesto-home.css' layer(sections);
 @import './services-section.css' layer(sections);
+@import './projects-section.css' layer(sections);
 @import './edge-menu.css' layer(components);
 @import './instagram-badge.css' layer(components);
 @import './utilities.css' layer(utilities);

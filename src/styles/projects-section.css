@@ -1,0 +1,355 @@
+/*
+ * Home project rail.
+ *
+ * The images are the section. At rest a tile is only its picture; the title
+ * rides in on a cream cut-out that bites up into the bottom-left corner of the
+ * image on hover or keyboard focus, and stays open on screens without hover.
+ *
+ * Two layouts share the same markup:
+ * - native: a horizontal overflow with scroll snap, sized from the viewport
+ *   width. Phones, reduced motion and visitors without JavaScript get it.
+ * - enhanced (`data-horizontal-enhanced`): `HorizontalProjects.ts` pins the
+ *   section and scrubs the track. The rail then owns exactly one viewport, so
+ *   every tile is sized from the rail's own height through container query
+ *   units and can never be cut off at the bottom of the screen.
+ */
+
+.projects-section {
+  --rail-gap: clamp(1.25rem, 3.2vw, 4rem);
+  --tile-radius: clamp(0.85rem, 1.3vw, 1.4rem);
+  /* Width of an upright 4:5 tile in the native layout. */
+  --tile-w: min(72vw, 22rem);
+  position: relative;
+  z-index: 8;
+  overflow: clip;
+  background: var(--color-brand-cream);
+  color: var(--color-brand-ink);
+}
+
+/* ------------------------------------------------------------- header --- */
+
+.projects-section__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 0.5rem clamp(2rem, 6vw, 7rem);
+  padding-block: clamp(5rem, 12vw, 9rem) clamp(2rem, 5vw, 4rem);
+}
+
+.projects-section__header h2 {
+  font-size: clamp(2.75rem, 6vw, 6.25rem);
+  letter-spacing: -0.05em;
+}
+
+.projects-section__header p {
+  max-inline-size: 24rem;
+  color: var(--color-brand-ink-soft);
+  font-size: var(--font-body-lg);
+  line-height: 1.25;
+}
+
+/* The instruction follows the gesture that actually moves the rail. */
+.projects-section__hint--scroll,
+.projects-section[data-horizontal-enhanced='true']
+  .projects-section__hint--swipe {
+  display: none;
+}
+
+.projects-section[data-horizontal-enhanced='true']
+  .projects-section__hint--scroll {
+  display: inline;
+}
+
+/* --------------------------------------------------------------- rail --- */
+
+.projects-section__viewport {
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  /* Matches the track padding, so the closing route snaps clear of the tab. */
+  scroll-padding-inline: var(--page-gutter)
+    calc(var(--page-gutter) + var(--edge-rail-clearance));
+  scroll-snap-type: inline mandatory;
+  scrollbar-color: var(--color-brand-ink) transparent;
+  scrollbar-width: thin;
+}
+
+@media (hover: none) {
+  .projects-section__viewport {
+    scrollbar-width: none;
+  }
+}
+
+.projects-section__track {
+  inline-size: max-content;
+  display: flex;
+  align-items: flex-end;
+  gap: var(--rail-gap);
+  padding-block: 0 clamp(4.5rem, 12vw, 8rem);
+  /* Air before the first piece and after the closing route; the end also
+     clears the fixed edge-menu tab. */
+  padding-inline: var(--page-gutter)
+    calc(var(--page-gutter) + var(--edge-rail-clearance));
+}
+
+.projects-section__list {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--rail-gap);
+  list-style: none;
+}
+
+.project-tile {
+  flex: none;
+  inline-size: var(--tile-w);
+  aspect-ratio: 4 / 5;
+  scroll-snap-align: start;
+}
+
+/*
+ * Editorial rhythm on wider screens: every second piece is a slightly shorter
+ * 3:4 that shares the bottom line with its neighbours, so the tops step while
+ * the base stays level. 0.86 of the height at 3:4 is 0.806 of the 4:5 width.
+ */
+@media (min-width: 48.01rem) {
+  .projects-section {
+    --tile-w: clamp(16rem, 27vw, 28rem);
+  }
+
+  .project-tile:nth-child(even) {
+    inline-size: calc(var(--tile-w) * 0.806);
+    aspect-ratio: 3 / 4;
+  }
+}
+
+/* ------------------------------------------------------- closing route --- */
+
+.projects-section__outro {
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: clamp(13rem, 24vw, 24rem);
+  block-size: calc(var(--tile-w) * 1.25);
+  scroll-snap-align: end;
+}
+
+/* The hero's bite button, a size up, with its ink offset on cream. */
+.projects-section__cta {
+  min-block-size: 4.75rem;
+  padding: 1.2rem 2.6rem;
+  box-shadow: 0 0.4rem 0 var(--color-brand-ink);
+  font-size: clamp(1.05rem, 1.2vw, 1.25rem);
+}
+
+/* --------------------------------------------------------------- tile --- */
+
+.project-tile__link {
+  position: relative;
+  display: block;
+  block-size: 100%;
+  border-radius: var(--tile-radius);
+  color: inherit;
+  text-decoration: none;
+}
+
+.project-tile__frame {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: var(--tile-radius);
+  background: var(--color-brand-cream-deep);
+  transition:
+    transform 560ms var(--ease-bite),
+    border-radius 560ms var(--ease-bite);
+}
+
+.project-tile .project-tile__media {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  aspect-ratio: auto;
+  border: 0;
+  border-radius: 0;
+  object-fit: cover;
+  transition: transform 760ms var(--ease-bite);
+}
+
+/*
+ * The title's cut-out. It is page-coloured, anchored to the bottom-left
+ * corner, and joins the image through two concave fillets, so it reads as a
+ * bite taken out of the picture rather than a label laid on top of it. At rest
+ * it waits below the frame, which clips it.
+ */
+.project-tile__label {
+  --notch: var(--tile-radius);
+  position: absolute;
+  z-index: 1;
+  inset-block-end: 0;
+  inset-inline-start: 0;
+  max-inline-size: calc(100% - (2 * var(--notch)));
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.7rem 1rem 0.05rem 0.35rem;
+  border-start-end-radius: var(--notch);
+  background: var(--color-brand-cream);
+  transform: translateY(calc(100% + var(--notch)));
+  transition: transform 460ms var(--ease-bite);
+}
+
+.project-tile__label::before,
+.project-tile__label::after {
+  position: absolute;
+  inline-size: var(--notch);
+  block-size: var(--notch);
+  background: radial-gradient(
+    circle at 100% 0,
+    transparent calc(var(--notch) - 0.5px),
+    var(--color-brand-cream) var(--notch)
+  );
+  content: '';
+}
+
+.project-tile__label::before {
+  inset-block-end: 100%;
+  inset-inline-start: 0;
+}
+
+.project-tile__label::after {
+  inset-block-end: 0;
+  inset-inline-start: 100%;
+}
+
+.project-tile__title {
+  font-size: clamp(1.05rem, 1.45vw, 1.6rem);
+  font-weight: 850;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+  opacity: 0;
+  transform: translateY(0.5em);
+  transition:
+    transform 460ms 70ms var(--ease-bite),
+    opacity 260ms 70ms linear;
+}
+
+.project-tile__arrow {
+  color: var(--color-brand-orange-aa);
+  font-weight: 800;
+  opacity: 0;
+  transform: translate(-0.35em, 0.35em) scale(0.6);
+  transition:
+    transform 420ms 140ms var(--ease-bite),
+    opacity 200ms 140ms linear;
+}
+
+/*
+ * Hover is pressure: the frame gives a little and bites its top corner, the
+ * picture pushes against it, and the cut-out rises with the name. Leaving
+ * plays the same transitions back.
+ */
+@media (hover: hover) {
+  .project-tile__link:hover .project-tile__frame {
+    border-radius: var(--tile-radius) calc(var(--tile-radius) * 2.6)
+      var(--tile-radius) var(--tile-radius);
+    transform: scale(0.982);
+  }
+
+  .project-tile__link:hover .project-tile__media {
+    transform: scale(1.06);
+  }
+
+  .project-tile__link:active .project-tile__frame {
+    transform: scale(0.962);
+    transition-duration: 160ms;
+  }
+
+  .project-tile__link:hover .project-tile__label {
+    transform: none;
+  }
+
+  .project-tile__link:hover :is(.project-tile__title, .project-tile__arrow) {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.project-tile__link:focus-visible .project-tile__label {
+  transform: none;
+}
+
+.project-tile__link:focus-visible
+  :is(.project-tile__title, .project-tile__arrow) {
+  opacity: 1;
+  transform: none;
+}
+
+/* Without hover there is nothing to ask for the name with, so it stays open. */
+@media (hover: none) {
+  .project-tile__label {
+    transform: none;
+  }
+
+  .project-tile__title,
+  .project-tile__arrow {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ------------------------------------------------------------ pinned --- */
+
+.projects-section[data-horizontal-enhanced='true'] {
+  block-size: 100svh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.projects-section[data-horizontal-enhanced='true'] .projects-section__header {
+  padding-block: clamp(2.75rem, 9vh, 6.5rem) 0;
+}
+
+.projects-section[data-horizontal-enhanced='true'] .projects-section__viewport {
+  container-type: size;
+  overflow: hidden;
+  scroll-snap-type: none;
+}
+
+.projects-section[data-horizontal-enhanced='true'] .projects-section__track {
+  --rail-top: clamp(1.5rem, 5vh, 3.5rem);
+  --rail-bottom: clamp(2rem, 9vh, 6.5rem);
+  /* The tallest piece is the rail minus its air, capped so a tall, narrow
+     screen does not turn a single tile into a wall. */
+  --tile-h: min(100cqh - var(--rail-top) - var(--rail-bottom), 80cqw);
+  --rail-free: calc(
+    (100cqh - var(--rail-top) - var(--rail-bottom) - var(--tile-h)) / 2
+  );
+  block-size: 100%;
+  padding-block: calc(var(--rail-top) + var(--rail-free))
+    calc(var(--rail-bottom) + var(--rail-free));
+}
+
+.projects-section[data-horizontal-enhanced='true'] .project-tile {
+  inline-size: calc(var(--tile-h) * 0.8);
+  block-size: var(--tile-h);
+  aspect-ratio: auto;
+}
+
+.projects-section[data-horizontal-enhanced='true']
+  .project-tile:nth-child(even) {
+  inline-size: calc(var(--tile-h) * 0.645);
+  block-size: calc(var(--tile-h) * 0.86);
+}
+
+.projects-section[data-horizontal-enhanced='true'] .projects-section__outro {
+  inline-size: clamp(14rem, 26cqw, 26rem);
+  block-size: var(--tile-h);
+}
+
+/* ------------------------------------------------------------- empty --- */
+
+.projects-section--empty .content-shell {
+  min-block-size: 55svh;
+  padding-block: var(--section-space);
+}

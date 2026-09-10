@@ -8,6 +8,7 @@ import {
   demoMode,
   demoProjects,
   normalizeProject,
+  sortProjectEntries,
   type ProjectRecord,
 } from '@/data/projects';
 import ProjectLayout from '@/layouts/ProjectLayout.astro';
@@ -15,7 +16,9 @@ import ProjectLayout from '@/layouts/ProjectLayout.astro';
 export async function getStaticPaths() {
   const entries =
     !demoMode && contentAvailability.projects
-      ? await getCollection('projects', ({ data }) => !data.draft)
+      ? sortProjectEntries(
+          await getCollection('projects', ({ data }) => !data.draft),
+        )
       : [];
   const projects = demoMode ? demoProjects : entries.map(normalizeProject);
 

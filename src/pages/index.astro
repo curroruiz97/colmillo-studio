@@ -9,16 +9,26 @@ import ServicesSection from '@/components/sections/ServicesSection.astro';
 import StudioSection from '@/components/sections/StudioSection.astro';
 import { goodbyeMedia } from '@/config/assets';
 import { contentAvailability } from '@/config/content';
-import { demoMode, demoProjects, normalizeProject } from '@/data/projects';
+import {
+  demoMode,
+  demoProjects,
+  HOME_PROJECT_LIMIT,
+  normalizeProject,
+  sortProjectEntries,
+} from '@/data/projects';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 
-const projects = demoMode
-  ? demoProjects
-  : contentAvailability.projects
-    ? (await getCollection('projects'))
-        .filter((project) => !project.data.draft)
-        .map(normalizeProject)
-    : [];
+const projects = (
+  demoMode
+    ? demoProjects
+    : contentAvailability.projects
+      ? sortProjectEntries(
+          (await getCollection('projects')).filter(
+            (project) => !project.data.draft,
+          ),
+        ).map(normalizeProject)
+      : []
+).slice(0, HOME_PROJECT_LIMIT);
 const showIntro = demoMode || contentAvailability.homeIntro;
 ---
 

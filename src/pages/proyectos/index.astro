@@ -2,15 +2,22 @@
 import { getCollection } from 'astro:content';
 import ProjectCard from '@/components/projects/ProjectCard.astro';
 import { contentAvailability } from '@/config/content';
-import { demoMode, demoProjects, normalizeProject } from '@/data/projects';
+import {
+  demoMode,
+  demoProjects,
+  normalizeProject,
+  sortProjectEntries,
+} from '@/data/projects';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 
 const projects = demoMode
   ? demoProjects
   : contentAvailability.projects
-    ? (await getCollection('projects'))
-        .filter((project) => !project.data.draft)
-        .map(normalizeProject)
+    ? sortProjectEntries(
+        (await getCollection('projects')).filter(
+          (project) => !project.data.draft,
+        ),
+      ).map(normalizeProject)
     : [];
 ---
 

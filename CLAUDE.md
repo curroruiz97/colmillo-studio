@@ -75,7 +75,7 @@ enable canonical URLs, release, indexing or client content.
 
 - `npm run build` -> `dist/`: nine static pages, no fictional projects,
   development notices or demo routes.
-- `npm run build:demo` -> `dist-demo/`: twelve pages including three explicitly
+- `npm run build:demo` -> `dist-demo/`: fourteen pages including five explicitly
   marked fictional projects and provisional demo sections.
 - `demoMode` is true only in Astro development or `--mode demo`.
 - Keep both artifacts isolated. The current Vercel demo override is a documented
@@ -207,7 +207,7 @@ registers ScrollTrigger and initializes/cleans:
 - `EdgeMenu.ts`: right-edge navigation states (Y-following tab, auto-collapsing
   close control), focus/inert/Escape behavior, scroll lock and home progress;
 - `SectionStack.ts`: rounded stack reveal/compression;
-- `HorizontalProjects.ts`: desktop pin/scrub plus native fallback/progress;
+- `HorizontalProjects.ts`: desktop pin/scrub plus native scroll-snap fallback;
 - `MagneticElements.ts`: bounded pointer response with cached bounds.
 
 Motion must support full/reduced preferences, fine/coarse pointers, keyboard,
@@ -298,7 +298,7 @@ licenses and publication approval before enabling client material.
 
 - Static shell, permanent routes and fail-closed SEO/release gates.
 - Home/editorial/contact/project layouts and shared visual system.
-- Isolated typed fictional demo with three project routes.
+- Isolated typed fictional demo with five project routes.
 - Responsive project rail with desktop ScrollTrigger enhancement and native
   touch/no-JavaScript/reduced-motion fallbacks.
 - Colmillo Edge Menu: a small orange tab on the right edge that follows a fine

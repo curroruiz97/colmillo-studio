@@ -74,7 +74,11 @@ Still missing:
 - Project descriptions.
 - Project media.
 - Approved alternative text and optional captions for every project image.
-- Approved project ordering for previous/next navigation.
+- Approved project ordering (the `order` field). It drives the home rail,
+  which shows the first five, the archive and previous/next navigation.
+- One upright cover per project for the home rail: 4:5 or 3:4, at least
+  1600 px on the long side. It is cropped with `object-fit: cover`, so keep the
+  subject away from the bottom-left corner, where the title cut-out rises.
 - Project assets under `public/assets/projects/<approved-slug>/`.
 - Testimonials only if real and approved.
 - Approved default SEO title and description.

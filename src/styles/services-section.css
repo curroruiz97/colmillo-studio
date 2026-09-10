@@ -31,6 +31,21 @@
   justify-items: start;
 }
 
+/*
+ * The client illustration. It carries a real alpha channel and is drawn in the
+ * brand orange and cream, so it needs no plate, border or blend mode: it sits
+ * directly on the ink and reads as part of the composition. Decorative, so it
+ * never takes pointer events away from anything.
+ */
+.services-section__illustration {
+  inline-size: 100%;
+  block-size: auto;
+  max-inline-size: 30rem;
+  margin-block-start: clamp(1.5rem, 3vw, 2.5rem);
+  object-fit: contain;
+  pointer-events: none;
+}
+
 .services-section__title {
   max-inline-size: 8ch;
   margin: 0;
@@ -163,12 +178,23 @@
    * indent directly.
    */
   .services-section__inner {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    /*
+     * The heading and the illustration take a little over a third, the 2x2 the
+     * rest. The split is what gives the art 380-470px of drawn width from 1366
+     * up — it is sized by its column, not by a fixed width — and it is what
+     * carries the services clear of it. The right column still has room for two
+     * ~300px entry columns, so nothing is crowded to buy this.
+     */
+    grid-template-columns: minmax(0, 0.62fr) minmax(0, 1fr);
     align-items: start;
     column-gap: clamp(2.5rem, 5vw, 6rem);
     row-gap: 0;
     padding-block: clamp(7rem, 14vw, 13rem);
     padding-inline: clamp(1.5rem, 4.5vw, 5.5rem) clamp(0.5rem, 1.5vw, 2rem);
+  }
+
+  .services-section__illustration {
+    max-inline-size: none;
   }
 
   /*
@@ -180,9 +206,13 @@
   .services-section__list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: start;
+    /* The heading column is now title plus illustration, so the quadrant
+       centres against it rather than hanging from the top of the row. The
+       illustration therefore never pushes the services down. */
+    align-self: center;
     column-gap: clamp(2rem, 4vw, 4.5rem);
-    row-gap: clamp(5rem, 10vw, 9rem);
-    padding-block-start: clamp(3.5rem, 7vw, 7rem);
+    row-gap: clamp(4.5rem, 9vw, 8rem);
+    padding-block-start: 0;
   }
 
   .service-entry {
@@ -225,8 +255,7 @@
   }
 
   .services-section__list {
-    row-gap: clamp(4rem, 12vh, 8rem);
-    padding-block-start: clamp(3rem, 9vh, 6rem);
+    row-gap: clamp(3.5rem, 11vh, 7rem);
   }
 }
 

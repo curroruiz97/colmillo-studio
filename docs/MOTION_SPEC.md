@@ -45,6 +45,12 @@ reveal, overlap, tension and release.
 - Vertical scroll drives horizontal project progression on capable devices.
 - Keyboard and reduced-motion users must be able to navigate all projects.
 - Project cards must remain accessible links.
+- The rail is images first: at rest a tile is only its picture. The title is
+  revealed by a cream cut-out that bites up into the image's bottom-left corner
+  on hover and keyboard focus, and stays open on screens without hover.
+- The rail ends on the `Ver proyectos` route; it is the last piece of the
+  moving track, never a row under it.
+- The pinned rail never cuts a tile off at the bottom of the viewport.
 
 ## Goodbye
 
@@ -76,11 +82,22 @@ reveal, overlap, tension and release.
   the covered layer with transform/opacity and a coordinated pressure edge.
   Large screens receive sticky, rounded physical layers; mobile and
   reduced-motion layouts remain linear.
-- `HorizontalProjects.ts` maps vertical scroll to a pinned horizontal track on
-  capable screens, publishes continuous and discrete progress, marks the
-  current card, adds bounded 2D depth to the active scene, and synchronizes
-  focus and semantic previous/next controls. Native overflow and scroll snap
-  remain the no-JavaScript, touch and reduced-motion fallback.
+- `HorizontalProjects.ts` pins the section and scrubs the track sideways on
+  screens at least 769 px wide with motion allowed. The travel is the track's
+  real `scrollWidth` minus the viewport's width, re-measured on every
+  ScrollTrigger refresh; the wheel is never intercepted. Keyboard focus moves
+  the page to the point of the pin where the focused tile or the closing route
+  is fully visible. The enhanced layout sizes every tile from the rail's own
+  height through container query units (`100cqh`), so the pieces fit the
+  pinned viewport by construction. Native overflow with mandatory scroll snap
+  remains the phone, reduced-motion and no-JavaScript experience. The counter,
+  arrows, progress meter and active-card dimming were retired on 2026-09-10.
+- Project tile hover (CSS only, `projects-section.css`): the frame compresses
+  to 0.982 and bites its top-right corner, the image scales to 1.06 and a
+  cream cut-out with concave fillets rises with the title and an orange arrow
+  (about 0.46 s, `--ease-bite`); leaving plays it back. `:focus-visible` gets
+  the same reveal; `(hover: none)` keeps it open; reduced motion makes it
+  instant through the global transition rules.
 - `EdgeMenu.ts` drives the right-edge navigation through one state machine:
   `closed`, `tracking`, `open` and `open-collapsed`, published as `data-state`
   (closed | tracking | open) plus `data-close` (expanded | collapsed) while

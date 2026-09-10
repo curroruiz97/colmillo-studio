@@ -80,3 +80,25 @@ export const manifestoIllustration: BrandImage = {
   width: 1600,
   height: 900,
 };
+
+/**
+ * Home services illustration supplied by the client.
+ *
+ * Line art with a real alpha channel, drawn in the brand palette (`#d25731`
+ * and `#f6e5cf`, the orange and the cream), so it composites straight onto the
+ * ink surface with no plate or blend mode: the clothing is transparent and the
+ * section shows through it, which is the hero loop's own trick inverted.
+ *
+ * Roughly a fifth of the supplied file was empty padding, and unlike the
+ * manifesto this layout has no room to pay for it — the art is sized by its
+ * column, so the padding would have eaten a fifth of the column. The drawn ink
+ * occupies 1202x696 of the 1536x1024 original, and
+ * `scripts/trim-transparent-png.mjs` wrote the cropped derivative below. The
+ * untouched original lives in `media-src/servicios.png`, beside the hero
+ * source, so it is preserved without shipping 283 KB of unused pixels.
+ */
+export const servicesIllustration: BrandImage = {
+  src: '/assets/servicios-trimmed.png',
+  width: 1202,
+  height: 696,
+};

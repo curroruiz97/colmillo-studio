@@ -2,7 +2,8 @@ import type { CollectionEntry } from 'astro:content';
 
 export const DEMO_NOTICE = 'DEMO FICTICIA — NO PUBLICAR';
 
-export type ProjectComposition = 'pressure' | 'cut' | 'trace' | 'approved';
+export type ProjectComposition =
+  'pressure' | 'cut' | 'trace' | 'bite' | 'layers' | 'approved';
 
 export interface ProjectMediaItem {
   alt: string;
@@ -137,7 +138,87 @@ export const demoProjects: ProjectRecord[] = [
       ),
     ],
   },
+  {
+    demo: true,
+    demoNotice: DEMO_NOTICE,
+    slug: 'demo-muesca-doble',
+    title: 'Muesca Doble',
+    year: 2099,
+    services: ['Identidad ficticia', 'Sistema gráfico de prueba'],
+    summary:
+      'Ensayo ficticio de una forma que pierde un pedazo y convierte la ausencia en marca.',
+    narrative: [
+      'Caso de relleno que existe para comprobar el ritmo de cinco piezas en el carril de la portada.',
+      'No representa ninguna marca, cliente ni encargo real y no entra en el build estándar.',
+    ],
+    cover: makeDemoMedia(
+      'bite',
+      'Disco negro con un mordisco circular sobre un fondo crema tostado.',
+      'Portada abstracta de demostración.',
+    ),
+    gallery: [
+      makeDemoMedia(
+        'bite',
+        'Un disco oscuro pierde un pedazo redondo junto a un punto naranja.',
+        'Estudio ficticio de ausencia.',
+      ),
+      makeDemoMedia(
+        'layers',
+        'Capas redondeadas de colores apiladas sobre fondo oscuro.',
+        'Estudio ficticio de capas.',
+      ),
+    ],
+  },
+  {
+    demo: true,
+    demoNotice: DEMO_NOTICE,
+    slug: 'demo-capas-en-tension',
+    title: 'Capas en Tensión',
+    year: 2099,
+    services: ['Campaña ficticia', 'Ritmo editorial de prueba'],
+    summary:
+      'Laboratorio ficticio de capas que se empujan unas a otras hasta encontrar su sitio.',
+    narrative: [
+      'Caso de relleno para revisar cómo cierra el carril y cómo encadena la navegación entre proyectos.',
+      'Las formas se generan con CSS local; no hay activos, clientes ni resultados detrás.',
+    ],
+    cover: makeDemoMedia(
+      'layers',
+      'Tres capas redondeadas roja, naranja y crema apiladas sobre fondo oscuro.',
+      'Portada abstracta de demostración.',
+    ),
+    gallery: [
+      makeDemoMedia(
+        'layers',
+        'Capas redondeadas que se solapan de abajo arriba sobre fondo oscuro.',
+        'Prueba ficticia de solapamiento.',
+      ),
+      makeDemoMedia(
+        'pressure',
+        'Una forma naranja flexible presionada por anillos oscuros.',
+        'Prueba ficticia de presión.',
+      ),
+    ],
+  },
 ];
+
+/** How many pieces the home rail shows; the archive keeps every entry. */
+export const HOME_PROJECT_LIMIT = 5;
+
+/**
+ * Orders approved entries by their optional `order` field, then by slug, so
+ * the client's approved sequence drives the home rail, the archive and the
+ * previous/next links from one place.
+ */
+export function sortProjectEntries(
+  entries: CollectionEntry<'projects'>[],
+): CollectionEntry<'projects'>[] {
+  return [...entries].sort(
+    (a, b) =>
+      (a.data.order ?? Number.POSITIVE_INFINITY) -
+        (b.data.order ?? Number.POSITIVE_INFINITY) || a.id.localeCompare(b.id),
+  );
+}
 
 export function normalizeProject(
   project: CollectionEntry<'projects'>,

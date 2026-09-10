@@ -200,7 +200,7 @@ ordering and final approvals. `docs/CONTENT_NEEDED.md` is authoritative.
 - Motion: GSAP 3.15.0 + ScrollTrigger; centered native-details menu, shared
   pressure/surface state, native document navigation and CSS page entry reveal.
 - Standard output: `dist/`, nine pages, demo forbidden.
-- Demo output: `dist-demo/`, twelve pages including three fictional detail
+- Demo output: `dist-demo/`, fourteen pages including five fictional detail
   routes. It is currently deployed only under the documented temporary public
   demo exception and must not become the final production artifact.
 - Project collection: typed local glob loader, currently empty and publication
@@ -1531,3 +1531,175 @@ Without A Drawn Seam").
   18 skipped; `build` (9 pages), `check:production` passed (133,948 JS bytes),
   `test:e2e` 41 passed, 9 skipped; `check` 0 errors/warnings/hints; `lint`
   clean; Prettier clean on every touched file.
+
+## 2026-09-10 Session: Services Illustration
+
+Fourth and final pass on the services block, at the user's direction: add the
+supplied illustration to the heading column. Nothing else in the section
+changed — no copy, colour, glyph, typeface or button.
+
+### What changed
+
+- `media-src/servicios.png` — the client's original 1536x1024 file, moved out of
+  `public/` so it is preserved but not published.
+- `public/assets/servicios-trimmed.png` — 1202x696, the drawn ink with the
+  transparent margin cropped off, 259 KB against the original's 284 KB.
+- `scripts/trim-transparent-png.mjs` — new. Crops the fully transparent margin
+  from an 8-bit RGBA PNG with adaptive per-row filtering, leaving the source
+  untouched. Zero dependencies; it decodes and re-encodes with `node:zlib`.
+- `src/config/assets.ts` — `servicesIllustration` with intrinsic dimensions and
+  the palette/alpha notes.
+- `src/components/sections/ServicesSection.astro` — decorative `<img>` under the
+  heading, `alt=""`, `loading="lazy"`.
+- `src/styles/services-section.css` — `.services-section__illustration`; the
+  desktop split becomes `minmax(0, 0.62fr) minmax(0, 1fr)` and the list becomes
+  `align-self: center` with no top padding.
+- `tests/e2e/demo.spec.ts` — the illustration must decode and stay decorative;
+  the 2x2 spec now also asserts the art is over 360px wide and that the first
+  service row starts above it.
+
+### Defects found and fixed during QA
+
+- The 2x2 layout spec written in the previous session was absent from both the
+  working tree and `HEAD`: it was lost when the concurrent session rewrote the
+  demo suite for the rebuilt project rail. Restored, and extended for the art.
+- The first crop re-encoded larger than the original (292 KB) because it used a
+  single filter type. Adaptive per-row filtering brought it to 259 KB.
+- `grid-template-columns: minmax(0, 0.52fr) minmax(0, 1fr)` is 34.2% — barely
+  different from the `1fr 2fr` it replaced, so the services moved only 10px.
+  `0.62fr` is the value that actually shifts them.
+
+### Environment note
+
+The machine ran out of memory during this session: free physical memory reached
+0.34 GB and free virtual 0.02 GB, with Canva (1.8 GB across 12 processes) and
+Chrome (1.7 GB across 29) the largest consumers. `astro build` failed twice with
+a Rust allocator error and the Playwright suites failed wholesale with V8 OOM
+and worker crashes. Nothing was wrong with the code: `--workers=1` runs clean.
+If the suites fail with `worker process exited unexpectedly` or
+`Zone Allocation failed`, check free memory before debugging the tests.
+
+### Verification performed this session
+
+- `npm.cmd run check`: 0 errors, 0 warnings, 0 hints. `npm.cmd run lint`
+  (repo-wide): clean. `npx.cmd prettier --check` on every touched file: clean.
+- `npm.cmd run build`: 9 pages. `check:production` passed (23 files, 132,644 JS
+  bytes). `check:links` and `check:assets` passed.
+- `npm.cmd run build:demo`: 14 pages. Demo suite `--workers=1`: 48 passed, 21
+  skipped. Production suite: 41 passed, 9 skipped.
+- Rendered and measured the built demo at 1920x1080, 1440x900, 1366x768,
+  834x1112, 390x844 and 320x720. Drawn art width 470 / 428 / 405 / 480 / 358 /
+  288 px; the 2x2 holds two columns and two aligned rows from 768 up and becomes
+  one column below it; section height 930 / 745 / 683 px stays inside the
+  viewport on every desktop size; no horizontal overflow and no console errors
+  anywhere.
+
+## 2026-09-10 Session: Home Project Rail Rebuilt Images-First
+
+Claude Code session at the user's request. Only the home `#proyectos` section
+and what it directly needs (tile component, project data/order, page queries,
+motion module, styles, tests, docs) were touched. Hero, Manifesto, Services,
+the edge menu, the Instagram control, the cursor and every other section were
+not modified. See `docs/DECISIONS.md` ("The Project Rail Is Images First, On
+Cream").
+
+Reference studied live on https://thatlot.co.uk/ at 1920x911: upright pieces
+of 320x560 with about 175 px of air above and below, 48 px gaps, 16 px radius,
+the title in an overlay that appears on hover and a "View all" at the end of
+the rail. Only proportions, rhythm and behaviour were taken; no asset, copy,
+code or exact layout.
+
+### What changed
+
+- `src/components/projects/ProjectTile.astro` (new): the whole tile is one
+  link to `/proyectos/<slug>/`; image, then a cream cut-out carrying an `h3`
+  title and an orange arrow. The cover is `decorative` inside the link.
+- `src/components/sections/ProjectsHorizontal.astro`: cream section, compact
+  header (`Proyectos` + subtitle whose instruction follows the gesture:
+  "Baja" pinned, "Desliza" native), a moving track holding the `<ol>` of tiles
+  and, after it, the `Ver proyectos` outro. Counter, arrows, meter, section
+  index and the old under-rail CTA removed.
+- `src/scripts/motion/HorizontalProjects.ts`: pin + scrub kept; travel is
+  `track.scrollWidth - viewport.clientWidth`, re-measured on refresh. Progress,
+  prev/next and active-card code removed. Focus inside the rail scrolls the
+  page to the pin position where the focused tile or CTA is fully visible.
+- `src/styles/projects-section.css` (new, `sections` layer) holds the whole
+  rail; the old rail rules were deleted from `layout.css`, which gains the
+  `bite` and `layers` placeholder compositions. `reduced-motion.css` loses the
+  obsolete card overrides.
+- `src/data/projects.ts`: two more fictional demo projects,
+  `HOME_PROJECT_LIMIT = 5`, `sortProjectEntries()`. `content.config.ts` gains
+  an optional integer `order`. Home, archive and `[slug]` use the same order.
+- `ProjectMedia.astro`: optional `decorative` prop.
+- `tests/e2e/demo.spec.ts`: five projects; new specs for hover reveal and
+  click-through, touch titles without hover, the closing route at the end of
+  the rail, and no tile cut off across the pin; shared `scrollRailToTop` and
+  `projectPin` helpers (the pin is located with `.pin-spacer:has(#proyectos)`).
+
+### Measured (demo build)
+
+| Viewport | Mode | Tile 4:5 / 3:4 (px) | CTA x at rail end |
+| --- | --- | --- | --- |
+| 1920x1080 | pinned | 561x702 / 453x603 | 1522-1746 |
+| 1440x900 | pinned | 463x578 / 373x497 | 1085-1290 |
+| 1280x720 | pinned | 361x452 / 291x389 | 953-1155 |
+| 1440x900 reduced | native | 389x486 / 313x418 | 1098-1303 |
+| 834x1112 touch | pinned | 534x667 / 430x574 | 546-748 |
+| 390x844 touch | native snap | 281x351 (uniform) | 117-319 |
+| 320x720 touch | native snap | 230x288 (uniform) | 47-249 |
+
+No horizontal overflow and no console errors in any of the seven cases. The
+pin spec asserts every tile's bottom stays at least 24 px above the viewport
+bottom at five points of the pin (1440x1000); in Chrome at 1920x911 the tiles
+measured 571 px tall with their bottom at 829 at every pin position.
+
+### Defects found and fixed during QA
+
+- The title started flush with the image edge and touched the rounded corner;
+  the cut-out now has a 0.35 rem inline start.
+- On phones the closing route snapped under the edge-menu tab: the outro's
+  `scroll-snap-align: end` aligned to the plain gutter. `scroll-padding-inline`
+  now carries the same end clearance as the track.
+- The subtitle floated at the arbitrary right edge of the 90 rem shell; it now
+  sits next to the heading.
+
+### Verification performed this session
+
+- `npm.cmd run check` (with `NODE_OPTIONS=--max-old-space-size=6144`; the
+  default heap ran out of memory once on this machine): 73 files, 0 errors,
+  0 warnings, 0 hints. `eslint src tests`: clean. Prettier clean on every
+  touched file (`--end-of-line auto`).
+- To avoid rebuilding the shared `dist/` and `dist-demo/` under the concurrent
+  session, both artifacts were built into the session scratchpad and tested
+  there with temporary Playwright configs (deleted afterwards).
+  - Standard build: 9 pages. `check:links` passed; `check:production` (run on
+    the scratch output through a patched copy of the script) passed with
+    132,644 JS bytes, no demo content, placeholders or GIFs.
+  - Demo build: 14 pages. Demo suite: 48 passed, 21 intentional skips.
+  - Production suite: 40 passed, 9 skipped, 1 failed:
+    `the edge menu closes from the rail and from outside the panel`
+    (mobile-chromium; the panel content intercepted the scrim click). It
+    passed 3/3 in isolation and the standard build renders no project
+    section, so it is load-related flakiness in the edge-menu spec, not this
+    change.
+- `scripts/serve-dist.mjs` shuts itself down after 10 s without requests; a
+  single-worker run of the long pin specs let it die mid-run and produced
+  connection-refused failures that are not real. With a steady server the
+  pin specs passed 12/12 (three repeats each).
+- Rendered and inspected 1920x1080, 1440x900, 1280x720, 1440x900 reduced
+  motion, 834x1112 touch, 390x844 and 320x720 (start and end of the rail) plus
+  the hover state in Chrome.
+
+### Concurrent work by another session - not touched
+
+`src/components/sections/ServicesSection.astro`, `src/styles/services-section.css`,
+`src/config/assets.ts`, `scripts/trim-transparent-png.mjs`,
+`public/assets/servicios*.png` and `media-src/` changed during this session
+and belong to another session. They are included in any local build.
+
+### Next action
+
+Replace the demo projects with approved entries in `src/content/projects/`
+(cover, title, slug, `order`, `draft: false`) and enable
+`contentAvailability.projects`; the home rail picks up the first five. Nothing
+was committed, pushed or deployed.

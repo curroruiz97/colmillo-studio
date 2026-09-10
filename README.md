@@ -6,7 +6,7 @@ Static Astro foundation for the new Colmillo Studio portfolio.
 
 The technical foundation, creative-polish pass, complete development
 demonstration and automated QA layers are implemented. Development exposes
-three unmistakably fictional projects with a horizontal rail, case-study pages,
+five unmistakably fictional projects with a horizontal rail, case-study pages,
 galleries and previous/next navigation. The interaction layer now uses a
 centered full-surface menu, simplified route-aware header, surface-responsive
 fine-pointer cursor, pressure-based stacked sections, editorial reveals and a
@@ -76,7 +76,7 @@ accept only the exact strings `true` or `false`.
 
 ## Development Demonstration
 
-`npm.cmd run dev` automatically exposes the three fictional project routes.
+`npm.cmd run dev` automatically exposes the five fictional project routes.
 For a deterministic static demo artifact and its dedicated browser suite, run:
 
 ```powershell

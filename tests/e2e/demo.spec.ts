@@ -1,6 +1,43 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 
-const demoNames = ['Fauce Elástica', 'Pulso Molar', 'Rastro Naranja'];
+const demoNames = [
+  'Fauce Elástica',
+  'Pulso Molar',
+  'Rastro Naranja',
+  'Muesca Doble',
+  'Capas en Tensión',
+];
+
+/**
+ * Walks the home down until the project section's own top reaches the top of
+ * the viewport, which is where the enhanced rail pins. The sticky sections
+ * above it make a single computed jump land short, so it is re-applied.
+ */
+async function scrollRailToTop(page: Page) {
+  const section = page.locator('#proyectos');
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    await section.evaluate((element) => {
+      window.scrollTo({
+        top: element.getBoundingClientRect().top + window.scrollY,
+        behavior: 'auto',
+      });
+    });
+    await page.waitForTimeout(400);
+    const offset = await section.evaluate(
+      (element) => element.getBoundingClientRect().top,
+    );
+    if (Math.abs(offset) < 2) break;
+  }
+  await page.waitForTimeout(900);
+}
+
+/** Document offset and length of the pin that holds the project rail. */
+async function projectPin(page: Page) {
+  return page.locator('.pin-spacer:has(#proyectos)').evaluate((spacer) => {
+    const rect = spacer.getBoundingClientRect();
+    return { top: rect.top + window.scrollY, height: rect.height };
+  });
+}
 
 async function expectNoOverlap(fixed: Locator, content: Locator) {
   const fixedBox = await fixed.boundingBox();
@@ -60,7 +97,7 @@ async function collectConsoleErrors(page: Page) {
   return errors;
 }
 
-test('development demo exposes three unmistakably fictional projects', async ({
+test('development demo exposes five unmistakably fictional projects', async ({
   page,
 }) => {
   await page.goto('/proyectos/');
@@ -70,7 +107,7 @@ test('development demo exposes three unmistakably fictional projects', async ({
   for (const name of demoNames) {
     await expect(page.getByRole('heading', { level: 3, name })).toBeVisible();
   }
-  await expect(page.locator('.project-card')).toHaveCount(3);
+  await expect(page.locator('.project-card')).toHaveCount(5);
 });
 
 test('manifesto, studio and contact are complete demo destinations', async ({
@@ -182,57 +219,67 @@ test('horizontal enhancement moves the project track on a fine pointer', async (
   );
 });
 
-test('project rail exposes contextual cursor and truthful progress', async ({
+test('project tiles reveal their title on hover and open their case study', async ({
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name !== 'fine-1440');
   await page.goto('/');
   const section = page.locator('[data-horizontal-projects]');
   await expect(section).toHaveAttribute('data-projects-ready');
-  // The home stacks sticky sections above the rail, so a single absolute jump
-  // computed before scrolling can land short. Re-apply until the rail really
-  // sits at the top of the viewport, then let the pin settle.
-  for (let attempt = 0; attempt < 4; attempt += 1) {
-    await section.evaluate((element) => {
-      window.scrollTo({
-        top: element.getBoundingClientRect().top + window.scrollY,
-        behavior: 'auto',
-      });
-    });
-    await page.waitForTimeout(400);
-    const offset = await section.evaluate(
-      (element) => element.getBoundingClientRect().top,
-    );
-    if (Math.abs(offset) < 2) break;
-  }
-  await page.waitForTimeout(900);
+  await scrollRailToTop(page);
 
-  const firstCard = page.locator('[data-project-card] a').first();
-  const firstCardBox = await firstCard.boundingBox();
-  const viewport = page.viewportSize();
-  expect(firstCardBox).not.toBeNull();
-  expect(viewport).not.toBeNull();
-  await page.mouse.move(
-    Math.max(
-      1,
-      Math.min(viewport!.width - 1, firstCardBox!.x + firstCardBox!.width / 2),
+  // The rail carries only images: no counter, arrows, meter, years, numbers,
+  // summaries or demo flags.
+  await expect(
+    section.locator(
+      '.demo-flag, [data-project-progress], [data-project-previous], [data-project-next], [data-project-meter]',
     ),
-    (Math.max(0, firstCardBox!.y) +
-      Math.min(viewport!.height, firstCardBox!.y + firstCardBox!.height)) /
-      2,
-  );
+  ).toHaveCount(0);
+  await expect(section).not.toContainText('2099');
+  await expect(section).not.toContainText('DEMO FICTICIA');
+
+  const tile = page.locator('[data-project-card] a').first();
+  const title = tile.locator('.project-tile__title');
+  await expect(title).toHaveText('Fauce Elástica');
+  // At rest the title waits below the frame.
+  await expect(title).toHaveCSS('opacity', '0');
+
+  const box = await tile.boundingBox();
+  expect(box).not.toBeNull();
+  await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
   const cursor = page.locator('[data-custom-cursor]');
   await expect(cursor).toHaveAttribute('data-labelled', 'true');
   await expect(cursor.locator('[data-cursor-text]')).toHaveText('Abrir');
-
-  const next = page.locator('[data-project-next]');
-  await expect(page.locator('[data-project-previous]')).toBeDisabled();
-  await next.click();
-  await expect(page.locator('[data-project-progress]')).toHaveText('2 / 3');
-  await expect(page.locator('[data-project-meter]')).toHaveAttribute(
-    'aria-valuenow',
-    '2',
+  await expect(tile.locator('.project-tile__label')).toHaveCSS(
+    'transform',
+    'none',
   );
+  await expect(title).toHaveCSS('opacity', '1');
+
+  // Leaving reverses it.
+  await page.mouse.move(2, 2);
+  await expect(title).toHaveCSS('opacity', '0');
+
+  // The whole tile is the link into the case study.
+  await Promise.all([
+    page.waitForURL(/\/proyectos\/demo-fauce-elastica\/$/),
+    tile.click(),
+  ]);
+});
+
+test('touch screens show every project title without hover', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name === 'fine-1440');
+  await page.goto('/');
+  const titles = page.locator('[data-project-card] .project-tile__title');
+  await expect(titles).toHaveCount(5);
+  for (const title of await titles.all()) {
+    await expect(title).toHaveCSS('opacity', '1');
+  }
+  await expect(
+    page.locator('[data-project-card] .project-tile__label').first(),
+  ).toHaveCSS('transform', 'none');
 });
 
 test('the pinned project rail stays in view for the whole pin', async ({
@@ -265,13 +312,7 @@ test('the pinned project rail stays in view for the whole pin', async ({
   });
   expect(ancestorBreaksFixed).toBeNull();
 
-  const pin = await page
-    .locator('.pin-spacer')
-    .first()
-    .evaluate((spacer) => {
-      const rect = spacer.getBoundingClientRect();
-      return { top: rect.top + window.scrollY, height: rect.height };
-    });
+  const pin = await projectPin(page);
 
   const viewportHeight = page.viewportSize()?.height ?? 0;
   expect(viewportHeight).toBeGreaterThan(0);
@@ -422,7 +463,7 @@ test('reduced motion keeps all project content available', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('html')).toHaveAttribute('data-motion', 'reduced');
   await expect(page.locator('[data-motion-toggle]')).toHaveCount(0);
-  await expect(page.locator('[data-project-card]')).toHaveCount(3);
+  await expect(page.locator('[data-project-card]')).toHaveCount(5);
   await expect(page.locator('[data-project-track]')).toHaveCSS(
     'transform',
     'none',
@@ -497,84 +538,157 @@ test('the services block keeps every entry readable in all modes', async ({
   );
 });
 
+test('the services block is an even 2x2 beside the heading on desktop', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'fine-1440');
+  await page.goto('/');
+  const section = page.locator('#servicios');
+  await section.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(900);
+
+  const [headingRight, boxes, art] = await Promise.all([
+    section
+      .locator('.services-section__lede')
+      .evaluate((node) => node.getBoundingClientRect().right),
+    section.locator('[data-service-entry]').evaluateAll((nodes) =>
+      nodes.map((node) => {
+        const rect = node.getBoundingClientRect();
+        return {
+          x: Math.round(rect.x),
+          y: Math.round(rect.y),
+          width: Math.round(rect.width),
+        };
+      }),
+    ),
+    section.locator('.services-section__illustration').evaluate((node) => {
+      const rect = node.getBoundingClientRect();
+      return { top: rect.top, width: rect.width };
+    }),
+  ]);
+
+  const [estrategia, identidad, digital, contenido] = boxes;
+  if (!estrategia || !identidad || !digital || !contenido) {
+    throw new Error(`expected four service entries, got ${boxes.length}`);
+  }
+
+  // Two zones: every entry sits to the right of the heading column.
+  for (const box of boxes) {
+    expect(box.x).toBeGreaterThan(headingRight);
+  }
+
+  // Two columns, not four indents and not a staircase.
+  expect(new Set(boxes.map((box) => box.x)).size).toBe(2);
+  expect(estrategia.x).toBe(digital.x);
+  expect(identidad.x).toBe(contenido.x);
+  expect(identidad.x).toBeGreaterThan(estrategia.x);
+
+  // Both rows start on one line, and the second row clears the first.
+  expect(estrategia.y).toBe(identidad.y);
+  expect(digital.y).toBe(contenido.y);
+  expect(digital.y).toBeGreaterThan(estrategia.y);
+
+  // Equal column widths, within a rounding pixel.
+  expect(Math.abs(estrategia.width - identidad.width)).toBeLessThanOrEqual(1);
+
+  // The illustration shares the heading column, so it must read as an
+  // illustration rather than a thumbnail, and it must never push the quadrant
+  // down: the first row starts above the art, not after it.
+  expect(art.width).toBeGreaterThan(360);
+  expect(estrategia.y).toBeLessThan(art.top);
+});
+
 test('the route into the archive closes the project rail', async ({ page }) => {
   await page.goto('/');
   const section = page.locator('#proyectos');
   const cta = section.locator('a[href="/proyectos/"].bite-button');
   await expect(cta).toHaveText('Ver proyectos');
 
-  // It closes the rail: after it in the DOM and below it on screen.
+  // It is the last piece of the moving track, after the last project.
   await expect(
-    section.locator('[data-project-viewport] ~ .projects-section__outro'),
+    section.locator(
+      '[data-project-track] > .projects-section__list + [data-project-outro] a.projects-section__cta',
+    ),
   ).toHaveCount(1);
 
-  // Walk down until the section's own top reaches the top of the viewport,
-  // which is where the enhanced rail pins.
-  for (let step = 0; step < 90; step += 1) {
-    const top = await section.evaluate(
-      (node) => node.getBoundingClientRect().top,
+  await scrollRailToTop(page);
+  const enhanced =
+    (await section.getAttribute('data-horizontal-enhanced')) === 'true';
+  if (enhanced) {
+    // Travel to the end of the pin; the scrub needs a moment to catch up.
+    const pin = await projectPin(page);
+    const viewportHeight = page.viewportSize()?.height ?? 0;
+    await page.evaluate(
+      (y) => window.scrollTo(0, y),
+      pin.top + pin.height - viewportHeight - 2,
     );
-    if (top <= 1) break;
-    await page.mouse.wheel(0, Math.min(600, Math.max(120, top)));
-    await page.waitForTimeout(80);
+    await page.waitForTimeout(1500);
+  } else {
+    await section
+      .locator('[data-project-viewport]')
+      .evaluate((viewport) =>
+        viewport.scrollTo({ left: viewport.scrollWidth }),
+      );
+    await page.waitForTimeout(500);
   }
-  await page.waitForTimeout(600);
-  await expect(cta).toBeVisible();
 
-  const geometry = await section.evaluate((node) => {
-    const rail = node.querySelector('[data-project-viewport]');
-    const button = node.querySelector('a.projects-section__cta');
-    if (!rail || !button) return null;
-    return {
-      enhanced: node.getAttribute('data-horizontal-enhanced') === 'true',
-      railBottom: rail.getBoundingClientRect().bottom,
-      ctaTop: button.getBoundingClientRect().top,
-      ctaBottom: button.getBoundingClientRect().bottom,
-      viewportHeight: window.innerHeight,
-    };
-  });
-  if (!geometry) throw new Error('projects rail or CTA missing');
-  expect(geometry.ctaTop).toBeGreaterThanOrEqual(geometry.railBottom - 2);
-
-  // A pinned section freezes vertical scrolling, so anything below the fold is
-  // unreachable for the whole pin. The native fallback simply scrolls, so the
-  // constraint only applies to the enhanced rail.
-  if (geometry.enhanced) {
-    expect(geometry.ctaTop).toBeGreaterThanOrEqual(0);
-    expect(geometry.ctaBottom).toBeLessThanOrEqual(geometry.viewportHeight + 1);
-  }
+  const viewport = page.viewportSize();
+  const ctaBox = await cta.boundingBox();
+  const lastTile = await section
+    .locator('[data-project-card]')
+    .last()
+    .boundingBox();
+  expect(viewport).not.toBeNull();
+  expect(ctaBox).not.toBeNull();
+  expect(lastTile).not.toBeNull();
+  // Fully on screen at the end of the rail, with air to the right, and after
+  // the fifth project rather than under the first.
+  expect(ctaBox!.x).toBeGreaterThan(lastTile!.x + lastTile!.width);
+  expect(ctaBox!.x + ctaBox!.width).toBeLessThanOrEqual(viewport!.width - 16);
+  expect(ctaBox!.y).toBeGreaterThanOrEqual(0);
+  expect(ctaBox!.y + ctaBox!.height).toBeLessThanOrEqual(viewport!.height);
 });
 
-test('the pinned rail still shows a whole project card next to the route', async ({
+test('no project tile is cut off by the pinned rail', async ({
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name !== 'fine-1440');
   await page.goto('/');
   const section = page.locator('#proyectos');
   await expect(section).toHaveAttribute('data-horizontal-enhanced', 'true');
-  for (let step = 0; step < 90; step += 1) {
-    const top = await section.evaluate(
-      (node) => node.getBoundingClientRect().top,
-    );
-    if (top <= 1) break;
-    await page.mouse.wheel(0, Math.min(600, Math.max(120, top)));
-    await page.waitForTimeout(80);
-  }
-  await page.waitForTimeout(600);
+  await scrollRailToTop(page);
+  const pin = await projectPin(page);
+  const viewportHeight = page.viewportSize()?.height ?? 0;
 
-  // Adding the closing route costs the rail height, so the card summary is the
-  // first thing that would be clipped. It must still clear the card edge.
-  const clearance = await section.evaluate((node) => {
-    const card = node.querySelector('[data-project-card]');
-    const summary = card?.querySelector('p');
-    if (!card || !summary) return null;
-    return (
-      card.getBoundingClientRect().bottom -
-      summary.getBoundingClientRect().bottom
+  for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+    await page.evaluate(
+      (y) => window.scrollTo(0, y),
+      pin.top + (pin.height - viewportHeight) * ratio,
     );
-  });
-  if (clearance === null) throw new Error('project card copy missing');
-  expect(clearance).toBeGreaterThan(16);
+    await page.waitForTimeout(900);
+    const state = await section.evaluate((node) => ({
+      viewportHeight: window.innerHeight,
+      tiles: [...node.querySelectorAll('[data-project-card]')].map((tile) => {
+        const rect = tile.getBoundingClientRect();
+        return {
+          left: rect.left,
+          top: rect.top,
+          bottom: rect.bottom,
+          width: rect.width,
+          height: rect.height,
+        };
+      }),
+    }));
+    expect(state.tiles).toHaveLength(5);
+    for (const tile of state.tiles) {
+      // Upright editorial pieces, whole from top to bottom with air below.
+      expect(tile.height).toBeGreaterThan(tile.width);
+      expect(tile.top).toBeGreaterThanOrEqual(0);
+      expect(tile.bottom).toBeLessThanOrEqual(state.viewportHeight - 24);
+    }
+    // The first piece does not start against the left edge.
+    if (ratio === 0) expect(state.tiles[0]!.left).toBeGreaterThanOrEqual(16);
+  }
 });
 
 test('primary and editorial routes fit a compact 320px viewport', async ({
