@@ -299,7 +299,9 @@ test('the pinned project rail stays in view for the whole pin', async ({
     if (state.position === 'fixed') {
       // While pinned the section must sit at the top of the viewport and fit
       // inside it, because vertical scrolling is frozen for the whole pin.
-      expect(state.top).toBe(0);
+      // Sub-pixel only: the pin can land on a fractional offset, and the
+      // strict form of this failed on `-0` for a top of -0.4px.
+      expect(Math.abs(state.top)).toBeLessThanOrEqual(1);
       expect(state.height).toBeLessThanOrEqual(state.viewportHeight + 1);
     }
     // The section is on screen at every sampled point of the pin.
@@ -336,7 +338,7 @@ test('the edge rail reports the current home scene', async ({
         .evaluate((section) =>
           section.scrollIntoView({ block: 'center', behavior: 'instant' }),
         );
-      return page.locator('[data-edge-current]').textContent();
+      return page.locator('[data-edge-position]').textContent();
     })
     .toBe('05');
 
@@ -345,28 +347,25 @@ test('the edge rail reports the current home scene', async ({
     'location',
   );
 
-  // The rail itself carries no progress marker: it stays a stable edge.
-  const spineMark = await page
-    .locator('.edge-menu__spine')
-    .evaluate((spine) => {
-      const after = getComputedStyle(spine, '::after');
-      return { content: after.content, background: after.backgroundColor };
-    });
-  expect(spineMark.content).toBe('none');
+  // The closed edge carries no readout of its own: only the panel reports.
+  await expect(page.locator('.edge-menu__spine')).toHaveCount(0);
+  await expect(page.locator('[data-edge-current]')).toHaveCount(0);
 });
 
 test('fixed controls do not cover hero, contact or footer content', async ({
   page,
 }) => {
   await page.goto('/');
-  const motion = page.locator('[data-motion-toggle]');
-  const menu = page.locator('[data-edge-trigger]');
-  await expect(motion).not.toBeVisible();
-  // The loop, the CTA and the scroll hint all have to clear the rail.
-  await expectNoOverlap(
-    menu,
-    page.locator('.hero__media-frame, .hero__cta, .hero__scroll'),
+  const menu = page.locator('[data-edge-tab]');
+  const instagram = page.locator('[data-instagram]');
+  const heroContent = page.locator(
+    '.hero__media-frame, .hero__cta, .hero__scroll, .hero__logo',
   );
+  await expect(page.locator('[data-motion-toggle]')).toHaveCount(0);
+  // The loop, the CTA and the scroll hint all have to clear the tab, and the
+  // large Instagram pose must not land on any of them either.
+  await expectNoOverlap(menu, heroContent);
+  await expectNoOverlap(instagram, heroContent);
 
   await page.locator('#contacto').scrollIntoViewIfNeeded();
   await expectNoOverlap(
@@ -379,19 +378,25 @@ test('fixed controls do not cover hero, contact or footer content', async ({
   await expectNoOverlap(menu, siteFooter.locator('p, a'));
 
   await menu.click();
-  await expect(motion).toBeVisible();
   await expect(page.locator('[data-edge-panel]')).toBeVisible();
 });
 
-test('the open panel never hides behind its own handle', async ({ page }) => {
+test('the open panel never hides behind its own close control', async ({
+  page,
+}) => {
   await page.goto('/');
   await page.locator('[data-edge-trigger]').click();
   await settleEdgePanel(page);
 
+  // Measured while the control is fully expanded, its widest state.
+  await expect(page.locator('[data-edge-menu]')).toHaveAttribute(
+    'data-close',
+    'expanded',
+  );
   await expectNoOverlap(
-    page.locator('[data-edge-trigger]'),
+    page.locator('[data-edge-closer]'),
     page.locator(
-      '.edge-menu__list a, .edge-menu__channels a, .edge-menu__archive, .edge-menu__legal a, [data-motion-toggle]',
+      '.edge-menu__head, .edge-menu__list a, .edge-menu__channels a, .edge-menu__legal a',
     ),
   );
 });
@@ -400,13 +405,13 @@ test('fixed controls do not cover project copy or navigation', async ({
   page,
 }) => {
   await page.goto('/proyectos/demo-fauce-elastica/');
-  const motion = page.locator('[data-motion-toggle]');
-  const menu = page.locator('[data-edge-trigger]');
+  const menu = page.locator('[data-edge-tab]');
   const copy = page.locator(
     '.project-hero__copy h1, .project-hero__copy p, .project-hero__copy li, .project-hero__copy strong',
   );
-  await expect(motion).not.toBeVisible();
+  await expect(page.locator('[data-motion-toggle]')).toHaveCount(0);
   await expectNoOverlap(menu, copy);
+  await expectNoOverlap(page.locator('[data-instagram]'), copy);
 
   await page.locator('.project-navigation').scrollIntoViewIfNeeded();
   await expectNoOverlap(menu, page.locator('.project-navigation a'));
@@ -416,7 +421,7 @@ test('reduced motion keeps all project content available', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
   await expect(page.locator('html')).toHaveAttribute('data-motion', 'reduced');
-  await expect(page.locator('[data-motion-toggle]')).toBeDisabled();
+  await expect(page.locator('[data-motion-toggle]')).toHaveCount(0);
   await expect(page.locator('[data-project-card]')).toHaveCount(3);
   await expect(page.locator('[data-project-track]')).toHaveCSS(
     'transform',
@@ -424,7 +429,7 @@ test('reduced motion keeps all project content available', async ({ page }) => {
   );
 });
 
-test('the services composition keeps every entry readable in all modes', async ({
+test('the services block keeps every entry readable in all modes', async ({
   page,
 }) => {
   await page.goto('/');
@@ -432,13 +437,21 @@ test('the services composition keeps every entry readable in all modes', async (
   const entries = section.locator('[data-service-entry]');
   await expect(entries).toHaveCount(4);
   await expect(section.getByRole('heading', { level: 2 })).toHaveText(
-    'Servicios',
+    'Nuestros servicios',
   );
   await expect(section.locator('h3')).toHaveCount(4);
 
-  // Provisional copy must stay unmistakably flagged.
+  // The removed decoration must stay removed: no per-service numbering, no
+  // backdrop word, no sticky marker.
+  await expect(section.locator('.service-entry__number')).toHaveCount(0);
+  await expect(section.locator('[data-services-ghost]')).toHaveCount(0);
+  await expect(section.locator('[data-services-marker]')).toHaveCount(0);
+
+  // Provisional copy stays machine-detectable so `check:production` can keep
+  // it out of `dist/`, even though the loud badge is gone from the design.
+  await expect(section).toHaveAttribute('data-dev-placeholder', 'true');
   await expect(
-    section.getByText('DEMO FICTICIA — NO PUBLICAR').first(),
+    section.getByText('Texto provisional de demostración').first(),
   ).toBeVisible();
 
   // No content may sit behind hover, and no placeholder destinations.
@@ -471,41 +484,97 @@ test('the services composition keeps every entry readable in all modes', async (
     );
   expect(exposedGlyphs).toBe(0);
 
-  await expect(section.locator('a[href="/proyectos/"]')).toBeVisible();
+  // The removed orange furniture must stay removed: no eyebrow, no accent line
+  // under the title, and no route out of this section.
+  await expect(section.locator('.services-section__eyebrow')).toHaveCount(0);
+  await expect(section.locator('.service-entry__short')).toHaveCount(0);
+  await expect(section.locator('a[href="/proyectos/"]')).toHaveCount(0);
+
+  // The service titles are the section's only colour.
+  await expect(section.locator('.service-entry__title').first()).toHaveCSS(
+    'color',
+    'rgb(205, 87, 48)',
+  );
 });
 
-test('the services composition is asymmetric on a fine pointer', async ({
+test('the route into the archive closes the project rail', async ({ page }) => {
+  await page.goto('/');
+  const section = page.locator('#proyectos');
+  const cta = section.locator('a[href="/proyectos/"].bite-button');
+  await expect(cta).toHaveText('Ver proyectos');
+
+  // It closes the rail: after it in the DOM and below it on screen.
+  await expect(
+    section.locator('[data-project-viewport] ~ .projects-section__outro'),
+  ).toHaveCount(1);
+
+  // Walk down until the section's own top reaches the top of the viewport,
+  // which is where the enhanced rail pins.
+  for (let step = 0; step < 90; step += 1) {
+    const top = await section.evaluate(
+      (node) => node.getBoundingClientRect().top,
+    );
+    if (top <= 1) break;
+    await page.mouse.wheel(0, Math.min(600, Math.max(120, top)));
+    await page.waitForTimeout(80);
+  }
+  await page.waitForTimeout(600);
+  await expect(cta).toBeVisible();
+
+  const geometry = await section.evaluate((node) => {
+    const rail = node.querySelector('[data-project-viewport]');
+    const button = node.querySelector('a.projects-section__cta');
+    if (!rail || !button) return null;
+    return {
+      enhanced: node.getAttribute('data-horizontal-enhanced') === 'true',
+      railBottom: rail.getBoundingClientRect().bottom,
+      ctaTop: button.getBoundingClientRect().top,
+      ctaBottom: button.getBoundingClientRect().bottom,
+      viewportHeight: window.innerHeight,
+    };
+  });
+  if (!geometry) throw new Error('projects rail or CTA missing');
+  expect(geometry.ctaTop).toBeGreaterThanOrEqual(geometry.railBottom - 2);
+
+  // A pinned section freezes vertical scrolling, so anything below the fold is
+  // unreachable for the whole pin. The native fallback simply scrolls, so the
+  // constraint only applies to the enhanced rail.
+  if (geometry.enhanced) {
+    expect(geometry.ctaTop).toBeGreaterThanOrEqual(0);
+    expect(geometry.ctaBottom).toBeLessThanOrEqual(geometry.viewportHeight + 1);
+  }
+});
+
+test('the pinned rail still shows a whole project card next to the route', async ({
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name !== 'fine-1440');
   await page.goto('/');
-  const section = page.locator('#servicios');
-  await section.scrollIntoViewIfNeeded();
+  const section = page.locator('#proyectos');
+  await expect(section).toHaveAttribute('data-horizontal-enhanced', 'true');
+  for (let step = 0; step < 90; step += 1) {
+    const top = await section.evaluate(
+      (node) => node.getBoundingClientRect().top,
+    );
+    if (top <= 1) break;
+    await page.mouse.wheel(0, Math.min(600, Math.max(120, top)));
+    await page.waitForTimeout(80);
+  }
   await page.waitForTimeout(600);
 
-  // Designed placement: no two entries share an indent, and none of it is
-  // random, so the same four offsets must appear on every run.
-  const indents = await section
-    .locator('[data-service-entry]')
-    .evaluateAll((nodes) =>
-      nodes.map((node) => Math.round(node.getBoundingClientRect().x)),
+  // Adding the closing route costs the rail height, so the card summary is the
+  // first thing that would be clipped. It must still clear the card edge.
+  const clearance = await section.evaluate((node) => {
+    const card = node.querySelector('[data-project-card]');
+    const summary = card?.querySelector('p');
+    if (!card || !summary) return null;
+    return (
+      card.getBoundingClientRect().bottom -
+      summary.getBoundingClientRect().bottom
     );
-  expect(new Set(indents).size).toBe(indents.length);
-
-  // Hover emphasis dims the rest without hiding it.
-  const first = section.locator('[data-service-entry]').first();
-  await first.hover();
-  await page.waitForTimeout(350);
-  await expect(first).toHaveAttribute('data-service-active', 'true');
-  const dimmed = await section
-    .locator('[data-service-entry]:not([data-service-active="true"])')
-    .evaluateAll((nodes) =>
-      nodes.map((node) => Number.parseFloat(getComputedStyle(node).opacity)),
-    );
-  for (const opacity of dimmed) {
-    expect(opacity).toBeGreaterThanOrEqual(0.45);
-    expect(opacity).toBeLessThanOrEqual(0.65);
-  }
+  });
+  if (clearance === null) throw new Error('project card copy missing');
+  expect(clearance).toBeGreaterThan(16);
 });
 
 test('primary and editorial routes fit a compact 320px viewport', async ({
@@ -622,6 +691,8 @@ test('the hero composition centres the loop with the CTA under it', async ({
       cta: box('.hero__cta'),
       hint: box('.hero__scroll'),
       logo: box('.hero__logo'),
+      disc: box('.hero__shape--disc'),
+      orangeTrace: Boolean(document.querySelector('.hero__shape--orbit')),
       overflow:
         document.documentElement.scrollWidth -
         document.documentElement.clientWidth,
@@ -652,5 +723,227 @@ test('the hero composition centres the loop with the CTA under it', async ({
   expect(logo.top).toBeLessThan(loop.top);
   expect(logo.left).toBeLessThan(viewport.width * 0.25);
 
+  // The group hangs high: real paper is left under the hint.
+  expect(viewport.height - hint.bottom).toBeGreaterThan(viewport.height * 0.1);
+
+  // The ink mass enters from the side and lands on the foot. It must never be
+  // cut by the bottom edge, and the trace that used to cross the loop is gone.
+  expect(geometry.disc).not.toBeNull();
+  if (geometry.disc) {
+    expect(geometry.disc.bottom).toBeLessThanOrEqual(viewport.height + 1);
+    expect(geometry.disc.left).toBeLessThan(viewport.width * 0.5);
+  }
+  expect(geometry.orangeTrace).toBe(false);
+
   expect(geometry.overflow).toBeLessThanOrEqual(1);
+});
+
+/**
+ * Home manifesto. The section builds its composition out of four concepts as
+ * the page scrolls, so the checks below are about the contract that makes that
+ * readable rather than about exact pixels: the type is never scaled through
+ * `transform` (that is what made "Morder." look soft), each black concept gets
+ * its own moment and the three end up on one line, and the illustration
+ * replaced the old tension/release diagram.
+ */
+async function seekManifesto(page: Page, progress: number) {
+  const geometry = await page.evaluate(() => {
+    const track = document.querySelector<HTMLElement>('[data-manifesto-track]');
+    if (!track) return null;
+    return {
+      top: track.getBoundingClientRect().top + window.scrollY,
+      height: track.offsetHeight,
+      vh: window.innerHeight,
+    };
+  });
+  expect(geometry).not.toBeNull();
+  if (!geometry) return;
+  await page.evaluate(
+    ([box, value]) => {
+      window.scrollTo({
+        top: Math.round(box.top + (box.height - box.vh) * value),
+        behavior: 'instant',
+      });
+    },
+    [geometry, progress] as const,
+  );
+  // The timeline is scrubbed, so give it time to catch up with the jump.
+  await page.waitForTimeout(1400);
+}
+
+/** True when the element carries a pure translation: no scale, no skew. */
+async function isUnscaled(page: Page, selector: string) {
+  return page.evaluate((target) => {
+    const element = document.querySelector(target);
+    if (!element) return false;
+    const matrix = new DOMMatrixReadOnly(getComputedStyle(element).transform);
+    return (
+      Math.abs(matrix.a - 1) < 0.001 &&
+      Math.abs(matrix.d - 1) < 0.001 &&
+      Math.abs(matrix.b) < 0.001 &&
+      Math.abs(matrix.c) < 0.001
+    );
+  }, selector);
+}
+
+test('the home manifesto builds its composition without scaling the type', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'fine-1440');
+  await page.goto('/');
+  await page.addStyleTag({ content: 'html{scroll-behavior:auto !important}' });
+
+  // The tension/release circle and the vertical label are gone; the supplied
+  // illustration took their place.
+  await expect(page.locator('[data-manifesto-shape]')).toHaveCount(0);
+  await expect(page.locator('[data-manifesto-tag]')).toHaveCount(0);
+  const illustration = page.locator('.manifesto-home__illustration');
+  await expect(illustration).toHaveAttribute('src', '/assets/manifesto.png');
+  await expect(illustration).toHaveAttribute('width', '1600');
+  await expect(illustration).toHaveAttribute('height', '900');
+  await expect(illustration).toHaveAttribute('alt', '');
+
+  const read = () =>
+    page.evaluate(() => {
+      const box = (selector: string) => {
+        const element = document.querySelector(selector);
+        if (!element) return null;
+        const rect = element.getBoundingClientRect();
+        return {
+          left: rect.left,
+          right: rect.right,
+          top: rect.top,
+          bottom: rect.bottom,
+          opacity: Number(getComputedStyle(element).opacity),
+        };
+      };
+      return {
+        morder: box("[data-manifesto-word='morder']"),
+        presionar: box("[data-manifesto-word='presionar']"),
+        romper: box("[data-manifesto-word='romper']"),
+        marca: box("[data-manifesto-word='marca']"),
+        figure: box('[data-manifesto-figure]'),
+        band: box('[data-manifesto-band]'),
+        cta: box('[data-manifesto-cta]'),
+        overflow:
+          document.documentElement.scrollWidth -
+          document.documentElement.clientWidth,
+      };
+    });
+
+  // Opening pose: "Morder." alone, and already at its real font size.
+  await seekManifesto(page, 0);
+  const opening = await read();
+  expect(opening.morder?.opacity).toBe(1);
+  expect(opening.presionar?.opacity).toBe(0);
+  expect(opening.romper?.opacity).toBe(0);
+  expect(opening.marca?.opacity).toBe(0);
+  expect(opening.cta?.opacity).toBe(0);
+  expect(await isUnscaled(page, "[data-manifesto-word='morder']")).toBe(true);
+  expect(opening.overflow).toBeLessThanOrEqual(1);
+
+  // "Presionar." arrives as the protagonist while "Morder." holds the band.
+  // "Romper." has not started yet: every concept has its own moment.
+  await seekManifesto(page, 48 / 136);
+  const second = await read();
+  expect(second.morder?.opacity).toBe(1);
+  expect(second.presionar?.opacity).toBe(1);
+  expect(second.romper?.opacity).toBe(0);
+  expect(second.marca?.opacity).toBe(0);
+  expect(second.presionar!.top).toBeGreaterThan(second.morder!.bottom);
+  expect(await isUnscaled(page, "[data-manifesto-word='presionar']")).toBe(
+    true,
+  );
+
+  // "Romper." is the protagonist while the pair holds the band.
+  await seekManifesto(page, 84 / 136);
+  const third = await read();
+  expect(third.presionar?.opacity).toBe(1);
+  expect(third.romper?.opacity).toBe(1);
+  expect(third.marca?.opacity).toBe(0);
+  expect(
+    Math.abs(third.presionar!.top - third.morder!.top),
+  ).toBeLessThanOrEqual(2);
+  expect(third.romper!.top).toBeGreaterThan(third.morder!.bottom);
+  expect(await isUnscaled(page, "[data-manifesto-word='romper']")).toBe(true);
+
+  // Finished poster: the three black concepts share one band, "Dejar marca." sits under it,
+  // the illustration holds the right side and the CTA finally exists.
+  await seekManifesto(page, 1);
+  const final = await read();
+  expect(final.marca?.opacity).toBe(1);
+  expect(final.cta?.opacity).toBe(1);
+  expect(
+    Math.abs(final.presionar!.top - final.morder!.top),
+  ).toBeLessThanOrEqual(2);
+  expect(final.presionar!.left).toBeGreaterThan(final.morder!.right);
+  expect(
+    Math.abs(final.romper!.top - final.presionar!.top),
+  ).toBeLessThanOrEqual(2);
+  expect(final.romper!.left).toBeGreaterThan(final.presionar!.right);
+  expect(final.romper!.right).toBeLessThanOrEqual(final.band!.right);
+  expect(final.marca!.top).toBeGreaterThan(final.morder!.bottom);
+  expect(final.marca!.right).toBeLessThan(final.figure!.left);
+  expect(final.overflow).toBeLessThanOrEqual(1);
+
+  for (const selector of [
+    "[data-manifesto-word='morder']",
+    "[data-manifesto-word='presionar']",
+    "[data-manifesto-word='romper']",
+    "[data-manifesto-word='marca']",
+  ]) {
+    expect(await isUnscaled(page, selector), selector).toBe(true);
+  }
+});
+
+test('the home manifesto is a finished poster under reduced motion', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'fine-1440');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+
+  const state = await page.evaluate(() => {
+    const section = document.querySelector('#manifiesto');
+    const visible = (selector: string) => {
+      const element = document.querySelector(selector);
+      if (!element) return null;
+      const style = getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return {
+        opacity: Number(style.opacity),
+        visibility: style.visibility,
+        width: rect.width,
+        height: rect.height,
+      };
+    };
+    return {
+      motion: document.documentElement.dataset.motion,
+      // No pinned track is left to scroll through.
+      sectionHeight: section!.getBoundingClientRect().height,
+      viewport: window.innerHeight,
+      words: [
+        visible("[data-manifesto-word='morder']"),
+        visible("[data-manifesto-word='presionar']"),
+        visible("[data-manifesto-word='romper']"),
+        visible("[data-manifesto-word='marca']"),
+        visible('[data-manifesto-figure]'),
+        visible('[data-manifesto-cta]'),
+      ],
+      overflow:
+        document.documentElement.scrollWidth -
+        document.documentElement.clientWidth,
+    };
+  });
+
+  expect(state.motion).toBe('reduced');
+  expect(state.sectionHeight).toBeLessThan(state.viewport * 1.4);
+  for (const entry of state.words) {
+    expect(entry).not.toBeNull();
+    expect(entry!.opacity).toBe(1);
+    expect(entry!.visibility).toBe('visible');
+    expect(entry!.width).toBeGreaterThan(0);
+    expect(entry!.height).toBeGreaterThan(0);
+  }
+  expect(state.overflow).toBeLessThanOrEqual(1);
 });

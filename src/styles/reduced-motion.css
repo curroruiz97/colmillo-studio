@@ -57,17 +57,25 @@ html[data-motion='reduced'] .custom-cursor {
 
 /*
  * Reduced motion keeps the complete edge menu but removes its travel: the panel
- * appears where it belongs instead of sliding, and proximity never moves the
- * handle. `EdgeMenu.ts` disables the peek state for the same reason.
+ * appears where it belongs instead of sliding, the tab and the close control
+ * change state in place, and the pointer never moves the tab. `EdgeMenu.ts`
+ * disables tracking for the same reason, and `InstagramBadge.ts` swaps its fold
+ * for a single state change.
  */
 html[data-motion='reduced'] .edge-menu__panel,
-html[data-motion='reduced'] .edge-menu__handle,
-html[data-motion='reduced'] .edge-menu__row {
+html[data-motion='reduced'] .edge-menu__tab,
+html[data-motion='reduced'] .edge-menu__close {
   transition-property: opacity, visibility;
 }
 
+/*
+ * The routes carry no transition at all. Keeping `visibility` in their list
+ * made each row inherit the panel's visibility through its stagger delay, so
+ * the routes still appeared one by one for about a quarter of a second.
+ */
 html[data-motion='reduced'] .edge-menu__row {
   transform: none;
+  transition: none;
 }
 
 html[data-motion='reduced'] .edge-menu[data-state='open'] .edge-menu__panel {
@@ -76,13 +84,14 @@ html[data-motion='reduced'] .edge-menu[data-state='open'] .edge-menu__panel {
 
 @media (prefers-reduced-motion: reduce) {
   .edge-menu__panel,
-  .edge-menu__handle,
-  .edge-menu__row {
+  .edge-menu__tab,
+  .edge-menu__close {
     transition-property: opacity, visibility;
   }
 
   .edge-menu__row {
     transform: none;
+    transition: none;
   }
 
   .edge-menu[data-state='open'] .edge-menu__panel {

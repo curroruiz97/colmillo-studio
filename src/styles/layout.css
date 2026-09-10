@@ -3,93 +3,10 @@
   margin-inline: auto;
 }
 
-.site-header {
-  position: fixed;
-  z-index: var(--z-header);
-  inset-block-start: 0.75rem;
-  inset-inline: var(--page-gutter);
-  min-block-size: var(--header-height);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.55rem 1rem;
-  border: var(--border-width) solid currentColor;
-  border-radius: 1rem 1rem 1.65rem 1rem;
-  box-shadow: 0 0.75rem 2rem rgb(18 16 15 / 8%);
-  background: color-mix(in srgb, var(--color-brand-cream) 94%, transparent);
-  backdrop-filter: blur(0.55rem);
-  transition:
-    translate var(--duration-medium) var(--ease-bite),
-    opacity var(--duration-fast) linear,
-    visibility var(--duration-fast) linear;
-}
-
-.site-header[data-tone='dark'] {
-  background: color-mix(in srgb, var(--color-brand-ink) 95%, transparent);
-  color: var(--color-brand-cream);
-}
-
-.site-header[data-visible='false'] {
-  visibility: hidden;
-  opacity: 0;
-  pointer-events: none;
-  translate: 0 calc(-100% - 1rem);
-}
-
-.site-header[data-visible='true'] {
-  visibility: visible;
-  opacity: 1;
-  translate: 0;
-}
-
-.wordmark {
-  flex: 0 1 auto;
-  min-inline-size: 0;
-  text-decoration: none;
-}
-
-.wordmark__image {
-  display: block;
-  inline-size: clamp(8.5rem, 14vw, 11.75rem);
-  block-size: auto;
-}
-
-.site-header__context {
-  display: flex;
-  align-items: center;
-  gap: clamp(0.75rem, 2vw, 2rem);
-  font-size: var(--font-label);
-  font-weight: 850;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.site-header__context span:first-child {
-  opacity: 0.52;
-}
-
-.site-header__context span + span::before {
-  margin-inline-end: clamp(0.75rem, 2vw, 2rem);
-  content: '—';
-}
-
-.site-header__nav,
 .site-footer__nav {
   display: flex;
   flex-wrap: wrap;
   gap: clamp(0.75rem, 2vw, 2rem);
-}
-
-.site-header__nav a {
-  font-size: var(--font-label);
-  font-weight: 750;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.site-header__nav a[aria-current='page'] {
-  text-decoration-thickness: 0.14em;
 }
 
 .site-footer {
@@ -101,7 +18,6 @@
   gap: 2rem;
   padding: clamp(2rem, 5vw, 4rem) var(--page-gutter)
     max(5.5rem, env(safe-area-inset-bottom));
-  border-block-start: var(--border-width) solid currentColor;
   background: var(--color-brand-cream);
   font-size: var(--font-label);
 }
@@ -137,24 +53,7 @@
   z-index: var(--stack-index, 1);
   min-block-size: 100svh;
   overflow: clip;
-  border-block-start: var(--border-width) solid currentColor;
   border-radius: var(--section-radius) var(--section-radius) 0 0;
-  box-shadow: 0 -1.25rem 3rem rgb(18 16 15 / 12%);
-}
-
-.stack-section::after,
-.manifesto-statement::after {
-  position: absolute;
-  z-index: 3;
-  inset: 0 auto auto 50%;
-  inline-size: clamp(4rem, 10vw, 9rem);
-  block-size: 0.55rem;
-  border-radius: 0 0 50% 50%;
-  background: currentColor;
-  content: '';
-  opacity: 0.16;
-  pointer-events: none;
-  translate: -50% 0;
 }
 
 .stack-section > .content-shell {
@@ -244,7 +143,8 @@
   transform: translate(0.2rem, -0.2rem);
 }
 
-.services-section h2,
+/* Services keeps its heading in cream: on that block the orange is reserved
+   for the eyebrow, the accent line and the glyph details. */
 .projects-section h2 {
   color: var(--color-brand-orange);
 }
@@ -354,6 +254,21 @@
   transition: transform 140ms linear;
 }
 
+/*
+ * Closing route into the archive. It carries the hero's bite shape, with the
+ * offset drawn in cream because this surface is ink rather than the hero's
+ * cream.
+ */
+.projects-section__outro {
+  display: flex;
+  justify-content: flex-start;
+  padding-block: clamp(2.5rem, 6vw, 4.5rem);
+}
+
+.projects-section__cta {
+  box-shadow: 0 0.35rem 0 var(--color-brand-cream);
+}
+
 .projects-section__viewport {
   overflow-x: auto;
   overscroll-behavior-inline: contain;
@@ -384,7 +299,9 @@
 .projects-section[data-horizontal-enhanced='true'] {
   block-size: 100svh;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  /* Header, rail, closing route. The rail is the only flexible row, so the CTA
+     can never be pushed past the bottom of a pinned viewport. */
+  grid-template-rows: auto minmax(0, 1fr) auto;
 }
 
 .projects-section[data-horizontal-enhanced='true'] .projects-section__header {
@@ -396,8 +313,35 @@
   min-block-size: 0;
 }
 
+.projects-section[data-horizontal-enhanced='true'] .projects-section__outro {
+  padding-block: clamp(1rem, 2.5vh, 2.25rem);
+}
+
+/*
+ * A pinned rail gets exactly one viewport, so the closing route is spending
+ * card height. On a short desktop screen the card summary is the first thing
+ * that would be clipped, so the button gives its padding back there.
+ */
+@media (min-width: 64.01rem) and (max-height: 58rem) {
+  .projects-section[data-horizontal-enhanced='true'] .projects-section__outro {
+    padding-block: 0.4rem 0.9rem;
+  }
+
+  .projects-section[data-horizontal-enhanced='true'] .projects-section__cta {
+    min-block-size: 3.25rem;
+    padding-block: 0.7rem;
+  }
+}
+
 .projects-section[data-horizontal-enhanced='true'] .projects-section__track {
   block-size: 100%;
+  /*
+   * The track's `--section-space` bottom padding exists so the native overflow
+   * fallback clears the section edge. A pinned rail has a closing row of its
+   * own under it, so there the padding is dead space the cards need: at
+   * 1280x720 it was more than 150px, and the card summary was paying for it.
+   */
+  padding-block-end: 0;
   /* Clears the fixed edge-menu rail against the right viewport edge. */
   padding-inline-end: var(--edge-rail-clearance);
 }
@@ -754,20 +698,6 @@
   .stack-section + .stack-section {
     margin-block-start: -2rem;
   }
-
-  .stack-section::before {
-    position: absolute;
-    z-index: 2;
-    inset-block-start: -0.75rem;
-    inset-inline-start: clamp(2rem, 11vw, 10rem);
-    inline-size: clamp(5rem, 10vw, 10rem);
-    block-size: 1.5rem;
-    border: var(--border-width) solid currentColor;
-    border-block-end: 0;
-    border-radius: 50% 50% 0 0;
-    background: inherit;
-    content: '';
-  }
 }
 
 .contact-section {
@@ -887,7 +817,6 @@
   display: grid;
   align-items: center;
   overflow: clip;
-  border-block-start: var(--border-width) solid currentColor;
   border-radius: var(--section-radius) var(--section-radius) 0 0;
 }
 
@@ -1374,10 +1303,6 @@ body > main > .content-shell {
 }
 
 @media (max-width: 64rem) {
-  .site-header__nav li:nth-last-child(n + 3) {
-    display: none;
-  }
-
   .intro-section__grid,
   .studio-section__grid,
   .contact-section__grid {
@@ -1439,24 +1364,6 @@ body > main > .content-shell {
 }
 
 @media (max-width: 48rem) {
-  .site-header {
-    inset-inline: 0.75rem;
-  }
-
-  .site-header__nav {
-    gap: 0.75rem;
-  }
-
-  /* Every approved quick-contact channel stays reachable on small screens. */
-  .site-header__nav a {
-    letter-spacing: 0.02em;
-  }
-
-  .site-header__context span:first-child,
-  .site-header__context span + span::before {
-    display: none;
-  }
-
   .stack-section,
   .stack-section > .content-shell {
     min-block-size: auto;

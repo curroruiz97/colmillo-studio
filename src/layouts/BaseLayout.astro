@@ -1,8 +1,8 @@
 ---
 import Footer from '@/components/layout/Footer.astro';
 import EdgeMenu from '@/components/layout/EdgeMenu.astro';
+import InstagramBadge from '@/components/layout/InstagramBadge.astro';
 import SeoHead from '@/components/layout/SeoHead.astro';
-import SiteHeader from '@/components/layout/SiteHeader.astro';
 import '@/styles/index.css';
 
 interface Props {
@@ -43,7 +43,7 @@ const {
   <body>
     <a class="skip-link" href="#contenido">Saltar al contenido</a>
     {!hideNavigation && <EdgeMenu />}
-    {!hideNavigation && <SiteHeader />}
+    {!hideNavigation && <InstagramBadge />}
     <main id="contenido" tabindex="-1">
       <slot />
     </main>

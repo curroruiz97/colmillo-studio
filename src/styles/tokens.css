@@ -44,10 +44,10 @@
   --duration-medium: 320ms;
   --duration-slow: 720ms;
   /*
-   * Fixed layers. The edge menu owns one slot and orders its own spine, scrim,
-   * panel and handle inside it.
+   * Fixed layers. The Instagram control sits under the edge menu, which owns
+   * one slot and orders its own scrim, panel and tab inside it.
    */
-  --z-header: 80;
+  --z-social: 85;
   --z-menu: 90;
   --z-cursor: 120;
 }

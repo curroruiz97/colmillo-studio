@@ -1,3 +1,24 @@
+---
+/**
+ * HOME MANIFESTO
+ *
+ * A single pinned stage where the four concepts build the composition as the
+ * page scrolls: "Morder." arrives alone and travels up, "Presionar." follows
+ * and settles beside it, "Romper." follows and settles beside "Presionar.", the
+ * three read as one editorial header, and "Dejar marca." lands underneath them
+ * as the orange protagonist.
+ *
+ * The markup is the finished poster. `ManifestoMotion.ts` only adds offsets
+ * that resolve back to the rest state, so reduced motion, coarse pointers and
+ * no-JavaScript all inherit the same complete composition.
+ *
+ * `Morder.`, `Presionar.` and `Romper.` share a flex band instead of
+ * hand-placed percentages, so the gaps between them stay editorial at every
+ * width and survive a change of display face.
+ */
+import { manifestoIllustration } from '@/config/assets';
+---
+
 <section
   id="manifiesto"
   class="stack-section stack-section--cream manifesto-home"
@@ -5,53 +26,79 @@
   data-stack-section
   data-surface-tone="light"
 >
+  <!-- Without scripting there is no sequence to drive, so the tall track and
+       the pin would only add three empty viewports of scrolling before the
+       same finished poster. Unlayered and inline on purpose: it has to win
+       over the `sections` layer and must never be hoisted out of `noscript`. -->
+  <noscript>
+    <style is:inline>
+      @media (min-width: 64.01rem) and (min-height: 40rem) {
+        .manifesto-home__track {
+          block-size: 100svh;
+        }
+
+        .manifesto-home__stage {
+          position: relative;
+        }
+      }
+    </style>
+  </noscript>
+
   <div class="manifesto-home__track" data-manifesto-track>
     <div class="manifesto-home__stage" data-manifesto-stage>
       <div class="content-shell manifesto-home__canvas" data-manifesto-canvas>
-        <p class="section-index manifesto-home__index" aria-hidden="true">01</p>
-        <p class="section-kicker manifesto-home__kicker">Colmillo / Studio</p>
-        <span
-          class="manifesto-home__rule"
-          aria-hidden="true"
-          data-manifesto-rule></span>
-        <p class="manifesto-home__tag" aria-hidden="true" data-manifesto-tag>
-          Manifiesto
-        </p>
-
         <h2 id="intro-title" class="manifesto-home__title">
-          <span
-            class="manifesto-home__word manifesto-home__word--morder"
-            data-manifesto-word="morder">Morder.</span
-          >
-          <span
-            class="manifesto-home__word manifesto-home__word--presionar"
-            data-manifesto-word="presionar">Presionar.</span
-          >
+          <span class="manifesto-home__band" data-manifesto-band>
+            <span
+              class="manifesto-home__word manifesto-home__word--morder"
+              data-manifesto-word="morder">Morder.</span
+            >
+            <span
+              class="manifesto-home__word manifesto-home__word--presionar"
+              data-manifesto-word="presionar">Presionar.</span
+            >
+            <span
+              class="manifesto-home__word manifesto-home__word--romper"
+              data-manifesto-word="romper">Romper.</span
+            >
+          </span>
           <em
             class="manifesto-home__word manifesto-home__word--marca"
             data-manifesto-word="marca">Dejar marca.</em
           >
         </h2>
 
-        <div class="manifesto-home__shape" aria-hidden="true">
-          <span class="manifesto-home__shape-inner" data-manifesto-shape>
-            <span class="manifesto-home__skin" data-manifesto-skin>
-              <span class="manifesto-home__bite" data-manifesto-bite></span>
-            </span>
-            <span class="manifesto-home__shape-label">
-              Tensión <span>+</span> liberación
-            </span>
-          </span>
+        <div
+          class="manifesto-home__figure"
+          aria-hidden="true"
+          data-manifesto-figure
+        >
+          <img
+            class="manifesto-home__illustration"
+            src={manifestoIllustration.src}
+            width={manifestoIllustration.width}
+            height={manifestoIllustration.height}
+            alt=""
+            loading="lazy"
+            decoding="async"
+          />
         </div>
 
-        <a
-          class="section-route manifesto-home__cta"
-          href="/manifiesto/"
-          data-cursor-label="Abrir"
-          data-manifesto-cta
-        >
-          Abrir manifiesto <span aria-hidden="true">↗</span>
-        </a>
+        {
+          /* Same bite button as the hero CTA. The wrapper carries the timeline's
+            reveal and the link inside carries the magnetic pull, because both
+            drive `transform` and would overwrite each other on one element. */
+        }
+        <div class="manifesto-home__cta" data-manifesto-cta>
+          <a
+            class="bite-button manifesto-home__button"
+            href="/manifiesto/"
+            data-magnetic
+            data-cursor-label="Abrir"
+          >
+            <span>Abrir manifiesto</span>
+          </a>
+        </div>
       </div>
     </div>
   </div>

@@ -943,3 +943,591 @@ the loop, so it reads as a footnote to the button rather than a third peer.
   made.
 - Nothing here unblocks Phase 4. The wordmark was already an approved asset;
   no new client content, copy or claim was introduced.
+
+## Session: hero lift, opaque loop box and foot-anchored ink mass (2026-09-10)
+
+Three scoped hero adjustments requested by the user, plus the deployment of the
+previous session's work.
+
+### Deployment
+
+- `4c0f3b5` was pushed to GitHub at 08:22:59Z and produced **no** Vercel
+  deployment. The project was neither paused nor billing-blocked: an anonymous
+  request served 200 OK, and a request for a non-existent route returned a real
+  404 from the build (`X-Vercel-Cache: MISS`), which a paused project could not
+  do. `"live": false` in the Projects API is **not** the pause flag; do not read
+  it as one.
+- The cause was a one-off failure of the GitHub webhook delivery. An empty
+  commit (`7dd61cd`) re-fired it and the deployment went `READY` immediately, so
+  the Git integration itself is healthy. If a push ever fails to build again, an
+  empty commit is the cheap unblock.
+- The public demo now serves the current work. `noindex`, `robots.txt`
+  `Disallow: /` and the demo artifact boundary were all re-verified after the
+  deploy.
+
+### Hero changes
+
+- **The group hangs high.** `--hero-bottom-space` reserves paper under the hint
+  and `.hero__stage` splits the unused height through two `fr` spacer rows
+  (`--hero-stage-lead` 0.32fr to `--hero-stage-trail` 1fr). Row gaps moved from
+  the grid `gap` to margins on `.hero__cta` and `.hero__scroll` so the spacers
+  do not inherit them; this also retired the hint's old negative-margin trim.
+- **The loop's box is opaque.** `.hero__media-frame` is filled with
+  `--color-brand-cream`. The loop has a real alpha channel, so without it every
+  decorative shape showed through the drawing's empty paper.
+- **The orange trace is gone.** Once the box was opaque the hairline ellipse was
+  cut dead at two invisible vertical edges and read as a rendering fault. The
+  user authorised removal in the same instruction. The hero decor is now two ink
+  shapes; `.hero__shape--orbit` is removed from markup and styles.
+- **The ink disc lands on the foot.** `inset-block-end: 0` on both the desktop
+  and stack rules, with the size reduced so a fully visible mass does not
+  dominate. It still bleeds off the left edge, which was never in question.
+
+### Verification performed this session
+
+- `check`: 0 errors. `lint`, `check:hero`, `check:links` and `check:production`
+  (22 files, 133,138 JS bytes) pass.
+- `test:e2e` 39 passed; `test:e2e:demo` 40 passed. The hero composition spec
+  gained three guards: real paper under the hint, the ink disc never cut by the
+  bottom edge, and no orange trace in the DOM.
+- Geometry sweep at 1920x1080, 1440x900, 1440x1000, 1366x768, 834x1112, 390x844
+  and 320x720: clean at every size. Settled screenshots confirm the disc bottom
+  sits exactly on the fold at all of them and the loop box resolves to
+  `rgb(252, 238, 218)`.
+- The loop now holds 42%, 45%, 53%, 38%, 78%, 86% and 83% of viewport width at
+  those sizes. It is deliberately smaller than before: the lift is paid for out
+  of its height budget.
+
+### Notes for the next session
+
+- hellomonday.com, the reference the user gave for the vertical placement, draws
+  its hero into a full-viewport WebGL `<canvas>`, so there is no DOM geometry to
+  measure against and no height to match exactly. The lift was implemented from
+  the principle, not from a measurement, and is tunable through
+  `--hero-bottom-space` and the two stage weights.
+- `format:check` still reports the pre-existing repository-wide line-ending
+  mismatch. Files touched this session were checked against Prettier ignoring
+  line endings and are clean.
+
+## 2026-09-10 Session: Home Manifesto Scroll Choreography
+
+Claude Code session, requested by the user. Only the home manifesto section and
+its own styles, motion module and asset entry were touched. A concurrent session
+was rewriting the hero and the services section in the same working tree
+throughout; none of its files were modified here. See the notes at the end.
+
+### What changed
+
+- `src/components/sections/IntroSection.astro`. The tension/release circle
+  (`__shape`, `__skin`, `__bite`, `__shape-label`) and the vertical "Manifiesto"
+  label (`__tag`) were removed with their markup, styles and timeline tracks.
+  "Morder." and "Presionar." now share a `.manifesto-home__band` wrapper; the
+  `h2` still contains the three concepts in reading order, so the accessible
+  name behind `aria-labelledby="intro-title"` is unchanged. A `<noscript>` block
+  with `is:inline` drops the tall track and the pin when scripting is off.
+- `src/config/assets.ts` gained `manifestoIllustration`, the client-supplied
+  `public/assets/manifesto.png` with its intrinsic 1600x900. The file has a real
+  alpha channel and its drawn ink occupies 1032x634 inside that frame, so the
+  layout sizes the box for the padding rather than for the ink.
+- `src/styles/manifesto-home.css`. The desktop composition is now a header band
+  at 24%, "Dejar marca." at 48%, the illustration on the right and the CTA
+  bottom-left. `will-change: transform` is gone from the words; their
+  `font-size` is `calc(var(--manifesto-word) * var(--word-scale))`. The track is
+  420svh (was 300svh) to carry six poses with rests between them.
+- `src/scripts/motion/ManifestoMotion.ts`. One scrubbed timeline of 100 units:
+  00-15 "Morder." held oversized, 15-30 it travels into the band, 34-46
+  "Presionar." rises behind a clip mask, 50-66 it travels up beside "Morder.",
+  70-84 "Dejar marca." lifts in, 88-100 the illustration seats itself and the
+  CTA appears. Rests sit between every move. The illustration participates
+  throughout with bounded offsets (3% of canvas width, 5.5% of its height, 0.9
+  to 1 scale) and no parallax, rotation or blur.
+- `tests/e2e/demo.spec.ts` gained two manifesto specs and one fix; see below.
+
+### Why the words look sharp now
+
+Documented in full in `docs/DECISIONS.md`. In short: the blur was
+`will-change: transform` plus a held `scale(1.72)`, so the glyphs were
+rasterised once at 105.6 px and stretched. Type now scales through `font-size`,
+`force3D` is off, and every rest pose is an identity transform.
+
+### Verification performed this session
+
+- `check`: 0 errors, 0 warnings, 0 hints. `lint` passes. Prettier passes on
+  every file touched here.
+- `build` 9 pages; `check:production` passes (22 files, 131,626 JS bytes, well
+  inside the 220,000 budget); `check:links`, `check:brand`, `check:hero`,
+  `check:assets` and `check:manifest` all pass. `build:demo` 12 pages.
+- `test:e2e`: 39 passed, 7 intentional skips.
+- Timeline sweep at 1920x1080 in 2% steps, forwards and then backwards: the
+  largest disagreement between the two directions at the same progress was
+  0.1 px, and the trail is monotonic with visible plateaus at every rest. There
+  are no jumps and no hysteresis.
+- Screenshots of every pose at 1920x1080, 1440x900 and 1366x768 against the dev
+  server and again against the built `dist-demo` artifact. No overlap between
+  the band, "Dejar marca.", the illustration and the CTA at any of them;
+  horizontal overflow 0 everywhere; console clean.
+- Composition and stacking checked at 834x1112, 390x844, 320x720, under
+  `prefers-reduced-motion: reduce` at 1920 and 390, and at 200% text sizing.
+  Mobile stacks "Morder." then "Presionar." then "Dejar marca." then the
+  illustration then the CTA, with reveals only and no pin. Reduced motion
+  renders the finished poster in one viewport with everything at `opacity: 1`.
+- Frame cost over a full scrub at 1920x1080, median/p90/p99: manifesto
+  17.4/31.8/42.6 ms against 16.6/19.7/22 for the services section and
+  29/32/37 for the existing pinned project rail.
+
+Not verified in a real Chrome window: partway through the session the browser
+extension lost site access to `localhost:4321` and every screenshot and
+evaluation timed out. All visual QA above was done through Playwright's
+Chromium at full resolution, against both the dev server and the built artifact.
+An earlier live-Chrome pass in the same session did render the poses correctly.
+
+### Tests
+
+- `the home manifesto builds its composition without scaling the type` asserts
+  the circle and the vertical label are gone, the illustration is present with
+  its intrinsic dimensions and an empty `alt`, and — at progress 0, 0.48 and 1 —
+  that every word's computed transform is a pure translation. That last check is
+  the regression guard for the blur.
+- `the home manifesto is a finished poster under reduced motion` asserts the
+  section collapses to roughly one viewport and every element is visible.
+- One existing assertion was corrected: the pinned rail spec compared
+  `Math.round(rect.top)` with `0` using `toBe`, which fails on `-0`. A top of
+  -0.4 px is exactly pinned, and the next line already tolerates a pixel, so the
+  comparison is now `Math.abs(state.top) <= 1`. Nothing about the rail changed.
+
+### Concurrent work by another session
+
+While this session ran, another process rewrote the hero and the services
+section in the same working tree: `HeroSection.astro`, `hero-section.css`,
+`ServicesSection.astro`, `ServiceGlyph.astro`, `services-section.css`,
+`src/data/services.ts`, and additions to `demo.spec.ts` and these two documents.
+None of it was touched here.
+
+That work is mid-flight and currently leaves four failing demo specs, all of
+them in the services section: it no longer renders `DEMO FICTICIA — NO PUBLICAR`
+inside `#servicios`, which three specs assert, and the asymmetry spec fails with
+it. These failures reproduce with the manifesto work reverted and are not caused
+by it. A future session must not "fix" them without talking to the owner of that
+change.
+
+### Follow-up the same day: sentence case and the bite CTA
+
+- "Morder." and "Presionar." are now sentence case: `text-transform: uppercase`
+  was dropped from `.manifesto-home__word`. The markup already carried the
+  sentence-case text, so the accessible name is unchanged. The lead offset for
+  "Presionar." is measured, so the narrower lowercase widths needed no retuning.
+- "Abrir manifiesto" is now the hero's bite button (`.bite-button`, the same ink
+  slab shadow as `.hero__cta`, `data-magnetic`), in sentence case like the hero
+  label and without the old arrow. The timeline hook `data-manifesto-cta` moved
+  to a wrapper `div`, because the magnetic module and the timeline both drive
+  `transform` and would overwrite each other on one element. The keyboard
+  reveal rule is now `:focus-within` on that wrapper.
+- Checked at 1920x1080, 1366x768, 390x844 and 320x720: no overlap, overflow 0,
+  console clean.
+
+## 2026-09-10 Session: Sticky Header Removed
+
+At the user's request the fixed header with the wordmark and the email and
+Instagram quick links no longer exists on any route.
+
+- Deleted `src/components/layout/SiteHeader.astro` and
+  `src/scripts/motion/StickyHeader.ts`; unwired them from `BaseLayout.astro`,
+  `MotionController.ts` and the `EdgeMenu.ts` inert list.
+- Removed every `.site-header*` and `.wordmark*` rule from `layout.css` and
+  `edge-menu.css`, and the unused `--z-header` token. `--header-height` stays
+  because section top padding depends on it.
+- Removed the header-only Playwright coverage in `foundations.spec.ts` (quick
+  contact nav assertions, logo variant/ratio tests, header visibility test).
+- Updated `MOTION_SPEC.md`, `QA_CHECKLIST.md`, `CLAUDE.md` and `DECISIONS.md`.
+- Pre-existing uncommitted work from other sessions was preserved. No commit or
+  push.
+
+## 2026-09-10 Session: Services Section Simplified And Redesigned
+
+At the user's request the home services block was rebuilt from an oversized,
+decorated composition into a quiet editorial spread. Structure only takes its
+hierarchy from `beans.agency`; no reference code, copy, asset or layout was
+copied. Only the services section and its own files were touched.
+
+### What changed
+
+- `src/components/sections/ServicesSection.astro` — new markup: a
+  `.services-section__lede` (eyebrow `02 / Colmillo / Servicios` plus
+  `Nuestros servicios`), the `ol` of four entries, and the CTA as the last DOM
+  child. Removed the ghost word, the sticky marker, the demo badge and the
+  per-service number.
+- `src/components/ui/ServiceGlyph.astro` — four new hand-drawn vignettes
+  (`strategy`, `identity`, `digital`, `content`) in the hero loop's register:
+  solid cream clothing and hair, an open outlined head, a ground line and one
+  orange accent each. Still `aria-hidden` and `focusable="false"`.
+- `src/data/services.ts` — glyph variants renamed to the new set; `number` and
+  `demoNotice` dropped from `ServiceRecord`; descriptions shortened by roughly a
+  line each. `demo: true` and the `Texto provisional de demostración.` opening
+  are unchanged, so the section still emits `data-dev-placeholder` and stays out
+  of `dist/`.
+- `src/styles/services-section.css` — rewritten. Desktop is
+  `minmax(0, 1fr) minmax(0, 2fr)` with `grid-template-rows: auto auto 1fr`, so
+  the list spans every row and the CTA stays docked under the title instead of
+  drifting to the middle. The list itself is an even 2x2. Below 64rem the
+  heading stacks above the services, CTA last; below 48rem it is one column.
+  All the ghost, marker, number and dim rules are gone.
+- `src/scripts/motion/ServicesMotion.ts` — reduced to a per-entry reveal.
+- `src/styles/layout.css` — `.services-section h2` no longer inherits the orange
+  heading colour; only `.projects-section h2` does.
+- `tests/e2e/demo.spec.ts` — the two services specs were rewritten for the new
+  heading, the removed decoration, the `data-dev-placeholder` contract, the
+  left/right split, the non-uniform indents and the no-dimming hover.
+
+### Defects found and fixed during QA
+
+- A single section-level ScrollTrigger on a block over 1200px tall never fired
+  reliably and left all four entries at `opacity: 0`. Replaced with one trigger
+  per entry, the pattern `EditorialMotion.ts` already uses.
+- The first pass rendered one service per screen at 1920x1080. Section padding
+  is now `clamp(4.5rem, 9vw, 8rem)`, the list gap `clamp(2.5rem, 4.5vw, 3.75rem)`
+  and entries `42ch`, so roughly two and a half entries share a screen.
+- The `identity` glyph read as a skull, then as a generic avatar. It is now the
+  same character holding up a mask with a fang.
+- At 200% text the `02` in the eyebrow broke across two lines. The eyebrow wraps,
+  its spans do not.
+
+### Verification performed this session
+
+- `npm.cmd run check`: 0 errors, 0 warnings, 0 hints.
+- `npx.cmd eslint src tests`: clean. `npx.cmd prettier --check` on every touched
+  file: clean.
+- `npm.cmd run build`: 9 pages. `check:production` passed (131,630 JS bytes, no
+  demo content, placeholders or GIFs). `check:links`, `check:brand` and
+  `check:hero` passed.
+- `npm.cmd run build:demo`: 12 pages. `test:e2e:demo`: 42 passed, 18 skipped.
+  `test:e2e`: 39 passed, 7 skipped.
+- Rendered and inspected at 1920x1080, 1440x900, 1366x768, 834x1112, 390x844 and
+  320x720: no horizontal overflow, no clipped text and no console errors at any
+  size. Verified separately: hover raises the description from `0.72` to `1` and
+  shifts the title 3.2px; reduced motion leaves all four entries at `opacity: 1`;
+  200% text sizing produces no overflow; the CTA keeps a visible focus ring and
+  points at `/proyectos/`.
+
+### Not done
+
+- No commit, push or deployment. The sticky-header removal from the concurrent
+  session was present in the working tree during the final validation runs above
+  and was preserved untouched.
+
+## 2026-09-10 Session: Services Grid Corrected To An Even 2x2
+
+Follow-up to the entry above, at the user's direction: the staircase was wrong.
+Only layout, alignment, spacing and the left margin changed — no typography,
+colour, copy, glyph, button or component was touched.
+
+### What changed
+
+- `src/styles/services-section.css` only, plus the layout assertions in
+  `tests/e2e/demo.spec.ts`.
+- Desktop (>64rem): `.services-section__list` is now
+  `repeat(2, minmax(0, 1fr))` with `align-items: start`,
+  `column-gap: clamp(2rem, 4vw, 4.5rem)` and
+  `row-gap: clamp(3.5rem, 7vw, 6rem)`. Estrategia/Identidad share a top edge and
+  Digital/Contenido share a top edge, both by grid row, not by hand.
+- The alternating `--service-indent` rules and the custom property are deleted.
+- `.services-section__inner` gained
+  `padding-inline: clamp(1.5rem, 4.5vw, 5.5rem) clamp(0.5rem, 1.5vw, 2rem)` and
+  `padding-block: clamp(5.5rem, 11vw, 10rem)` on desktop, so the heading block no
+  longer sits against the page gutter. Entries capped at `32ch`.
+- 48rem to 64rem keeps the 2x2 under a stacked heading (`34ch` entries); below
+  48rem is unchanged from the previous session: one column, CTA last.
+- The short-desktop rule now only tightens `row-gap` and `padding-block`, so it
+  can no longer flatten the two columns.
+
+### Defects found and fixed during QA
+
+- The first tablet attempt put the 2x2 block before the shared `max-width: 64rem`
+  block, whose `gap` shorthand then reset both axes and collapsed it back to one
+  column. The tablet block now comes last and the shared block sets `row-gap`
+  only.
+- The tablet breakpoint was `min-width: 48.01rem`, so a 768px viewport fell
+  through to one column. It is `min-width: 48rem`.
+- The rewritten Playwright assertions indexed the measured boxes directly, which
+  `tsconfig` strictest rejects under `noUncheckedIndexedAccess`. They destructure
+  and guard instead.
+
+### Verification performed this session
+
+- `npm.cmd run check`: 0 errors, 0 warnings, 0 hints. `npx.cmd eslint src tests`:
+  clean. `npx.cmd prettier --check` on every touched file: clean.
+- `npm.cmd run build`: 9 pages. `check:production` passed (134,661 JS bytes, no
+  demo content, placeholders or GIFs). `check:links` passed.
+- Rendered and inspected the built demo at 1920x1080, 1440x900, 1366x768,
+  1024x800, 834x1112, 768x1024, 767x1024, 390x844 and 320x720: the 2x2 reads
+  immediately on desktop, the whole section fits one screen from 1366 up, and
+  there is no horizontal overflow, clipped text or console error at any size.
+
+## 2026-09-10 Session: Manifesto Fourth Phase ("Romper.")
+
+Claude Code session, requested by the user. Only the home manifesto was touched:
+`IntroSection.astro`, `manifesto-home.css`, `ManifestoMotion.ts`, the two
+manifesto specs in `tests/e2e/demo.spec.ts`, and these docs. No commit, push or
+deployment.
+
+### What changed
+
+- New black concept "Romper." after "Presionar." in `.manifesto-home__band`,
+  same class and treatment. The `h2` still reads the concepts in order.
+- Timeline, now 136 units: 00-15 Morder held, 15-30 Morder to band, 34-46
+  Presionar rises, 50-66 Presionar lands beside Morder, 70-82 Romper rises,
+  86-102 Romper lands beside Presionar, 106-120 Dejar marca, 124-136 figure
+  and CTA. The Romper phase copies the Presionar phase unit for unit. Every
+  pre-existing move keeps its duration, ease and offsets.
+- Desktop track 420svh to 535svh, so scroll per unit is unchanged.
+- Desktop rest size is nine tenths of the old size (`clamp(3.06rem, 5.58vw,
+  5.58rem)`), gap `clamp(1.6rem, 4.2vw, 5.4rem)`. Protagonist scales went to
+  1.88 and 1.6 so the oversized poses keep their old pixel size (Presionar
+  128.56px at 1440 before and after). The lead offset sums every earlier
+  sibling's natural width plus a gap.
+- Below 64rem the words stack as a staircase: Romper indents 16% on mobile and
+  30% on tablet, and gets its own once-only reveal.
+- "Dejar marca.", the illustration, the CTA and the figure's offsets are
+  untouched, apart from starting 36 units later.
+
+### Verification
+
+- `check` 0/0/0, `lint` clean, Prettier clean on touched files, `build` 9 pages,
+  `check:production` passed (134,661 JS bytes), `build:demo` 12 pages. The
+  manifesto is absent from `dist/`, as before.
+- Forward and reverse sweeps in 1% steps against a static `dist-demo` at
+  1440x1000 and 1920x1080: 0.00px disagreement at every progress point. Romper is
+  never visible before Presionar has landed. Console clean.
+- Final band at 1440: Morder 120-387, Presionar 448-774, Romper 835-1118 of a
+  band ending at 1270. At 1920 Romper ends at 1278 of 1438. 1040x768, 1280x800
+  and 1366x768 fit on one line. Overflow is 0 everywhere.
+- 834x1112, 390x844, 320x720 and reduced motion at 1440/390 were rendered: all
+  four words visible, Romper black, overflow 0.
+- Demo manifesto specs pass, now with a Romper pose at 84/136.
+
+### Failures not caused by this work
+
+Another process was editing the tree during this session: new untracked
+`InstagramBadge.*`, deleted `MotionControls.astro`, and edits to
+`EdgeMenu.astro`, `index.css`, `motion.css`, `reduced-motion.css` and
+`MotionPreference.ts`. With that work in the build:
+
+- the standard suite fails 29 specs (edge menu, Instagram control, navigation,
+  performance). `dist/` contains no manifesto markup, and `initManifestoMotion`
+  returns immediately without its track;
+- the demo spec `the open panel never hides behind its own close control` fails
+  because `.hero__inner` intercepts the click on `[data-edge-trigger]`.
+
+Leave those to the owner of that work.
+
+### Follow-up the same day: header removed, "Dejar marca." and CTA raised
+
+- At the user's request the manifesto no longer shows the `01` index, the
+  `Colmillo / Studio` kicker or the rule under them. Their markup, styles and
+  timeline tracks are gone, including the mobile reveal target.
+- Desktop only: "Dejar marca." moved from 48% to 42% of the stage. The CTA is
+  now anchored at 64% from the top instead of 8% from the bottom, so it sits
+  about 125px under "Dejar marca." at 1440x1000 and 1920x1080, and 80px at
+  1366x768. The timeline, the band and the illustration are unchanged. The CTA
+  then moved from 6% to 12% so its left edge lines up with "Dejar marca.".
+  Small screens keep their stacked flow, now without the header.
+
+## 2026-09-10 Session: Edge Menu Second Iteration And Global Instagram Control
+
+Claude Code session (`colmillo-studio-cd`), requested by the user. Only the edge
+menu, its overlay, the close control, the new Instagram control and the minimum
+stacking needed for them were touched. The hero composition, video, CTA,
+Manifesto, Services, projects and footer were not modified; the hero files are
+read, never written. File ownership was agreed with the concurrent session
+(`colmillo-studio-67`) before editing.
+
+### What changed
+
+- `EdgeMenu.astro`, `EdgeMenu.ts`, `edge-menu.css` - evolved, not rebuilt. The
+  `<details>` fallback, relocated panel, focus trap, `inert`, scroll lock and
+  scene observer are unchanged in principle. Removed: the spine, the visible
+  `MENÚ` label, the handle's `01/05` readout, the three-state `peek` model, "Ver
+  archivo completo" and the motion toggle. Added: a carrier moved on Y by one
+  `gsap.quickTo`, the orange tab, the thin ink close control with an orange
+  grip, the auto-collapse timers and the Instagram exclusion zone.
+- State machine: `closed | tracking | open | open-collapsed`, published as
+  `data-state` (closed | tracking | open) plus `data-close` (expanded |
+  collapsed).
+- Backdrop: `rgb(10 9 8 / 34%)` + `blur(6px)` only while open. Panel padding
+  `clamp(2.25rem, 6.5vh, 4.5rem)` top and bottom, larger gaps.
+- `MotionPreference.ts` keeps mirroring `prefers-reduced-motion` onto
+  `html[data-motion]` (every reduced-motion rule and module still works); the
+  toggle handling is gone and the retired `colmillo-motion` key is cleared.
+  Deleted `MotionControls.astro` and `.motion-toggle` (`.bite-button` untouched).
+- New `InstagramBadge.astro` / `InstagramBadge.ts` / `instagram-badge.css`,
+  registered in `BaseLayout.astro`, `MotionController.ts` and `index.css`;
+  `--z-social: 85` in `tokens.css`. The href is `contactChannels.instagram`.
+- `reduced-motion.css`: edge rules retargeted to the tab and close control;
+  routes carry no transition under reduced motion.
+- Docs: `MOTION_SPEC.md`, `DECISIONS.md` (seven entries), `CLAUDE.md` (three
+  stale lines about the menu and the motion preference).
+
+### Measured behaviour (Playwright, demo build)
+
+| Viewport | Tab closed / tracking | Tab Y clamp | Badge hero box | Badge compact box |
+| --- | --- | --- | --- | --- |
+| 1920x1080 | 20 / 40 px | 84 px .. bottom-20 | 1580-1756 x 210-262 (x1.3) | 1724-1860 x 28-68 |
+| 1440x900 | 20 / 40 px | 84 px .. bottom-20 | 1187-1363 x 125-177 (x1.3) | 1244-1380 x 28-68 |
+| 1366x768 | 20 / 40 px | 84 px .. bottom-20 | 1121-1297 x 117-169 (x1.3) | 1170-1306 x 28-68 |
+| 1024x1366 touch | 40 px static | - | 817-993 x 81-133 (x1.3) | 858-993 x 25-65 |
+| 768x1024 touch | 40 px static | - | ring hidden: label fold only | 609-745 x 20-60 |
+| 430x932 touch | 40 px static | - | label fold only | 283-414 x 16-52 |
+| 390x844 touch | 40 px static | - | label fold only | 243-374 x 16-52 |
+
+At every size: no overlap between badge and tab or between badge and loop, CTA,
+hint or wordmark; zero horizontal overflow; zero console errors. Close control:
+expanded on open, collapsed after the hold, re-expanded on approach and on
+focus, re-collapsed 1.4 s after leaving; backdrop and Escape close; the badge is
+hidden and inert while open and returns after. Keyboard: Tab reaches the tab,
+Enter focuses Inicio, Shift+Tab wraps onto the close control and expands it,
+Escape restores focus. Reduced motion: the tab never tracks and the badge
+switches once at half the range. No JavaScript: the tab opens the full-screen
+panel and the close control is shown. 320x720: no overflow.
+
+### Defects found and fixed during QA
+
+- `gsap.quickSetter(el, 'scale')` does not expand the shorthand; the hero scale
+  never applied. Now `scaleX` and `scaleY`.
+- The summary's centre sat 3 px off the visible tab, so a click at the element
+  centre (Playwright, voice control) fell through to the page. The summary box
+  is now the width of the closed sliver; the close sliver is 12 px.
+- Without JavaScript the close control inherited a 420 ms `visibility` delay.
+- Under reduced motion the routes still appeared one by one (inherited
+  visibility through their stagger delay).
+
+### Verification performed this session
+
+- `npm run check`: 0 errors, 0 warnings, 0 hints. `eslint src tests`: clean.
+  Repository-wide `npm run lint` passes except while the concurrent session's
+  temporary root script `.shots-services.mjs` exists (6-11 `no-undef` errors
+  for `window`, `document`, `console`, `process`); it is not part of this work.
+  Prettier: every file touched by this session passes (the repository-wide
+  line-ending mismatch is pre-existing and untouched).
+- `npm run build`: 9 pages. `check:production`: passed, 134,552 JS bytes.
+  `check:links`, `check:brand`, `check:hero`: passed. `build:demo`: 12 pages.
+- Production suite: 41 passed, 9 intentional skips. One earlier run showed a
+  single mobile `lcp > 0` miss in `performance.spec.ts` under three parallel
+  workers; it passed 3/3 in isolation and in the final full run.
+- Demo suite: 42 passed, 18 intentional skips, 3 failures in a spec that
+  belongs to the concurrent session (below).
+
+### Failures not caused by this work
+
+`the route into the archive closes the project rail` (new, concurrent session,
+`ProjectsHorizontal.astro` in progress) fails in all three demo projects: it
+measures the CTA without scrolling to the rail (bottom 8,321 px against a
+1,000 px viewport). The earlier note in the Manifesto section about 29 failing
+standard specs referred to this session's work in progress; those are resolved.
+
+### Known and accepted
+
+- The site-wide custom cursor ring is orange, so over an orange-filled control
+  (the hovered close control, the CTAs) it paints over part of the ink label.
+  Pre-existing cursor behaviour, not changed here.
+- `COLMILLO_BUILD_SPEC.md` still lists `MotionControls.astro` and an explicit
+  motion toggle; the user's instruction supersedes it (recorded in DECISIONS).
+
+### Next action
+
+Nothing pending for the navigation or the Instagram control. Do not push `main`,
+deploy or alter Vercel without explicit authorization.
+
+## 2026-09-10 Session: Services Stripped Back, Archive Route Moved
+
+Third pass on the services block, at the user's direction, plus the one change
+it forced in the project rail.
+
+### What changed
+
+- `src/components/sections/ServicesSection.astro` — removed the
+  `02 / Colmillo / Servicios` eyebrow, the orange accent line under each title
+  and the `Ver proyectos` button.
+- `src/data/services.ts` — `shortDescription` removed from `ServiceRecord` and
+  from all four demonstration entries; nothing rendered it any more.
+  `docs/CONTENT_NEEDED.md` updated so the client is not asked for a second line.
+- `src/styles/services-section.css` — service titles are
+  `--color-brand-orange`; `.service-entry__short`, the eyebrow rules and the CTA
+  rule deleted. Desktop padding `clamp(7rem, 14vw, 13rem)`, list row gap
+  `clamp(5rem, 10vw, 9rem)`, list `padding-block-start: clamp(3.5rem, 7vw, 7rem)`.
+  The `(max-height: 58rem)` branch was raised to match, since that is what a
+  1440x900 or 1366x768 laptop actually uses.
+- `src/components/sections/ProjectsHorizontal.astro` — new
+  `.projects-section__outro` holding the `Ver proyectos` bite button, last child
+  of `#proyectos`.
+- `src/styles/layout.css` — outro and CTA rules; the enhanced rail grid is now
+  `auto minmax(0, 1fr) auto`; the enhanced track drops its `--section-space`
+  bottom padding; a short-desktop branch trims the button's own padding.
+- `tests/e2e/demo.spec.ts` — services spec asserts the removed furniture and the
+  orange title colour; two new specs cover the moved route and the card copy
+  clearance under the pin.
+
+### Defects found and fixed during QA
+
+- The first version of the moved-CTA spec read the button's rect without
+  scrolling to `#proyectos`, so it measured a position thousands of pixels below
+  the fold and failed in all three demo projects. Reported by the concurrent
+  session; both project specs now walk down until the section top reaches the
+  viewport top, which is where the rail pins.
+- Adding the CTA row to the pinned grid clipped the project card summary at
+  1366x768 (2px over) and left zero clearance at 1280x720. Fixed by dropping the
+  enhanced track's dead `--section-space` bottom padding; clearance is now
+  72-108px from 1280x720 through 1920x1080, better than before the CTA existed.
+- The services padding and gap increases initially had no visible effect at
+  1440x900 or 1366x768: both viewports are under `max-height: 58rem`, so the
+  short-screen branch was overriding them.
+
+### Verification performed this session
+
+- `npm.cmd run check`: 0 errors, 0 warnings, 0 hints. `npm.cmd run lint`
+  (repo-wide `eslint .`): clean. `npx.cmd prettier --check` on every touched
+  file: clean.
+- `npm.cmd run build`: 9 pages. `check:production` passed (133,915 JS bytes, no
+  demo content, placeholders or GIFs). `check:links`, `check:brand` and
+  `check:hero` passed.
+- `npm.cmd run build:demo`: 12 pages. `test:e2e:demo`: 45 passed, 18 skipped.
+  `npm.cmd run test:e2e`: 41 passed, 9 skipped. Both suites include the
+  concurrent session's edge-menu v2 and Instagram control work.
+- Rendered and inspected the built demo at 1920x1080, 1440x900, 1366x768,
+  1280x720, 1024x800, 834x1112, 390x844 and 320x720. No horizontal overflow, no
+  clipped text and no console error at any size. Measured on each: the closing
+  route stays inside the viewport for the whole pin wherever the rail is
+  enhanced, and below the rail in normal flow where it is not.
+
+## 2026-09-10 Session: Section seams removed site-wide
+
+User request: remove the separator line between the hero and the manifesto,
+then every other section separator. See `docs/DECISIONS.md` ("Sections Meet
+Without A Drawn Seam").
+
+- `src/styles/layout.css` — `.stack-section` drops its 2px `currentColor`
+  top rule and lift `box-shadow`; the shared centre notch
+  (`.stack-section::after, .manifesto-statement::after`) and the desktop bite
+  tab (`.stack-section::before`, under `min-width: 64.01rem`) are deleted. The
+  tab was clipped by the section's `overflow: clip`, so only its two side
+  walls survived as short ticks hanging from the rule. `.manifesto-statement`
+  and `.site-footer` drop their top rule.
+- Kept: rounded top corners, the `-2rem` desktop overlap and the
+  `SectionStack.ts` clip-path reveal.
+- `src/styles/manifesto-home.css` — carries no seam override (an interim
+  manifesto-only override from the same session was removed as redundant).
+- Verified on the dev server: home at 1440x1000 (full and reduced motion) and
+  390x844, every boundary (hero/manifesto, manifesto/servicios,
+  proyectos/studio, studio/goodbye, goodbye/contacto, contacto/footer) and
+  `/manifiesto/` statements. No rule, notch, ticks or console errors. Prettier
+  clean on both touched stylesheets.
+- `src/scripts/motion/EdgeMenu.ts` — the reported home scene now breaks
+  ratio ties in favour of the later section. Found because the demo spec
+  "the edge rail reports the current home scene" failed deterministically
+  after the seam removal (read `03`, expected `05`): with `#contacto` centred,
+  the sticky `#studio` sits fully under it with the identical 0.1 ratio in the
+  centre band, and the first-registered entry won. The 2px border had only
+  been masking this by changing registration order (verified: the old CSS
+  passed 3/3, the new CSS failed 5/5 before the fix, 5/5 passed after).
+- Final validation: `build:demo` (12 pages) and `test:e2e:demo` 45 passed,
+  18 skipped; `build` (9 pages), `check:production` passed (133,948 JS bytes),
+  `test:e2e` 41 passed, 9 skipped; `check` 0 errors/warnings/hints; `lint`
+  clean; Prettier clean on every touched file.

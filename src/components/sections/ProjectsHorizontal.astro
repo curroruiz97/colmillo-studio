@@ -77,6 +77,19 @@ const { projects } = Astro.props;
           ))}
         </ol>
       </div>
+      {/* The route into the full archive closes the rail. It is the last row of
+          the pinned grid, so it stays on screen for the whole pin instead of
+          sitting below the fold where nobody could reach it. */}
+      <div class="projects-section__outro content-shell">
+        <a
+          class="bite-button projects-section__cta"
+          href="/proyectos/"
+          data-magnetic
+          data-cursor-label="Ver"
+        >
+          <span>Ver proyectos</span>
+        </a>
+      </div>
     </section>
   ) : (
     import.meta.env.DEV && (

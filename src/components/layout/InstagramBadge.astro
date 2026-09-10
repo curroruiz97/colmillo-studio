@@ -1,0 +1,70 @@
+---
+/**
+ * COLMILLO INSTAGRAM
+ *
+ * One global control anchored to the top-right corner. On the home it starts
+ * larger and reads `INSTAGRAM ↗`; `InstagramBadge.ts` folds it, in the same
+ * corner, into a round compact control carrying the Instagram glyph as the hero
+ * leaves. It is the same element throughout, never swapped for a second one.
+ * Every other route shows it compact from the start.
+ *
+ * The pill is built from three pieces - two caps and a middle - so it can
+ * contract with transforms alone and keep its ink outline whole at every width.
+ * The glyph is inline SVG drawn in `currentColor`, so there is no external
+ * icon. The destination is the approved channel in `contactChannels`; nothing
+ * here hardcodes a profile.
+ */
+import { contactChannels } from '@/config/contact';
+
+const instagram = contactChannels.instagram;
+const isHome = Astro.url.pathname === '/';
+const mode = isHome ? 'hero' : 'compact';
+---
+
+{
+  instagram?.href && (
+    <a
+      class="ig-badge"
+      href={instagram.href}
+      data-instagram
+      data-mode={mode}
+      data-pose={mode}
+    >
+      <span class="ig-badge__plate" aria-hidden="true" />
+      <span class="ig-badge__face">
+        <span class="ig-badge__skin" aria-hidden="true">
+          <span class="ig-badge__cap" />
+          <span class="ig-badge__mid" />
+          <span class="ig-badge__end" />
+        </span>
+        <span class="ig-badge__full">{instagram.label}</span>
+        <span class="ig-badge__arrow" aria-hidden="true">
+          ↗
+        </span>
+        <span class="ig-badge__icon" data-instagram-icon aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="24" height="24" focusable="false">
+            <rect
+              x="3"
+              y="3"
+              width="18"
+              height="18"
+              rx="5.5"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+            <circle
+              cx="12"
+              cy="12"
+              r="4.1"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+            <circle cx="17.3" cy="6.7" r="1.25" fill="currentColor" />
+          </svg>
+        </span>
+      </span>
+    </a>
+  )
+}

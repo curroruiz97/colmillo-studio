@@ -11,11 +11,15 @@
  *   under that    the scroll hint, centred on the same axis
  *   right edge    reserved for the fixed edge menu
  *
- * Three shapes carry the visual language and nothing more: a solid ink disc
- * bleeding off the bottom-left, an open ink ring bleeding off the top-right,
- * and one thin orange line holding the two masses together. All of them sit
- * behind the loop and outside its box, and the orange trace sits behind the
- * two ink masses so it never cuts across them.
+ * Two shapes carry the visual language and nothing more: a solid ink disc
+ * entering from the bottom-left and an open ink ring bleeding off the
+ * top-right. Both sit behind the loop, whose box is filled with the page colour
+ * so nothing shows through the drawing's transparent paper.
+ *
+ * A third shape, a hairline orange ellipse, was removed on 2026-09-10. Once the
+ * loop's box became opaque the trace was cut dead at two invisible vertical
+ * edges, which read as a rendering fault rather than as a line passing behind
+ * the artwork. See docs/DECISIONS.md.
  */
 
 .hero {
@@ -34,15 +38,31 @@
    */
   --hero-scroll-gap: clamp(1rem, 2.2vh, 1.75rem);
   /*
+   * Empty paper deliberately left under the scroll hint. The loop, the CTA and
+   * the hint are a single mass anchored to the top of the screen, and this is
+   * the air the composition breathes into below them. It is also the room the
+   * ink disc needs to land on the bottom edge without being cut.
+   */
+  --hero-bottom-space: clamp(3.5rem, 10svh, 8rem);
+  /*
+   * How the stage's spare height is split above and below the group. Weighted
+   * hard towards the foot so the loop hangs high, but never all of it: on a
+   * tall narrow screen the loop is capped by width, and the leftover is big
+   * enough that giving every pixel to the foot leaves half the screen empty.
+   */
+  --hero-stage-lead: 0.32fr;
+  --hero-stage-trail: 1fr;
+  /*
    * Everything the first screen must show besides the loop: both page gutters,
-   * the wordmark, the three gaps, the CTA and the scroll hint. Whatever is left
-   * is the loop's height budget, so the CTA and the hint stay directly under
-   * the animation on a tall window and the animation shrinks instead of pushing
-   * them off a short one.
+   * the wordmark, the three gaps, the CTA, the scroll hint and the foot space.
+   * Whatever is left is the loop's height budget, so the CTA and the hint stay
+   * directly under the animation on a tall window and the animation shrinks
+   * instead of pushing them off a short one.
    */
   --hero-reserved: calc(
     (var(--page-gutter) * 2) + var(--hero-logo-block) + (var(--hero-gap) * 2) +
-      var(--hero-scroll-gap) + 5.5rem + var(--hero-scroll-block)
+      var(--hero-scroll-gap) + 5.5rem + var(--hero-scroll-block) +
+      var(--hero-bottom-space)
   );
   --hero-media-block: calc(100svh - var(--hero-reserved));
 
@@ -70,26 +90,14 @@
 }
 
 /*
- * Depth inside the decor layer, from the paper up: the thin orange trace, then
- * the two ink masses. The trace is a mark the shapes sit on top of, never a
- * line drawn across them, so it is pinned underneath them explicitly instead of
- * relying on source order.
+ * Solid ink mass entering from the left edge. It bleeds off the side, never off
+ * the foot: its full curve has to read against the bottom of the first screen.
  */
-.hero__shape--disc,
-.hero__shape--ring {
-  z-index: 1;
-}
-
-.hero__shape--orbit {
-  z-index: 0;
-}
-
-/* Solid ink mass bleeding off the bottom-left corner. */
 .hero__shape--disc {
-  inline-size: clamp(14rem, 26vw, 30rem);
+  inline-size: clamp(12rem, 22vw, 24rem);
   aspect-ratio: 1;
-  inset-block-end: clamp(-11rem, -12vw, -5rem);
-  inset-inline-start: clamp(-13rem, -14vw, -6rem);
+  inset-block-end: 0;
+  inset-inline-start: clamp(-9rem, -10vw, -4.5rem);
   border-radius: 49% 43% 48% 42% / 42% 52% 40% 56%;
   background: var(--color-brand-ink);
 }
@@ -102,19 +110,6 @@
   inset-inline-end: clamp(-9rem, -10vw, -4rem);
   border: clamp(0.9rem, 2vw, 2.4rem) solid var(--color-brand-ink);
   border-radius: 52% 46% 50% 44% / 45% 54% 43% 56%;
-}
-
-/*
- * One thin orange trace. It leaves the canvas on both sides on purpose: a
- * closed ellipse would read as a frame around the loop instead of as a mark
- * running underneath it.
- */
-.hero__shape--orbit {
-  inset: 24% -16% 12% -14%;
-  border: 1px solid
-    color-mix(in srgb, var(--color-brand-orange) 45%, transparent);
-  border-radius: 49% 43% 48% 42% / 42% 52% 40% 56%;
-  rotate: -4deg;
 }
 
 /* --------------------------------------------------------------- content -- */
@@ -154,18 +149,41 @@
  */
 .hero__stage {
   display: grid;
-  grid-template-rows: auto auto auto;
-  align-content: center;
+  /*
+   * Spacer, loop, CTA, hint, spacer. The two `fr` spacers share whatever height
+   * the group does not use, weighted so the composition sits high without ever
+   * stranding the CTA in the top third of a tall screen. They collapse to zero
+   * on their own when the loop has taken every available pixel.
+   *
+   * The gaps are margins rather than a grid `gap` precisely so the spacers do
+   * not pick them up.
+   */
+  grid-template-rows:
+    var(--hero-stage-lead) auto auto auto
+    var(--hero-stage-trail);
   justify-items: center;
-  gap: var(--hero-gap);
   /* Never let the loop and the CTA collide with the edge-menu rail. */
   padding-inline-end: var(--edge-rail-clearance);
+}
+
+.hero__stage::before,
+.hero__stage::after {
+  content: '';
+  display: block;
 }
 
 /* ----------------------------------------------------------------- media -- */
 
 .hero__media-frame {
   position: relative;
+  /*
+   * The loop has a real alpha channel, so without this the decor behind it -
+   * the thin orange trace in particular - shows straight through the drawing's
+   * empty paper. Filling the box with the page colour is invisible against the
+   * cream surface and makes the trace pass behind the loop instead of across
+   * it.
+   */
+  background: var(--color-brand-cream);
   /* Height first: the smaller of the height budget and the height implied by
      the width cap. Width always follows from the ratio, so the frame is exactly
      the drawing and never letterboxes. */
@@ -206,6 +224,7 @@
 /* ------------------------------------------------------------------- cta -- */
 
 .hero__cta {
+  margin-block-start: var(--hero-gap);
   /*
    * The shared button caps its measure at 18.5rem, which forces the hero's own
    * CTA onto two lines on a wide screen while the same label fits on one at
@@ -232,8 +251,7 @@
 .hero__scroll {
   position: relative;
   display: block;
-  /* Trim the stage's own row gap down to the hint's tighter one. */
-  margin-block-start: calc(var(--hero-scroll-gap) - var(--hero-gap));
+  margin-block-start: var(--hero-scroll-gap);
   inline-size: 0.5rem;
   block-size: var(--hero-scroll-block);
   pointer-events: none;
@@ -278,10 +296,6 @@
     /* Tablets give the loop proportionally more of the canvas. */
     --hero-media-inline: 78vw;
   }
-
-  .hero__shape--orbit {
-    inset: 28% -20% 14% -18%;
-  }
 }
 
 @media (max-width: 48rem) {
@@ -298,13 +312,12 @@
    * wordmark, the loop, the CTA and the hint all leave the paper empty.
    */
   .hero__shape--disc {
-    inline-size: clamp(11rem, 46vw, 16rem);
-    inset-block-end: clamp(-6rem, -16vw, -3.5rem);
-    inset-inline-start: clamp(-9rem, -28vw, -5rem);
+    inline-size: clamp(9rem, 38vw, 14rem);
+    inset-block-end: 0;
+    inset-inline-start: clamp(-6rem, -18vw, -3.5rem);
   }
 
-  .hero__shape--ring,
-  .hero__shape--orbit {
+  .hero__shape--ring {
     display: none;
   }
 }

@@ -64,10 +64,10 @@ Still missing:
 - Final home copy.
 - Final manifesto page copy.
 - Services list. The home section is built and waiting: replace the flagged
-  demonstration entries in `src/data/services.ts` with approved names, short
-  lines and descriptions, then enable `contentAvailability.services`. Each
+  demonstration entries in `src/data/services.ts` with approved names and one
+  short description each, then enable `contentAvailability.services`. Each
   service can also carry a real destination and a related project when those
-  exist.
+  exist. The design has no slot for a second accent line, so do not budget one.
 - Studio/about page copy and approved process or methodology, if it should be
   published.
 - Project/client list.

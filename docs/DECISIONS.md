@@ -705,3 +705,402 @@ two different frames of the animation were visible at once. Everyone else
 receives the same file through the video's own `poster` attribute, so the still
 frame still paints before the first decoded frame and nothing extra is
 downloaded.
+
+## 2026-09-10 - The Loop's Box Is Opaque And The Orange Trace Is Gone
+
+Decision: `.hero__media-frame` is filled with `--color-brand-cream`, and the
+hairline orange ellipse (`.hero__shape--orbit`) was removed from the markup and
+the styles. The hero's decor is now two ink shapes.
+
+Reason: the loop carries a real alpha channel, so every decorative shape behind
+it showed straight through the drawing's empty paper — the trace appeared to run
+across the artwork rather than behind it. Filling the loop's box with the page
+colour is invisible against the cream surface and fixes that for every shape at
+once.
+
+It also made the trace unshippable. Once the box was opaque the ellipse was cut
+dead at two invisible vertical edges, terminating in mid-air on both sides of
+the loop, which reads as a rendering fault rather than as a line passing behind
+the artwork. Verified at 1920x1080 and 1440x900 before removing it. The
+alternatives were both worse: masking the trace to dissolve near the loop needs
+a mask keyed to a box that moves with the viewport, and reshaping its path to
+avoid the loop was explicitly out of scope. The user authorised removal in the
+same instruction that asked for the trace to sit behind the loop.
+
+## 2026-09-10 - The Hero Group Hangs High With A Weighted Split
+
+Decision: the first screen reserves `--hero-bottom-space` under the scroll hint,
+and `.hero__stage` distributes whatever height the group does not use through
+two flexible spacer rows weighted `--hero-stage-lead` to `--hero-stage-trail`
+(0.32fr to 1fr).
+
+Reason: the brief was to lift the loop, CTA and hint towards the top of the
+screen. Reserving foot space alone does nothing, because the loop's height
+budget simply expands to eat it; anchoring the stage to the top with
+`align-content: start` did lift it, but on a tall narrow screen the loop is
+capped by width rather than height, and every one of the ~364 px of leftover
+went to the foot, stranding the CTA at 40% of a 390x844 screen with half the
+canvas empty. The weighted split lifts the group hard on a wide screen, where
+the slack is small, and still leaves a proportionate margin above it on a tall
+one. The spacers collapse to zero by themselves when the loop has taken every
+pixel, so short windows are unaffected.
+
+The same foot space is what lets `.hero__shape--disc` land on the bottom edge
+instead of bleeding through it.
+
+## 2026-09-10 - Home Manifesto Type Scales Through `font-size`, Never `transform`
+
+Decision: the three manifesto words carry a `--word-scale` custom property that
+feeds their `font-size`. The scroll timeline animates that property, sets
+`force3D: false`, and gives the words no `will-change`. The only transform a
+word ever receives is a translation that lands on exactly zero.
+
+Reason: the oversized "Morder." was visibly soft. It was not a filter and not an
+accident of the font: `.manifesto-home__word` declared `will-change: transform`
+and the timeline held the word at `scale(1.72)`, so Chrome rasterised the glyphs
+once at 105.6 px and stretched that texture to an effective 181 px. GSAP's
+default `force3D: 'auto'` compounds it by promoting the element to its own layer
+for the whole duration of a scrubbed tween, which also resamples sub-pixel
+translations. Animating the real font size makes the browser shape and rasterise
+actual glyphs at the actual size in every frame, so the word is as sharp at
+169 px as ordinary HTML text, and every rest pose is an exact font size with an
+identity transform rather than a fractional scale.
+
+The cost is a layout and a glyph-cache miss per frame while a word is
+travelling. Measured over a full scrub of the section at 1920x1080 that took the
+median frame from 16.6 ms to 24.8 ms. Quantising `--word-scale` to 1/50 through
+a GSAP `modifiers` function brought it back to 17.4 ms — consecutive frames
+mostly ask for the same size — while every rest value (1, 1.44, 1.7) stays an
+exact multiple, so the poses are untouched. Two device pixels of granularity are
+invisible on a word that is mid-flight.
+
+Rejected: keeping `transform: scale` and compensating with a filter, which hides
+the symptom and costs more; and rasterising at the largest size and only ever
+scaling down, which is still a stretched texture at every intermediate value.
+
+## 2026-09-10 - The Manifesto Pair Is Laid Out By Flex, Not By Percentages
+
+Decision: "Morder." and "Presionar." share `.manifesto-home__band`, a flex row
+on desktop. Their resting positions come from that layout; only their
+protagonist poses are expressed as offsets, and "Presionar." reaches the left
+margin through a distance measured from the rendered width of "Morder." at
+refresh time.
+
+Reason: the two words have to end up side by side with real editorial air
+between them, at 1024px through 1920px, and the display face is still unlicensed
+— `--font-display` currently resolves to the system stack and will change when
+Bootzy TM arrives. Two hand-placed percentages would encode today's metrics and
+collide or gap the day the real face lands. A flex row with a `clamp()` gap
+cannot collide, whatever the metrics.
+
+The one coupling this creates is deliberate: while "Morder." is oversized it
+pushes its sibling's layout position sideways. That happens only between
+progress 0 and 0.3, where "Presionar." is at `opacity: 0`, and the pair's layout
+is final from progress 0.34 onwards, so nothing visible ever depends on it.
+
+## 2026-09-10 - The Sticky Contact Header Is Removed
+
+Decision: Delete the fixed site header (wordmark plus the "Correo" and
+"Instagram" quick links) on every route, together with `SiteHeader.astro`,
+`StickyHeader.ts`, their styles, the `--z-header` token and the tests that
+covered them.
+
+Reason: explicit user request. The approved contact channels remain published in
+the home contact section and the footer, and the edge menu keeps navigation and
+its own wordmark, so no content or route becomes unreachable. `--header-height`
+is kept because section top padding still reads from it.
+
+## 2026-09-10 - Services Is An Editorial Spread, Not A Poster
+
+Decision: Rebuild the home services block as a two-column editorial spread. The
+heading (`02 / Colmillo / Servicios`, `Nuestros servicios` and the CTA) holds the
+left third and the four services occupy the right two thirds. The oversized
+backdrop word, the sticky vertical
+`SERVICIOS 01` marker, the per-service `01`-`04` numbering and the visible
+`DEMO FICTICIA — NO PUBLICAR` badge are all gone, together with their CSS,
+their motion hooks and the `number`/`demoNotice` fields on `ServiceRecord`.
+The heading dropped from `clamp(3.4rem, 12vw, 11rem)` uppercase to
+`clamp(2.4rem, 4.6vw, 4rem)` sentence case, and the service titles, accent lines
+and body copy all came down with it.
+
+Reason: the block was the loudest thing on the page after the hero and the
+manifesto, and it was competing with both. It is the one section that exists to
+be scanned, so hierarchy now runs heading > title > accent > body, and the air
+does the composing instead of decoration. Beans' left-heading / right-list
+structure is the reference for the *hierarchy* only; the palette, the
+illustration, the shapes and the motion stay Colmillo's.
+
+## 2026-09-10 - The Provisional Services Marker Moved Into The Copy
+
+Decision: The services section no longer renders the red `DEMO FICTICIA — NO
+PUBLICAR` badge. The provisional status is still carried by
+`data-dev-placeholder` on the section and by the `Texto provisional de
+demostración.` sentence that opens every service description.
+
+Reason: the badge was one of the elements the user asked to remove, and both
+remaining markers are already in the `check:production` forbidden list, so the
+standard build still cannot ship this copy. Nothing became less honest: the
+first thing a reader sees under every service title is still the sentence that
+says the text is provisional. Project cards and the editorial pages keep their
+badges, because those present fabricated *work*, not placeholder prose.
+
+## 2026-09-10 - Services Motion Is Only A Reveal
+
+Decision: `ServicesMotion.ts` now does one thing: reveal each entry once, from
+`opacity: 0` and `y: 22`, on its own ScrollTrigger. The scroll-driven active
+service, the backdrop-word and marker synchronisation, the `gsap.matchMedia`
+pointer override and the dim-the-others state were all deleted. Hover and focus
+live entirely in CSS, behind `(min-width: 64.01rem) and (hover: hover) and
+(pointer: fine)`: the title shifts 3.2px, the description lifts from `0.72` to
+full opacity and the vignette compresses to `scale(0.96, 1.05)`.
+
+Reason: the section had to feel calmer than the manifesto, and the old module
+owned scroll state for decoration that no longer exists. A single per-entry
+trigger is also the pattern `EditorialMotion.ts` already uses; a section-level
+trigger on a block over 1200px tall did not reliably fire and left every entry
+at `opacity: 0`. Nothing is dimmed any more, so no entry is ever less readable
+than another.
+
+## 2026-09-10 - Service Glyphs Are Hand-Drawn Vignettes
+
+Decision: Replace the four abstract glyphs (`pressure`, `notch`, `module`,
+`trace`) with four original vignettes (`strategy`, `identity`, `digital`,
+`content`) of the same character: an open outlined head, solid cream hair and
+clothing, round-capped limbs, a faint ground line and exactly one orange
+accent — a flag, a mask with a fang, a screen answering a touch, a page being
+written.
+
+Reason: the abstract set read as a generic icon library, which is the opposite
+of the brief, and it shared nothing with the client's hero loop. The hero draws
+filled black clothing over an open face on cream; on ink the same hand inverts to
+cream, so the vignettes and the loop now read as one illustrator. They are
+decorative and stay `aria-hidden`, so the service title still carries all the
+meaning.
+
+## 2026-09-10 - The Services Grid Is An Even 2x2, Not A Staircase
+
+Decision: On screens wider than 64rem the four services sit in a plain
+`repeat(2, minmax(0, 1fr))` grid with `align-items: start`: Estrategia and
+Identidad on the first row, Digital and Contenido on the second, equal column
+widths, `column-gap: clamp(2rem, 4vw, 4.5rem)` and
+`row-gap: clamp(3.5rem, 7vw, 6rem)`. The alternating percentage indent that made
+the entries step down a diagonal is gone, and `--service-indent` with it.
+`.services-section__inner` also gained its own
+`padding-inline: clamp(1.5rem, 4.5vw, 5.5rem) clamp(0.5rem, 1.5vw, 2rem)`.
+Between 48rem and 64rem the heading stacks above the services but the 2x2 is
+kept; below 48rem it is one column.
+
+Reason: explicit user direction after seeing the diagonal. Regular positions
+read as calm and ordered where the staircase read as restless, and the section
+exists to be scanned. The extra inline padding is the editorial indent every
+other home section gets from its leading spacer column; this one has no spacer
+because the index lives inside the eyebrow, so it pays for the indent directly
+and no longer sits hard against the page gutter. Entries are capped at `32ch`,
+well under their column, so nothing turns into a card; there are still no boxes,
+borders or per-entry backgrounds.
+
+The side effect is that the section is now shorter than the viewport on a
+desktop screen (about 870px at 1920x1080 against a `min-block-size` of `62svh`).
+That is fine because it opted out of the sticky stack already: it is
+`position: relative` while its neighbours are `position: sticky`.
+
+## 2026-09-10 - The Manifesto Gains "Romper." As A Fourth Phase
+
+Decision: "Romper." joins the black header band after "Presionar.", with the
+same class, colour and type treatment. It gets its own rise (70-82) and its own
+travel into the band (86-102), a unit-for-unit copy of the "Presionar." phase.
+"Dejar marca." and the closing illustration/CTA phase move later by the same
+36 units, and the desktop track grows from 420svh to 535svh, so each move still
+costs the same scroll distance (320svh per 100 units before, 435svh per 136
+units now).
+
+To fit three words on one line, the desktop rest size drops to nine tenths
+(`clamp(3.06rem, 5.58vw, 5.58rem)`) and the band gap to
+`clamp(1.6rem, 4.2vw, 5.4rem)`. The protagonist scales were divided by the same
+0.9 (1.7 to 1.88, 1.44 to 1.6), so the oversized poses keep their previous size.
+The lead offset is now the natural width of every earlier sibling in the band
+plus one gap each, measured, never guessed. Below 64rem the words stack as a
+staircase: "Romper." indents twice as far as "Presionar." (16% on mobile, 30% on
+tablet) before "Dejar marca." returns to the margin.
+
+Reason: explicit user request, with the constraint that every word keeps its
+own moment and nothing else in the section changes.
+
+## 2026-09-10 - Edge Menu, Second Iteration: The Closed State Is One Orange Tab
+
+Decision: Remove the full-height black spine, the vertical `MENÚ` label and the
+`01/05` readout from the closed edge menu. Closed, the navigation is a single
+orange (`#cd5730`) tab, 20 px inside the right edge at mid-height. The `peek`
+state becomes `tracking`: within 64 px of the edge a fine pointer makes the tab
+reach to 40 px and follow the pointer on Y only. The Y travel is one
+`gsap.quickTo` (0.36 s, `power2.out`) on a carrier element, driven from the
+existing passive `pointermove`; no new frame loop. The tab never climbs into
+the Instagram control's band (the exclusion zone), never leaves the viewport,
+and returns to mid-height when the pointer leaves (past 104 px), the document
+or the window. Touch keeps a static, fully visible tab with three short rules;
+reduced motion keeps it static too.
+
+Reason: explicit user request for a far less invasive closed state whose only
+hint is a small tab. The state machine is one union
+(`closed | tracking | open | open-collapsed`) published as `data-state` plus
+`data-close`, so no combination of flags can contradict another.
+
+## 2026-09-10 - The Close Control Retracts To A Sliver
+
+Decision: When the panel opens, the tab becomes a thin ink close control
+outlined in cream with an orange grip, in the same place. It retracts to a
+12 px sliver after 2.6 s unless the pointer is in the hot zone or the control
+has focus, comes back on approach or focus, and retracts again 1.4 s after they
+leave. Escape, a link and the backdrop still close. On touch the control stays
+fully out, because no hover could bring it back.
+
+Reason: explicit user request. The sliver is 12 px rather than the 6-8 px first
+tried because the summary's own box is sized to the closed sliver and its
+centre must land on a visible piece in every state (see the next entry).
+
+## 2026-09-10 - The Summary's Box Is The Size Of The Closed Sliver
+
+Decision: The `<summary>` is not a hit area; only its visible pieces are, and
+the summary box itself is only as wide as the closed tab's sliver, with the tab
+and the close control overflowing from its right edge.
+
+Reason: With a carrier-sized summary its centre sat 3 px left of the visible
+tab, so a click at the element's centre - what Playwright, voice control and
+other assistive tools do - fell through to the page. Nine specs caught it.
+
+## 2026-09-10 - The Open Menu Sits Over A Blurred Ink Backdrop
+
+Decision: The backdrop is `rgb(10 9 8 / 34%)` with `backdrop-filter:
+blur(6px)`, applied only while open and held until the fade-out ends. The panel
+gains vertical air (`clamp(2.25rem, 6.5vh, 4.5rem)` at both ends and larger
+gaps).
+
+Reason: explicit user request to push the page, and the hero loop in
+particular, behind the navigation. The blur was measured in Chromium at every
+target size with no dropped interaction and no console errors; it exists only
+while the menu is open, so it costs nothing otherwise. No glassmorphism: the
+panel itself stays opaque ink.
+
+## 2026-09-10 - The Archive Link And The Manual Motion Toggle Are Retired
+
+Decision: Remove "Ver archivo completo" / "Ver proyectos" and the
+"Reducir movimiento" button from the panel, together with
+`MotionControls.astro`, the `.motion-toggle` styles and the toggle handling in
+`MotionPreference.ts`. The module still mirrors `prefers-reduced-motion` onto
+`html[data-motion]` and still announces changes, so every reduced-motion rule
+keeps working. It clears the `colmillo-motion` key the toggle used to store.
+
+Reason: explicit user request. A stored `reduced` override would otherwise keep
+a returning visitor in reduced motion with no control left to undo it.
+Projects stay reachable through the `Proyectos` route in the same list.
+Conflict recorded: `COLMILLO_BUILD_SPEC.md` still lists `MotionControls.astro`
+and an explicit motion toggle; the user's instruction supersedes it here.
+
+## 2026-09-10 - Under Reduced Motion The Routes Carry No Transition
+
+Decision: `.edge-menu__row` gets `transition: none` under reduced motion.
+
+Reason: The previous rule kept `visibility` in the rows' transition list, so
+each row inherited the panel's visibility through its stagger delay and the
+routes still appeared one by one for about 0.27 s under reduced motion. Found in
+QA: a capture 0.3 s after opening showed "Contacto" missing.
+
+## 2026-09-10 - One Global Instagram Control That Folds Into The Corner
+
+Decision: Add `InstagramBadge.astro`, `InstagramBadge.ts` and
+`instagram-badge.css`: a single link to `contactChannels.instagram.href`
+(nothing hardcoded) fixed at the top right, 3.75 rem from the edge on a fine
+pointer so it always clears the tab. On the home it starts scaled up (1.3 wide,
+1.15 tablet) and seated on the hero ring's lower-left stroke - measured from the
+ring's layout box, so the hero files were not touched - reading
+`INSTAGRAM ↗`. Over the first 30% of a viewport of scroll it rides up with the
+ring, then contracts and slides into the corner as `IG ↗`. It is one element
+throughout. The pill is three pieces (cap, middle, cap) so it contracts through
+transforms alone while its ink outline stays whole; the travelling cap eats the
+word from the left. The compact pill opens back to the full word on hover and
+focus. It hides and turns inert while the menu is open, because the panel
+already carries the same link. Phones and routes without the hero start
+compact; reduced motion changes state once instead of folding.
+
+Reason: explicit user request. Orange with an ink outline was chosen over an
+ink pill so it reads on cream, on ink and on the orange contact hero alike, and
+it matches the tab as the family of global chrome. Hero hover is a press into
+its own ink offset; compact hover is the expansion.
+
+## 2026-09-10 - Services Keeps One Colour, On The Titles
+
+Decision: The services block drops the `02 / Colmillo / Servicios` eyebrow and
+the orange accent line under each title, and the service titles themselves
+become `--color-brand-orange`. `shortDescription` is removed from
+`ServiceRecord` and from `docs/CONTENT_NEEDED.md`, because nothing renders it
+any more. Section padding rises to `clamp(7rem, 14vw, 13rem)`, the grid row gap
+to `clamp(5rem, 10vw, 9rem)`, and the list gets
+`padding-block-start: clamp(3.5rem, 7vw, 7rem)` so the quadrant starts below the
+heading's baseline instead of level with it.
+
+Reason: explicit user direction. Three orange elements per entry plus an orange
+eyebrow made the block busier than the manifesto it is supposed to calm down
+after. One orange per entry, on the name, is the whole colour budget.
+`--color-brand-orange` on ink clears 4.5:1, and these are large bold headings,
+so it clears AA with room to spare — `--color-brand-orange-aa` is the darker
+variant for orange on cream and would be worse here.
+
+Note that the `(max-height: 58rem)` short-screen branch is what a 1440x900 or
+1366x768 laptop actually gets, so its padding and gaps were raised too; tuning
+only the tall-screen values would have changed nothing on the machines most
+likely to view this.
+
+## 2026-09-10 - The Archive Route Closes The Project Rail
+
+Decision: `Ver proyectos` moves out of the services block and becomes
+`.projects-section__outro`, the last child of `#proyectos`. When the rail is
+enhanced the section grid becomes `auto minmax(0, 1fr) auto` — header, rail,
+route — so the rail is the only flexible row and the button can never be pushed
+past the bottom of a pinned viewport.
+
+Reason: explicit user direction, and it is where the action belongs: the reader
+has just been shown the work. It also leaves the services block with no
+competing affordance at all.
+
+The cost is real and had to be paid for: a pinned section owns exactly one
+viewport, so the button spends card height. At 1280x720 that clipped the card
+summary. It is paid by `padding-block-end: 0` on the enhanced track — the
+track's `--section-space` bottom padding exists so the *native overflow*
+fallback clears the section edge, and under a pinned rail with its own closing
+row it was more than 150px of dead space. Card copy clearance is now 72-108px
+from 1280x720 up, better than before the button existed. On a short desktop the
+button also gives back its own padding.
+
+## 2026-09-10 - The Instagram Control Stays In The Corner And Shows The Glyph
+
+Decision: Amends the entry above ("One Global Instagram Control That Folds Into
+The Corner"). The hero pose is no longer seated on the ring's stroke and no
+longer rides up with it: from the first screen the control sits in the
+top-right corner, scaled up (1.3 from 1024 px, 1.15 from 768 px, 1 on phones)
+around its own top-right corner, and the fold only shrinks it in place. The
+compact state is no longer `IG ↗`: the pill folds all the way into a circle as
+tall as the control, the arrow fades with the word, and the Instagram glyph -
+inline SVG in `currentColor`, no external icon - fades in. Hover and focus still
+open it back to `INSTAGRAM ↗`.
+
+Reason: explicit user feedback: the control must be in the top-right corner at
+the start of the page, and the compact state must be the Instagram icon rather
+than the letters. The ring measurement and the ride were removed from
+`InstagramBadge.ts`; the hero files remain untouched.
+
+## 2026-09-10 - Sections Meet Without A Drawn Seam
+
+Decision: Every section boundary drops its drawn seam. `.stack-section` loses
+its 2px `currentColor` top rule, its lift `box-shadow`, its centre notch
+(`::after`, shared with `.manifesto-statement`) and its desktop bite tab
+(`::before`); `.manifesto-statement` loses its top rule; `.site-footer` loses
+its top rule. The rounded top corners, the `-2rem` desktop overlap and the
+`SectionStack.ts` clip-path reveal are kept, so the stacking still reads
+through shape and colour change rather than a line.
+
+Reason: explicit user request, first for the hero-to-manifesto boundary and
+then for every section. On the cream-to-cream joins the rule read as a stray
+divider, and the bite tab - clipped by the section's own `overflow: clip` -
+only survived as two short ticks hanging from it. This consciously narrows the
+"bordes y muescas inspirados en mordiscos" language in
+`COLMILLO_BUILD_SPEC.md`; bite shapes remain in buttons, glyphs and hero decor.

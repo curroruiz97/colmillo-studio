@@ -1,15 +1,22 @@
-/* Home manifesto: an editorial poster sequence.
+/* Home manifesto: an editorial poster the scroll builds one concept at a time.
    The rules below describe the FINAL composition. The scroll timeline in
-   `ManifestoMotion.ts` only applies transform offsets that resolve back to
-   `transform: none`, so reduced motion, coarse pointers and no-JavaScript all
-   inherit this layout as a finished static poster. */
+   `ManifestoMotion.ts` only applies offsets that resolve back to
+   `transform: none` and `--word-scale: 1`, so reduced motion, coarse pointers
+   and no-JavaScript all inherit this layout as a finished static poster.
+
+   Type never scales through `transform`. Each word carries `--word-scale`,
+   which the timeline animates and which feeds `font-size`, so the browser
+   rasterises real glyphs at the real size in every frame instead of stretching
+   one cached texture. That is the whole reason `will-change: transform` is
+   absent here: promoting a word to its own layer is exactly what made the
+   oversized "Morder." look soft. */
 
 .manifesto-home {
   /* The words never wrap, so the small-screen ceiling is set by the longest
-     one ("PRESIONAR." plus its indent) rather than by taste. */
+     one ("Presionar." or "Romper." plus its indent) rather than by taste. */
   --manifesto-word: clamp(2.2rem, 12.4vw, 4.6rem);
   --manifesto-mark: clamp(2.4rem, 13.8vw, 5.2rem);
-  --manifesto-shape: clamp(9rem, 42vw, 15rem);
+  --manifesto-pair-gap: clamp(0.9rem, 4.5vw, 1.8rem);
 }
 
 .manifesto-home__canvas {
@@ -21,33 +28,6 @@
     clamp(4.5rem, 20vw, 7.5rem);
 }
 
-.manifesto-home__index,
-.manifesto-home__kicker,
-.manifesto-home__tag {
-  max-inline-size: none;
-  margin: 0;
-}
-
-.manifesto-home__kicker {
-  color: var(--color-brand-ink-soft);
-}
-
-.manifesto-home__tag {
-  color: var(--color-brand-ink-soft);
-  font-size: var(--font-label);
-  font-weight: 800;
-  letter-spacing: 0.34em;
-  text-transform: uppercase;
-}
-
-.manifesto-home__rule {
-  inline-size: min(100%, 12rem);
-  block-size: var(--border-width);
-  background: currentColor;
-  opacity: 0.55;
-  transform-origin: 0 50%;
-}
-
 .manifesto-home__title {
   display: grid;
   justify-items: start;
@@ -57,83 +37,60 @@
   font-size: inherit;
 }
 
+/* Small screens read the pair as two stacked lines; the desktop rule turns the
+   same element into the horizontal band. */
+.manifesto-home__band {
+  display: grid;
+  justify-items: start;
+  gap: var(--manifesto-pair-gap);
+}
+
 .manifesto-home__word {
+  --word-scale: 1;
   display: block;
   font-family: var(--font-display);
-  font-size: var(--manifesto-word);
+  font-size: calc(var(--manifesto-word) * var(--word-scale));
   line-height: 0.88;
   letter-spacing: -0.055em;
-  text-transform: uppercase;
   text-wrap: nowrap;
   white-space: nowrap;
-  will-change: transform;
 }
 
 .manifesto-home__word--presionar {
   margin-inline-start: 8%;
 }
 
+/* Each black concept steps further in, so the stack reads as pressure building
+   before "Dejar marca." returns to the margin. */
+.manifesto-home__word--romper {
+  margin-inline-start: 16%;
+}
+
 .manifesto-home__word--marca {
   color: var(--color-brand-orange);
   font-family: var(--font-handwritten);
-  font-size: var(--manifesto-mark);
+  font-size: calc(var(--manifesto-mark) * var(--word-scale));
   font-weight: 500;
   letter-spacing: -0.02em;
   text-transform: none;
 }
 
-/* Tension + release: a printed graphic being physically pressed.
-   Three layers on purpose — the outer box is positioned, the inner layer
-   travels and scales as one object, and only the skin deforms, so the label
-   never gets squashed. */
-.manifesto-home__shape {
-  position: relative;
-  inline-size: var(--manifesto-shape);
-  aspect-ratio: 1;
-  justify-self: end;
-  margin-inline-end: -6%;
+/* The illustration replaces the old tension/release diagram. Its own file
+   carries wide transparent margins, so the box is deliberately larger than the
+   drawing and is allowed to hang past the canvas edge: only padding leaves the
+   stage, never ink. */
+.manifesto-home__figure {
+  inline-size: 100%;
+  max-inline-size: 34rem;
+  justify-self: center;
 }
 
-.manifesto-home__shape-inner {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  will-change: transform;
-}
-
-.manifesto-home__skin {
-  position: absolute;
-  inset: 0;
-  border: var(--border-width) solid currentColor;
-  border-radius: 48% 42% 46% 40%;
-  rotate: 5deg;
-  will-change: transform;
-}
-
-/* A chunk taken out of a printed outline, not a second shape: the disc is
-   filled with the surface colour and sits astride the contour, so the stroke
-   simply stops where the bite is. */
-.manifesto-home__bite {
-  position: absolute;
-  inset-block-start: 14%;
-  inset-inline-start: -11%;
-  inline-size: 24%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: var(--color-brand-cream);
-}
-
-.manifesto-home__shape-label {
-  position: relative;
-  display: grid;
-  justify-items: center;
-  gap: 0.15rem;
-  font-size: var(--font-label);
-  font-weight: 800;
-  line-height: 1.2;
-  text-align: center;
-  text-transform: uppercase;
+.manifesto-home__illustration {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: 1600 / 900;
+  object-fit: contain;
 }
 
 .manifesto-home__cta {
@@ -141,34 +98,52 @@
   margin-block-start: clamp(0.5rem, 3vw, 1.5rem);
 }
 
+/* The hero's bite button, with the same ink slab under it. */
+.manifesto-home__button {
+  max-inline-size: min(100%, 24rem);
+  box-shadow: 0 0.4rem 0 var(--color-brand-ink);
+}
+
 /* A keyboard user can reach the link before the timeline reveals it. */
-.manifesto-home__cta:focus-visible {
+.manifesto-home__cta:focus-within {
   opacity: 1 !important;
   visibility: visible !important;
+  pointer-events: auto !important;
 }
 
 @media (min-width: 48.01rem) and (max-width: 64rem) {
   .manifesto-home {
     --manifesto-word: clamp(4rem, 11vw, 7rem);
     --manifesto-mark: clamp(4.2rem, 12vw, 7.6rem);
-    --manifesto-shape: clamp(11rem, 26vw, 17rem);
   }
 
   .manifesto-home__word--presionar {
     margin-inline-start: 16%;
   }
 
+  .manifesto-home__word--romper {
+    margin-inline-start: 30%;
+  }
+
   .manifesto-home__word--marca {
     margin-inline-start: 6%;
   }
+
+  .manifesto-home__figure {
+    max-inline-size: 40rem;
+  }
 }
 
-/* Desktop: one pinned stage, four compositions. */
+/* Desktop: one pinned stage, eight compositions. */
 @media (min-width: 64.01rem) and (min-height: 40rem) {
   .manifesto-home {
-    --manifesto-word: clamp(3.4rem, 6.2vw, 6.6rem);
+    /* Nine tenths of the two-word size, so three black concepts share one line
+       with air on both sides. The protagonist scales in `ManifestoMotion.ts`
+       were divided by the same 0.9, so the oversized poses are unchanged. */
+    --manifesto-word: clamp(3.06rem, 5.58vw, 5.58rem);
     --manifesto-mark: clamp(3.8rem, 7.4vw, 8rem);
-    --manifesto-shape: clamp(13rem, 19vw, 19rem);
+    --manifesto-pair-gap: clamp(1.6rem, 4.2vw, 5.4rem);
+    --manifesto-figure-width: 46%;
 
     /* The tall track owns the scroll; the stage inside it does the pinning,
        so this section opts out of the shared sticky stack behaviour. */
@@ -176,7 +151,7 @@
   }
 
   .manifesto-home__track {
-    block-size: 300svh;
+    block-size: 535svh;
   }
 
   .manifesto-home__stage {
@@ -198,88 +173,87 @@
     margin: 0;
   }
 
-  .manifesto-home__index {
-    inset-block-start: 12%;
-    inset-inline-start: 0;
-  }
-
-  .manifesto-home__kicker {
-    inset-block-start: 12%;
-    inset-inline-start: 8%;
-  }
-
-  .manifesto-home__rule {
-    inset-block-start: 19%;
-    inset-inline-start: 0;
-    inline-size: 34%;
-  }
-
-  /* Physical offsets on purpose: logical insets resolve against the element's
-     own writing mode, so `vertical-rl` would swap the axes here. */
-  .manifesto-home__tag {
-    top: 56%;
-    right: 0;
-    writing-mode: vertical-rl;
-  }
-
   .manifesto-home__title {
     display: block;
     position: absolute;
     inset: 0;
   }
 
-  .manifesto-home__word {
+  /* The three black concepts sit on one baseline as a joint header. Laying them
+     out as a flex row rather than hand-placed percentages keeps the space
+     between them honest at every width and whichever display face is installed. */
+  .manifesto-home__band {
     position: absolute;
+    inset-block-start: 24%;
+    inset-inline: 6% 4%;
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: baseline;
+    gap: var(--manifesto-pair-gap);
+  }
+
+  .manifesto-home__word {
     margin: 0;
     transform-origin: 0 0;
   }
 
-  .manifesto-home__word--morder {
-    inset-block-start: 24%;
-    inset-inline-start: 6%;
-  }
-
-  .manifesto-home__word--presionar {
-    inset-block-start: 44%;
-    inset-inline-start: 28%;
+  .manifesto-home__word--presionar,
+  .manifesto-home__word--romper {
+    margin-inline-start: 0;
   }
 
   .manifesto-home__word--marca {
-    inset-block-start: 62%;
+    position: absolute;
+    inset-block-start: 42%;
     inset-inline-start: 12%;
   }
 
-  .manifesto-home__shape {
-    inset-block-start: 22%;
-    inset-inline-end: 2%;
+  .manifesto-home__figure {
+    inset-block-start: 37%;
+    inset-inline-end: -6%;
+    inline-size: var(--manifesto-figure-width);
+    max-inline-size: none;
     justify-self: auto;
-    margin-inline-end: 0;
   }
 
   .manifesto-home__cta {
-    inset-block-end: 8%;
-    inset-inline-start: 6%;
+    /* Anchored under "Dejar marca." rather than to the floor of the stage. */
+    inset-block-start: 64%;
+    inset-inline-start: 12%;
     margin-block-start: 0;
   }
 }
 
+/* Shorter desktop viewports cannot afford the same vertical spread. */
+@media (min-width: 64.01rem) and (min-height: 40rem) and (max-height: 50rem) {
+  .manifesto-home {
+    --manifesto-figure-width: 42%;
+  }
+
+  .manifesto-home__figure {
+    inset-block-start: 35%;
+  }
+}
+
 /* Ambient pointer response: bounded, subconscious, and driven by the variables
-   CustomCursor already publishes, so no extra listener or frame loop exists. */
+   CustomCursor already publishes, so no extra listener or frame loop exists.
+   `translate` is its own property, so it composes with the timeline's
+   `transform` instead of fighting it. */
 @media (hover: hover) and (pointer: fine) {
-  .manifesto-home__shape {
-    translate: calc(var(--pointer-shift-x, 0px) * 0.38)
-      calc(var(--pointer-shift-y, 0px) * 0.38);
+  .manifesto-home__figure {
+    translate: calc(var(--pointer-shift-x, 0px) * 0.24)
+      calc(var(--pointer-shift-y, 0px) * 0.24);
     transition: translate 420ms var(--ease-bite);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .manifesto-home__shape {
+  .manifesto-home__figure {
     translate: none;
   }
 }
 
-html[data-motion='reduced'] .manifesto-home__shape {
+html[data-motion='reduced'] .manifesto-home__figure {
   translate: none;
 }
 

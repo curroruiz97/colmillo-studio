@@ -31,7 +31,6 @@
 - Mobile viewport inspected.
 - Hero media renders correctly.
 - CTA is visible and works.
-- Sticky contact header appears after hero.
 - Edge menu works.
 - The native scrollbar is hidden while wheel, trackpad, keyboard, touch,
   programmatic and anchor scrolling all still move the page, with no horizontal

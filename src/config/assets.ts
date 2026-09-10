@@ -65,3 +65,18 @@ export const heroMedia: MotionMedia = {
 // Activate this slot only after the client supplies the source file and the
 // optimized derivatives have been visually approved.
 export const goodbyeMedia: MotionMedia | null = null;
+
+/**
+ * Home manifesto illustration supplied by the client.
+ *
+ * `public/assets/manifesto.png` is line art with a real alpha channel: the
+ * sheet, the shirts and the background are all transparent, so it composites
+ * directly on the cream surface. Roughly a fifth of the file on each side is
+ * empty padding — the drawn ink occupies 1032x634 inside the 1600x900 frame —
+ * so the layout sizes the box for the padding, not for the ink.
+ */
+export const manifestoIllustration: BrandImage = {
+  src: '/assets/manifesto.png',
+  width: 1600,
+  height: 900,
+};

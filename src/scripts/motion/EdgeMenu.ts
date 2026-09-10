@@ -1,25 +1,51 @@
+import gsap from 'gsap';
+
 /**
  * COLMILLO EDGE MENU
  *
- * Owns the three navigation states and everything that must be true while the
- * panel is open: focus containment, `inert` outside, a scroll lock that does
- * not shift the layout, and the reported home scene.
+ * Owns the navigation's state machine and everything that must be true while
+ * the panel is open: focus containment, `inert` outside, a scroll lock that
+ * does not shift the layout, and the reported home scene.
  *
  * The native `<details>` disclosure remains the control, so with scripting
  * disabled the menu still opens, closes and navigates. This module upgrades it:
  * it moves the panel out of the disclosure so the panel can animate in both
  * directions rather than being removed from rendering the moment it closes.
+ *
+ * One state, never a set of flags:
+ *
+ *   closed          a small orange tab rests at mid-height on the edge
+ *   tracking        a fine pointer is near the edge; the tab follows it on Y
+ *   open            the panel is in and the full close control is showing
+ *   open-collapsed  the close control has retracted to a sliver
+ *
+ *   closed ⇄ tracking → open ⇄ open-collapsed → closed
+ *
+ * It is published as `data-state` (closed | tracking | open) plus, while open,
+ * `data-close` (expanded | collapsed), so the stylesheet never combines flags
+ * to decide what to draw.
  */
 
-/** Distance from the right edge, in pixels, that arms the peek. */
-const HOT_ZONE = 72;
+/** Distance from the right edge, in pixels, that arms tracking. */
+const HOT_ZONE = 64;
 /**
- * Distance at which an armed peek retracts. Larger than the revealed handle so
- * moving the cursor onto the handle itself never cancels it.
+ * Distance at which tracking releases. Wider than the grown tab so reaching
+ * for it never cancels it.
  */
-const EXIT_ZONE = 152;
+const EXIT_ZONE = 104;
+/** How long the full close control stays after the panel opens. */
+const CLOSE_HOLD = 2600;
+/** How long it waits once the pointer or focus has left before retracting. */
+const CLOSE_RELEASE = 1400;
+/** Air kept between the carrier and the top and bottom of the viewport. */
+const EDGE_MARGIN = 20;
+/** Air kept under the Instagram control's band, which the tab never enters. */
+const EXCLUSION_GAP = 16;
 
-type EdgeState = 'closed' | 'peek' | 'open';
+type EdgeState = 'closed' | 'tracking' | 'open' | 'open-collapsed';
+
+const isOpen = (state: EdgeState) =>
+  state === 'open' || state === 'open-collapsed';
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), summary, [tabindex]:not([tabindex="-1"])';
@@ -33,34 +59,45 @@ export function initEdgeMenu(): () => void {
   );
   const trigger = menu.querySelector<HTMLElement>('[data-edge-trigger]');
   const panel = menu.querySelector<HTMLElement>('[data-edge-panel]');
-  if (!disclosure || !trigger || !panel) return () => undefined;
+  const carrier = menu.querySelector<HTMLElement>('[data-edge-carrier]');
+  const tab = menu.querySelector<HTMLElement>('[data-edge-tab]');
+  const closer = menu.querySelector<HTMLElement>('[data-edge-closer]');
+  if (!disclosure || !trigger || !panel || !carrier || !tab || !closer) {
+    return () => undefined;
+  }
 
-  // Upgrade: the panel becomes a sibling of the disclosure so it keeps
-  // rendering while it retracts. Restored on cleanup.
+  // Upgrade: the panel leaves the disclosure - and the moving carrier - so it
+  // keeps rendering while it retracts and is laid out against the viewport.
+  // Restored on cleanup.
   const panelHome = panel.parentElement;
-  disclosure.after(panel);
+  carrier.before(panel);
   menu.dataset.enhanced = 'true';
 
+  const instagram = document.querySelector<HTMLElement>('[data-instagram]');
   const outside = [
-    document.querySelector<HTMLElement>('[data-sticky-header]'),
     document.querySelector<HTMLElement>('main'),
     document.querySelector<HTMLElement>('body > footer'),
+    instagram,
   ].filter((element): element is HTMLElement => element !== null);
   const previousInert = new Map<HTMLElement, boolean>();
 
   let state: EdgeState = 'closed';
   /**
    * Guards the open transition so mounting never clears `inert` that another
-   * feature owns. `StickyHeader` marks the contact header inert on the home
-   * hero and initialises before this module.
+   * feature may own.
    */
   let lastOpen = false;
 
   const setState = (next: EdgeState) => {
     if (next === state) return;
     state = next;
-    menu.dataset.state = next;
-    trigger.dataset.cursorLabel = next === 'open' ? 'Cerrar' : 'Abrir';
+    if (isOpen(next)) {
+      menu.dataset.state = 'open';
+      menu.dataset.close = next === 'open' ? 'expanded' : 'collapsed';
+    } else {
+      menu.dataset.state = next;
+      delete menu.dataset.close;
+    }
   };
 
   /* ------------------------------------------------------------ scroll -- */
@@ -84,6 +121,93 @@ export function initEdgeMenu(): () => void {
     document.body.style.removeProperty('--scroll-lock-gutter');
   };
 
+  /* ---------------------------------------------------- vertical travel -- */
+
+  // Queried once. Re-evaluating a media query on every pointer move would put
+  // an allocation on the shared pointer path that `CustomCursor` also uses.
+  const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+  const motionReduced = () =>
+    document.documentElement.dataset.motion === 'reduced';
+  const canTrack = () => finePointer.matches && !motionReduced();
+
+  /**
+   * Layout facts read once and on resize, never on the pointer path: half the
+   * viewport, the lowest point of the Instagram control's band and the half
+   * heights of the two visible pieces the carrier holds.
+   */
+  const metrics = { half: 0, safeTop: EDGE_MARGIN, tabHalf: 0, closeHalf: 0 };
+  const measure = () => {
+    metrics.half = window.innerHeight / 2;
+    metrics.tabHalf = tab.offsetHeight / 2;
+    metrics.closeHalf = closer.offsetHeight / 2;
+    // Exclusion zone: the tab stops below the Instagram control's compact band
+    // instead of passing over it.
+    metrics.safeTop = instagram
+      ? parseFloat(getComputedStyle(instagram).top) +
+        instagram.offsetHeight +
+        EXCLUSION_GAP
+      : EDGE_MARGIN;
+  };
+
+  /** Clamps an offset from mid-height so a piece of `halfHeight` stays clear. */
+  const limit = (offset: number, top: number, halfHeight: number) => {
+    const min = top + halfHeight - metrics.half;
+    const max = metrics.half - EDGE_MARGIN - halfHeight;
+    return Math.max(Math.min(offset, max), Math.min(min, max));
+  };
+
+  /**
+   * One eased setter on the shared GSAP ticker - no frame loop of its own. Only
+   * `transform` moves, and only on the carrier.
+   */
+  const followY = gsap.quickTo(carrier, 'y', {
+    duration: 0.36,
+    ease: 'power2.out',
+  });
+  let offset = 0;
+  const placeY = (next: number) => {
+    offset = next;
+    if (motionReduced()) gsap.set(carrier, { y: next });
+    else followY(next);
+  };
+
+  /* ------------------------------------------------------ close control -- */
+
+  /** Last known distance from the right edge. Infinite until a pointer moves. */
+  let lastDistance = Number.POSITIVE_INFINITY;
+  /** Whether the pointer is inside the hot zone while the panel is open. */
+  let pointerNear = false;
+  let collapseTimer = 0;
+
+  const cancelCollapse = () => {
+    window.clearTimeout(collapseTimer);
+    collapseTimer = 0;
+  };
+
+  /**
+   * Arms the retraction unless it is already armed, so a later, shorter delay
+   * never cuts the hold that follows opening. Touch keeps the full control,
+   * because nothing could bring it back.
+   */
+  const armCollapse = (delay: number) => {
+    if (collapseTimer || !finePointer.matches) return;
+    collapseTimer = window.setTimeout(() => {
+      collapseTimer = 0;
+      if (
+        state === 'open' &&
+        !pointerNear &&
+        document.activeElement !== trigger
+      ) {
+        setState('open-collapsed');
+      }
+    }, delay);
+  };
+
+  const expandCloser = () => {
+    cancelCollapse();
+    if (state === 'open-collapsed') setState('open');
+  };
+
   /* ------------------------------------------------------- open / close -- */
 
   const applyOpenState = (open: boolean) => {
@@ -103,12 +227,21 @@ export function initEdgeMenu(): () => void {
     if (!open) {
       previousInert.clear();
       releaseScroll();
+      cancelCollapse();
+      pointerNear = false;
       setState('closed');
+      if (lastDistance > HOT_ZONE || !canTrack()) placeY(0);
       return;
     }
 
     lockScroll();
+    // The tab that was pressed becomes the close control where it is. It only
+    // moves if the taller control would leave the viewport there.
+    placeY(limit(offset, EDGE_MARGIN, metrics.closeHalf));
+    pointerNear = finePointer.matches && lastDistance <= HOT_ZONE;
     setState('open');
+    cancelCollapse();
+    armCollapse(CLOSE_HOLD);
     requestAnimationFrame(() => {
       const initial = panel.querySelector<HTMLElement>(
         '[data-edge-initial-focus]',
@@ -128,30 +261,52 @@ export function initEdgeMenu(): () => void {
     if (restoreFocus) trigger.focus();
   };
 
-  /* ------------------------------------------------------------- peek --- */
-
-  // Queried once. Re-evaluating a media query on every pointer move would put
-  // an allocation on the shared pointer path that `CustomCursor` also uses.
-  const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
-  const canPeek = () =>
-    finePointer.matches &&
-    document.documentElement.dataset.motion !== 'reduced';
+  /* ------------------------------------------------------------ pointer -- */
 
   const onPointerMove = (event: PointerEvent) => {
-    if (state === 'open' || event.pointerType === 'touch' || !canPeek()) return;
-    const distance = window.innerWidth - event.clientX;
-    if (state === 'peek') {
-      if (distance > EXIT_ZONE) setState('closed');
-    } else if (distance <= HOT_ZONE) {
-      setState('peek');
+    if (event.pointerType === 'touch' || !finePointer.matches) return;
+    lastDistance = window.innerWidth - event.clientX;
+
+    if (isOpen(state)) {
+      const near = lastDistance <= HOT_ZONE;
+      if (near === pointerNear) return;
+      pointerNear = near;
+      if (near) expandCloser();
+      else armCollapse(CLOSE_RELEASE);
+      return;
+    }
+
+    if (!canTrack()) return;
+    if (state === 'tracking' && lastDistance > EXIT_ZONE) {
+      setState('closed');
+      placeY(0);
+    } else if (state === 'tracking' || lastDistance <= HOT_ZONE) {
+      setState('tracking');
+      placeY(
+        limit(event.clientY - metrics.half, metrics.safeTop, metrics.tabHalf),
+      );
     }
   };
 
   const onPointerLeave = () => {
-    if (state === 'peek') setState('closed');
+    lastDistance = Number.POSITIVE_INFINITY;
+    if (state === 'tracking') {
+      setState('closed');
+      placeY(0);
+    } else if (isOpen(state) && pointerNear) {
+      pointerNear = false;
+      armCollapse(CLOSE_RELEASE);
+    }
   };
 
   /* ------------------------------------------------------------ keyboard -- */
+
+  const onTriggerFocus = () => {
+    if (isOpen(state)) expandCloser();
+  };
+  const onTriggerBlur = () => {
+    if (isOpen(state)) armCollapse(CLOSE_RELEASE);
+  };
 
   const onKeyDown = (event: KeyboardEvent) => {
     if (event.key === 'Escape' && disclosure.open) {
@@ -186,15 +341,19 @@ export function initEdgeMenu(): () => void {
     }
   };
 
+  const onResize = () => {
+    measure();
+    if (isOpen(state)) placeY(limit(offset, EDGE_MARGIN, metrics.closeHalf));
+    else if (state === 'closed') placeY(0);
+  };
+
   /* ------------------------------------------------- reported home scene -- */
 
   const links = [
     ...menu.querySelectorAll<HTMLAnchorElement>('[data-section-link]'),
   ];
   const readouts = [
-    ...menu.querySelectorAll<HTMLElement>(
-      '[data-edge-current], [data-edge-position]',
-    ),
+    ...menu.querySelectorAll<HTMLElement>('[data-edge-position]'),
   ];
   const sections = links
     .map((link) => document.getElementById(link.dataset.sectionLink ?? ''))
@@ -232,7 +391,15 @@ export function initEdgeMenu(): () => void {
           ratios.delete(entry.target);
         }
       }
-      const active = [...ratios.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+      // Stacked sections are sticky, so an earlier one can sit fully under
+      // the band behind a later one with the very same ratio. On a tie the
+      // later section wins: it is the one painted on top.
+      const active = [...ratios.entries()].sort(
+        (a, b) =>
+          b[1] - a[1] ||
+          sections.indexOf(b[0] as HTMLElement) -
+            sections.indexOf(a[0] as HTMLElement),
+      )[0]?.[0];
       if (active instanceof HTMLElement) setCurrent(active.id);
     },
     { rootMargin: '-45% 0px -45% 0px', threshold: [0, 1] },
@@ -243,10 +410,14 @@ export function initEdgeMenu(): () => void {
 
   /* ------------------------------------------------------------- wiring -- */
 
+  measure();
   disclosure.addEventListener('toggle', onToggle);
   menu.addEventListener('click', onMenuClick);
+  trigger.addEventListener('focus', onTriggerFocus);
+  trigger.addEventListener('blur', onTriggerBlur);
   document.addEventListener('keydown', onKeyDown);
   window.addEventListener('pointermove', onPointerMove, { passive: true });
+  window.addEventListener('resize', onResize, { passive: true });
   document.documentElement.addEventListener('pointerleave', onPointerLeave);
   window.addEventListener('blur', onPointerLeave);
 
@@ -258,19 +429,26 @@ export function initEdgeMenu(): () => void {
       disclosure.open = false;
       applyOpenState(false);
     }
+    cancelCollapse();
     observer.disconnect();
     ratios.clear();
     disclosure.removeEventListener('toggle', onToggle);
     menu.removeEventListener('click', onMenuClick);
+    trigger.removeEventListener('focus', onTriggerFocus);
+    trigger.removeEventListener('blur', onTriggerBlur);
     document.removeEventListener('keydown', onKeyDown);
     window.removeEventListener('pointermove', onPointerMove);
+    window.removeEventListener('resize', onResize);
     document.documentElement.removeEventListener(
       'pointerleave',
       onPointerLeave,
     );
     window.removeEventListener('blur', onPointerLeave);
     releaseScroll();
+    gsap.killTweensOf(carrier);
+    gsap.set(carrier, { clearProps: 'transform' });
     delete menu.dataset.enhanced;
+    delete menu.dataset.close;
     menu.dataset.state = 'closed';
     panelHome?.append(panel);
   };

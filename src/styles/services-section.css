@@ -1,135 +1,79 @@
 /*
- * SERVICIOS — "el taller"
+ * SERVICIOS — the quiet block
  *
- * Deliberately a different rhythm from the manifesto. The manifesto pins one
- * stage and plays a sequence; this section stays in normal flow and is simply
- * traversed, so scrolling feels lighter and exploratory. Composition is
- * asymmetric but fully designed: every position comes from an explicit
- * nth-child rule, never from randomness.
+ * Deliberately the calmest section on the home page. The manifesto pins a stage
+ * and plays a sequence; this one is a still editorial spread that is simply
+ * read: heading on the left third, four small vignettes stepping down the right
+ * two thirds, and a large amount of empty ink between them. Every position
+ * comes from an explicit rule, never from randomness.
  */
 
 .services-section {
-  --service-dim: 0.55;
   position: relative;
   isolation: isolate;
   overflow: clip;
 }
 
-.services-section > .content-shell {
-  min-block-size: 0;
-}
-
-/* Oversized backdrop word. Texture only, never a reading surface. */
-.services-section__ghost {
-  position: absolute;
-  z-index: 0;
-  inset-block-start: 34%;
-  inset-inline-start: -4%;
-  max-inline-size: none;
-  margin: 0;
-  color: var(--color-brand-orange);
-  font-family: var(--font-display);
-  font-size: clamp(9rem, 27vw, 26rem);
-  font-weight: 950;
-  letter-spacing: -0.08em;
-  line-height: 0.8;
-  opacity: 0.09;
-  pointer-events: none;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.services-section__marker {
-  position: absolute;
-  z-index: 2;
-  display: none;
-  margin: 0;
-  font-size: var(--font-label);
-  font-weight: 850;
-  letter-spacing: 0.24em;
-  pointer-events: none;
-  text-transform: uppercase;
-}
-
-.services-section__marker-count {
-  color: var(--color-brand-orange);
-}
-
-.services-section__intro {
+.services-section__inner {
   position: relative;
   z-index: 1;
   display: grid;
-  gap: 0.6rem;
-  padding-block: var(--section-space) clamp(2rem, 6vw, 5rem);
+  gap: clamp(3rem, 8vw, 5rem);
+  /* Deep top and bottom margins are most of what makes this block feel calm:
+     the section is short, so the emptiness above and below it is the frame. */
+  padding-block: clamp(6rem, 13vw, 10rem);
+}
+
+/* ---------- heading column ---------- */
+
+.services-section__lede {
+  display: grid;
+  justify-items: start;
 }
 
 .services-section__title {
-  font-size: clamp(3.4rem, 12vw, 11rem);
-  letter-spacing: -0.06em;
-  line-height: 0.82;
-  text-transform: uppercase;
+  max-inline-size: 8ch;
+  margin: 0;
+  /* An editorial heading, not a poster: clearly smaller than the manifesto and
+     the hero, and never taller than the four entries beside it. */
+  font-size: clamp(2.4rem, 4.6vw, 4rem);
+  letter-spacing: -0.04em;
+  line-height: 0.95;
 }
 
-.services-section__flag {
-  margin-block-start: 1.25rem;
-}
+/* ---------- entries ---------- */
 
-/* ---------- composition ---------- */
-
-.services-section__stage {
-  position: relative;
-  z-index: 1;
-  padding-inline: var(--page-gutter);
-}
-
-.services-section__composition {
+.services-section__list {
+  display: grid;
+  gap: clamp(2.5rem, 4.5vw, 3.75rem);
   margin: 0;
   padding: 0;
-  display: grid;
-  gap: clamp(3rem, 7vw, 6rem);
   list-style: none;
 }
 
 .service-entry {
-  --service-scale: 1;
-  margin-block-start: calc(
-    var(--service-offset, 0rem) * var(--service-offset-scale, 1)
-  );
-  transition: opacity var(--duration-medium) linear;
-}
-
-.service-entry__inner {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: start;
-  gap: 0.6rem clamp(1rem, 2.5vw, 2rem);
-}
-
-.service-entry__number {
-  grid-row: 1 / span 2;
-  margin: 0;
-  color: var(--color-brand-orange);
-  font-size: var(--font-label);
-  font-weight: 900;
-  letter-spacing: 0.14em;
-  padding-block-start: 0.7em;
+  justify-items: start;
+  gap: 0.5rem;
+  max-inline-size: 42ch;
 }
 
 .service-entry__mark {
-  grid-column: 2;
   display: block;
-  inline-size: clamp(2.75rem, 5vw, 4.25rem);
+  inline-size: clamp(2.6rem, 3.4vw, 3.4rem);
+  margin-block-end: 0.4rem;
 }
 
 .service-entry__title {
-  grid-column: 2;
   margin: 0;
-  font-size: calc(clamp(2.4rem, 6vw, 5.5rem) * var(--service-scale));
-  letter-spacing: -0.05em;
-  line-height: 0.9;
+  /* The section's only colour. On ink `--color-brand-orange` clears 4.5:1, and
+     these are large bold headings, so it clears AA with room to spare. */
+  color: var(--color-brand-orange);
+  font-size: clamp(1.35rem, 2.1vw, 1.9rem);
+  letter-spacing: -0.02em;
+  line-height: 1;
   text-transform: uppercase;
-  transition: transform var(--duration-fast) var(--ease-bite);
-  transform-origin: 0% 100%;
+  transition: transform var(--duration-medium) var(--ease-bite);
 }
 
 .service-entry__title a {
@@ -137,22 +81,15 @@
   text-decoration: none;
 }
 
-.service-entry__short {
-  grid-column: 2;
-  max-inline-size: 26ch;
-  margin: 0;
-  color: var(--color-brand-orange);
-  font-size: var(--font-body-lg);
-  line-height: 1.2;
-}
-
 .service-entry__description {
-  grid-column: 2;
   max-inline-size: 42ch;
   margin: 0;
-  font-size: var(--font-body);
-  line-height: 1.45;
-  opacity: 0.82;
+  font-size: clamp(0.9rem, 1vw, 1.02rem);
+  line-height: 1.5;
+  /* Never below the contrast floor: cream on ink at 0.72 still clears AA at
+     this size, and the pointer state lifts it back to full. */
+  opacity: 0.72;
+  transition: opacity var(--duration-medium) linear;
 }
 
 /* ---------- glyphs ---------- */
@@ -161,220 +98,178 @@
   inline-size: 100%;
   block-size: auto;
   overflow: visible;
+  fill: none;
   stroke: var(--color-brand-cream);
-  stroke-width: 4;
-  transition: transform var(--duration-fast) var(--ease-bite);
+  stroke-width: 2.6;
 }
 
-.service-glyph__press {
-  fill: none;
+.service-glyph__scene {
   transition: transform var(--duration-medium) var(--ease-bite);
-  transform-origin: 50% 50%;
+  transform-origin: 50% 100%;
 }
 
-.service-glyph__press--b {
+/* Solid clothing and hair, the way the hero loop draws them. */
+.service-glyph__solid {
+  fill: var(--color-brand-cream);
+  stroke: none;
+}
+
+.service-glyph__head,
+.service-glyph__object {
+  stroke-width: 2.8;
+}
+
+.service-glyph__limb {
+  stroke-width: 3.4;
+}
+
+.service-glyph__face {
+  stroke-width: 2.2;
+}
+
+.service-glyph__ground {
+  stroke-width: 2.2;
+  opacity: 0.45;
+}
+
+.service-glyph__accent {
   stroke: var(--color-brand-orange);
+  stroke-width: 2.8;
 }
 
-.service-glyph__notch {
-  fill: none;
-  stroke-linejoin: round;
+.service-glyph__accent--solid {
+  fill: var(--color-brand-orange);
+  stroke: none;
 }
 
-.service-glyph__module {
-  fill: none;
+.service-glyph__arm {
+  stroke-width: 3.4;
   transition: transform var(--duration-medium) var(--ease-bite);
-  transform-origin: 50% 50%;
-}
-
-.service-glyph__trace {
-  fill: none;
-  stroke-linecap: round;
-}
-
-.service-glyph__trace-rule {
-  stroke: var(--color-brand-orange);
-  stroke-linecap: round;
-}
-
-/* ---------- outro ---------- */
-
-.services-section__outro {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: minmax(3rem, 0.25fr) minmax(0, 2fr);
-  align-items: center;
-  gap: clamp(1.5rem, 4vw, 3rem);
-  padding-block: clamp(3rem, 8vw, 6rem) var(--section-space);
-}
-
-.services-section__outro-line {
-  grid-column: 1;
-  block-size: var(--border-width);
-  margin: 0;
-  background: currentColor;
-  opacity: 0.4;
+  transform-origin: 32% 40%;
 }
 
 /* ---------- desktop composition ---------- */
 
 @media (min-width: 64.01rem) {
-  /* A section taller than the viewport cannot participate in the shared
-     sticky stack: it would trap its own lower half off screen. */
-  .services-section {
-    position: relative;
-    min-block-size: 150svh;
+  /*
+   * Two zones: the heading holds the left third, the services the right two
+   * thirds. The list spans every row so the third, flexible row absorbs its
+   * extra height and the CTA stays docked directly under the title instead of
+   * drifting to the middle.
+   *
+   * The extra inline padding is the section's own editorial indent. Every other
+   * home section buys the same air with a leading spacer column carrying the
+   * index; this one puts the index inside the eyebrow, so it pays for the
+   * indent directly.
+   */
+  .services-section__inner {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    align-items: start;
+    column-gap: clamp(2.5rem, 5vw, 6rem);
+    row-gap: 0;
+    padding-block: clamp(7rem, 14vw, 13rem);
+    padding-inline: clamp(1.5rem, 4.5vw, 5.5rem) clamp(0.5rem, 1.5vw, 2rem);
   }
 
-  .services-section__stage {
-    display: grid;
-    grid-template-columns: minmax(0, 2.5rem) minmax(0, 1fr);
-    gap: clamp(1rem, 2vw, 2.5rem);
+  /*
+   * A plain, even 2x2, dropped below the heading's baseline so the title reads
+   * first and the quadrant answers it. Both columns are the same width and both
+   * rows start their entries on one line, so the block stays a calm quadrant
+   * rather than a staircase; the air between them does the composing.
+   */
+  .services-section__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    column-gap: clamp(2rem, 4vw, 4.5rem);
+    row-gap: clamp(5rem, 10vw, 9rem);
+    padding-block-start: clamp(3.5rem, 7vw, 7rem);
   }
 
-  .services-section__marker {
-    grid-column: 1;
-    grid-row: 1;
-    position: sticky;
-    inset-block-start: 45svh;
-    align-self: start;
-    display: flex;
-    gap: 1rem;
-    writing-mode: vertical-rl;
+  .service-entry {
+    /* Held well under the column width: the entries stay small pieces of copy,
+       never blocks that fill their half. */
+    max-inline-size: 32ch;
   }
 
-  .services-section__composition {
-    grid-column: 2;
-    grid-row: 1;
-  }
+  @media (hover: hover) and (pointer: fine) {
+    .service-entry:hover .service-entry__title,
+    .service-entry:focus-within .service-entry__title {
+      transform: translateX(0.2rem);
+    }
 
-  .services-section__intro {
-    grid-template-columns: minmax(3rem, 0.25fr) minmax(0, 2fr);
-    gap: 0.6rem clamp(1.5rem, 4vw, 3rem);
-  }
+    .service-entry:hover .service-entry__description,
+    .service-entry:focus-within .service-entry__description {
+      opacity: 1;
+    }
 
-  .services-section__intro .section-index {
-    grid-row: 1 / span 3;
-  }
+    /* Pressure, not bounce: a short, tense compression of the vignette. */
+    .service-entry:hover .service-glyph__scene,
+    .service-entry:focus-within .service-glyph__scene {
+      transform: scale(0.96, 1.05);
+    }
 
-  .services-section__intro > :not(.section-index) {
-    grid-column: 2;
-  }
-
-  .services-section__composition {
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    gap: clamp(4rem, 9vh, 8rem) clamp(1rem, 2vw, 2rem);
-  }
-
-  /* Designed, reproducible placement. Each entry sits at a different column
-     span, indent and scale so the eye travels instead of scanning a grid. */
-  .service-entry:nth-child(1) {
-    grid-column: 1 / 8;
-    --service-scale: 1.1;
-  }
-
-  .service-entry:nth-child(2) {
-    grid-column: 8 / 13;
-    --service-offset: clamp(2rem, 6vh, 5rem);
-    --service-scale: 0.86;
-  }
-
-  .service-entry:nth-child(3) {
-    grid-column: 3 / 9;
-    --service-offset: clamp(1rem, 4vh, 3.5rem);
-    --service-scale: 1.02;
-  }
-
-  .service-entry:nth-child(4) {
-    grid-column: 7 / 12;
-    --service-offset: clamp(2.5rem, 7vh, 6rem);
-    --service-scale: 0.92;
-  }
-
-  /* Pointer emphasis. Content is never hidden behind hover; only weight
-     changes, so keyboard and touch lose nothing. */
-  .services-section[data-services-engaged='true']
-    .service-entry:not([data-service-active='true']) {
-    opacity: var(--service-dim);
-  }
-
-  .service-entry[data-service-active='true'] .service-entry__title {
-    transform: scale(1.02);
-  }
-
-  .service-entry[data-service-active='true'] .service-glyph {
-    /* Pressure, not bounce: a short, tense compression. */
-    transform: scale(0.96, 1.03);
-  }
-
-  .service-entry[data-service-active='true'] .service-glyph__press--a {
-    transform: translateX(6px);
-  }
-
-  .service-entry[data-service-active='true'] .service-glyph__press--b {
-    transform: translateX(-6px);
-  }
-
-  .service-entry[data-service-active='true'] .service-glyph__module {
-    transform: scaleY(0.9);
+    .service-entry:hover .service-glyph__arm,
+    .service-entry:focus-within .service-glyph__arm {
+      transform: translate(1.5px, -1px);
+    }
   }
 }
 
-@media (min-width: 90rem) {
-  .service-entry:nth-child(2) {
-    grid-column: 8 / 13;
+/*
+ * Short desktop screens keep the 2x2 and only lose vertical air, so the whole
+ * quadrant still lands on one screen at 1366x768.
+ */
+@media (min-width: 64.01rem) and (max-height: 58rem) {
+  .services-section__inner {
+    padding-block: clamp(5rem, 15vh, 11rem);
   }
 
-  .service-entry:nth-child(4) {
-    grid-column: 7 / 12;
+  .services-section__list {
+    row-gap: clamp(4rem, 12vh, 8rem);
+    padding-block-start: clamp(3rem, 9vh, 6rem);
   }
 }
 
 /* ---------- tablet / mobile ---------- */
 
 @media (max-width: 64rem) {
-  .services-section__composition {
-    gap: 0;
+  /* One column, in DOM order: heading, the services, then the CTA. */
+  .services-section__inner {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: start;
+    gap: clamp(2.5rem, 8vw, 4rem);
   }
 
-  .service-entry + .service-entry {
-    border-block-start: var(--border-width) solid currentColor;
-    margin-block-start: clamp(2rem, 6vw, 3rem);
-    padding-block-start: clamp(2rem, 6vw, 3rem);
+  .services-section__title {
+    max-inline-size: 12ch;
   }
 
-  .services-section__ghost {
-    inset-block-start: 22%;
-    font-size: clamp(7rem, 34vw, 15rem);
-    opacity: 0.07;
+  .service-entry {
+    max-inline-size: 42ch;
+  }
+
+  .services-section__list {
+    row-gap: clamp(3rem, 10vw, 4.5rem);
   }
 }
 
+/* ---------- tablet ---------- */
+
 /*
- * Short desktop screens: the composition is content-driven, so without this it
- * grew past three viewport heights at 1366x768. Compress the editorial padding
- * and the offsets instead of shrinking the type.
+ * From 768px to 1024px the heading stacks above the services, but the services
+ * keep the desktop 2x2: there is easily room for two columns here, and a single
+ * column would leave half the screen empty and the block twice as long. Below
+ * 768px it becomes one column.
  */
-@media (min-width: 64.01rem) and (max-height: 58rem) {
-  .services-section {
-    --service-offset-scale: 0.45;
-    min-block-size: 130svh;
+@media (min-width: 48rem) and (max-width: 64rem) {
+  .services-section__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    column-gap: clamp(1.5rem, 3.5vw, 3rem);
+    row-gap: clamp(3.5rem, 7vw, 5rem);
   }
 
-  .services-section__intro {
-    padding-block: clamp(3rem, 10vh, 6rem) clamp(1.5rem, 4vh, 3rem);
-  }
-
-  .services-section__composition {
-    gap: clamp(2rem, 6vh, 4rem) clamp(1rem, 2vw, 2rem);
-  }
-
-  .service-entry__description {
+  .service-entry {
     max-inline-size: 34ch;
-  }
-
-  .services-section__outro {
-    padding-block: clamp(2rem, 6vh, 4rem) clamp(3rem, 9vh, 6rem);
   }
 }

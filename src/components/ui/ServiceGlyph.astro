@@ -10,83 +10,200 @@ const { variant } = Astro.props;
 
 {
   /*
-  Abstract Colmillo glyphs. Pressure, notch, module and trace are the studio's
-  own vocabulary: no generic icon set, no illustration. Decorative only, so the
-  service title carries the meaning for assistive technology.
+  Small hand-drawn vignettes, original to Colmillo and deliberately in the same
+  register as the hero loop: the same character, drawn with a solid body, an
+  open outlined head and a slightly imperfect line, doing one thing per service.
+  The hero draws filled black clothing on cream; on ink the fill is cream, so
+  the two read as one hand. One contained orange accent each, and nothing more.
+
+  They are ornament beside the service title, never information, so they stay
+  out of the accessibility tree.
 */
 }
 <svg
   class:list={['service-glyph', `service-glyph--${variant}`]}
-  viewBox="0 0 96 96"
+  viewBox="0 0 64 64"
   fill="none"
+  stroke-linecap="round"
+  stroke-linejoin="round"
   aria-hidden="true"
   focusable="false"
   data-service-glyph
 >
   {
-    variant === 'pressure' && (
-      <>
-        <circle
-          class="service-glyph__press service-glyph__press--a"
-          cx="33"
-          cy="48"
-          r="22"
+    /* ESTRATEGIA — reading the field and pointing at where to plant the flag. */
+    variant === 'strategy' && (
+      <g class="service-glyph__scene">
+        <path
+          class="service-glyph__ground"
+          d="M3.4 55.4c16.4-1.3 32.8-1.4 49.2-.4"
         />
-        <circle
-          class="service-glyph__press service-glyph__press--b"
-          cx="63"
-          cy="48"
-          r="22"
+        <path
+          class="service-glyph__head"
+          d="M14 6.6a6 6 0 1 1 0 12 6 6 0 0 1 0-12Z"
         />
-      </>
+        <path
+          class="service-glyph__solid"
+          d="M8.4 11.6c.3-3.9 3.5-6.8 7.4-6.6 2 .1 3.8 1.1 5 2.6-4.2.1-8.4 1.4-12.4 4Z"
+        />
+        <path
+          class="service-glyph__solid"
+          d="M14 19.6c3.6 0 6.6 2.5 7 6l.9 8c.2 1.3-.8 2.5-2.1 2.5H8.2c-1.3 0-2.3-1.2-2.1-2.5l.9-8c.4-3.5 3.4-6 7-6Z"
+        />
+        <path
+          class="service-glyph__limb"
+          d="M10.5 35.9c-.5 5.7-1.4 11.4-2.8 17"
+        />
+        <path class="service-glyph__limb" d="M17.5 35.9c.6 5.7 1.6 11.4 3 17" />
+        <path
+          class="service-glyph__arm"
+          d="M20.6 24.6c4.9.2 9.7-1.4 13.6-4.5"
+        />
+        <path class="service-glyph__limb" d="M45.6 13c.4 13.8.4 27.6 0 41.4" />
+        <path
+          class="service-glyph__accent service-glyph__accent--solid"
+          d="M46.4 12.4c3.9.6 7.6 2 11 4.1-3.4 2.1-7.1 3.7-10.9 4.7-.4-2.9-.4-5.9-.1-8.8Z"
+        />
+      </g>
     )
   }
   {
-    variant === 'notch' && (
-      <path
-        class="service-glyph__notch"
-        d="M77 34.5A32 32 0 1 0 77 61.5L44 48Z"
-      />
+    /* IDENTIDAD — the same character, holding up the face it chose. */
+    variant === 'identity' && (
+      <g class="service-glyph__scene">
+        <path
+          class="service-glyph__ground"
+          d="M3.4 55.4c15.8-1.3 31.6-1.4 47.4-.4"
+        />
+        <path
+          class="service-glyph__head"
+          d="M14 6.6a6 6 0 1 1 0 12 6 6 0 0 1 0-12Z"
+        />
+        <path
+          class="service-glyph__solid"
+          d="M8.4 11.6c.3-3.9 3.5-6.8 7.4-6.6 2 .1 3.8 1.1 5 2.6-4.2.1-8.4 1.4-12.4 4Z"
+        />
+        <path
+          class="service-glyph__solid"
+          d="M14 19.6c3.6 0 6.6 2.5 7 6l.9 8c.2 1.3-.8 2.5-2.1 2.5H8.2c-1.3 0-2.3-1.2-2.1-2.5l.9-8c.4-3.5 3.4-6 7-6Z"
+        />
+        <path
+          class="service-glyph__limb"
+          d="M10.5 35.9c-.5 5.7-1.4 11.4-2.8 17"
+        />
+        <path class="service-glyph__limb" d="M17.5 35.9c.6 5.7 1.6 11.4 3 17" />
+        <path
+          class="service-glyph__arm"
+          d="M20.8 25.2c4.3.9 8.3 2.7 11.9 5.4"
+        />
+        <path class="service-glyph__limb" d="M41.6 28.6c.3 8.5.3 17 0 25.6" />
+        <path
+          class="service-glyph__object"
+          d="M41.6 7.4a10.4 10.4 0 1 1 0 20.8 10.4 10.4 0 0 1 0-20.8Z"
+        />
+        <path class="service-glyph__face" d="M37.4 13.9c.2 1.1.2 2.2 0 3.3" />
+        <path class="service-glyph__face" d="M45.8 13.8c.2 1.1.2 2.2 0 3.3" />
+        <path
+          class="service-glyph__face"
+          d="M37.2 20.6c2.7 2.3 6.2 2.6 9.1 1"
+        />
+        {/* El colmillo: the one detail that makes the face this studio's. */}
+        <path
+          class="service-glyph__accent service-glyph__accent--solid"
+          d="M38.4 21.4c.5 1.9 1.2 3.8 2 5.6.7-1.6 1.2-3.3 1.5-5-1.2-.2-2.4-.4-3.5-.6Z"
+        />
+      </g>
     )
   }
   {
-    variant === 'module' && (
-      <>
-        <rect
-          class="service-glyph__module"
-          x="10"
-          y="26"
-          width="24"
-          height="44"
-          rx="12"
+    /* DIGITAL — a hand on the screen, and the screen answering back. */
+    variant === 'digital' && (
+      <g class="service-glyph__scene">
+        <path
+          class="service-glyph__ground"
+          d="M3.4 55.4c15.8-1.3 31.6-1.4 47.4-.4"
         />
-        <rect
-          class="service-glyph__module"
-          x="38"
-          y="14"
-          width="20"
-          height="68"
-          rx="10"
+        <path
+          class="service-glyph__head"
+          d="M14 6.6a6 6 0 1 1 0 12 6 6 0 0 1 0-12Z"
         />
-        <rect
-          class="service-glyph__module"
-          x="62"
-          y="32"
-          width="24"
-          height="32"
-          rx="12"
+        <path
+          class="service-glyph__solid"
+          d="M8.4 11.6c.3-3.9 3.5-6.8 7.4-6.6 2 .1 3.8 1.1 5 2.6-4.2.1-8.4 1.4-12.4 4Z"
         />
-      </>
+        <path
+          class="service-glyph__solid"
+          d="M14 19.6c3.6 0 6.6 2.5 7 6l.9 8c.2 1.3-.8 2.5-2.1 2.5H8.2c-1.3 0-2.3-1.2-2.1-2.5l.9-8c.4-3.5 3.4-6 7-6Z"
+        />
+        <path
+          class="service-glyph__limb"
+          d="M10.5 35.9c-.5 5.7-1.4 11.4-2.8 17"
+        />
+        <path class="service-glyph__limb" d="M17.5 35.9c.6 5.7 1.6 11.4 3 17" />
+        <path
+          class="service-glyph__arm"
+          d="M20.8 25.4c3.9.9 7.5 2.6 10.6 5.1"
+        />
+        <path
+          class="service-glyph__object"
+          d="M35.4 13.6c6.4-.7 12.9-.7 19.3 0 1.2.1 2.1 1.1 2.1 2.3.4 6.9.2 13.8-.5 20.7-.1 1.2-1.1 2-2.3 2.1-6 .4-12 .3-18-.3-1.1-.1-2-1-2.1-2.1-.7-6.8-.7-13.7-.1-20.5.1-1.2 1.1-2.1 3.6-2.2Z"
+        />
+        <path class="service-glyph__limb" d="M45.6 39.4c.2 4 .2 8 0 12" />
+        <path class="service-glyph__limb" d="M38.6 52.4c4.7-.7 9.4-.7 14.1.1" />
+        <path
+          class="service-glyph__accent"
+          d="M39.4 21.6c1.2-1.6 2.5-3.1 3.9-4.5"
+        />
+        <path
+          class="service-glyph__accent"
+          d="M42.6 26.4c2.2-.4 4.4-.6 6.6-.7"
+        />
+        <path
+          class="service-glyph__accent"
+          d="M39.4 31.4c1.3 1.4 2.6 2.9 3.8 4.4"
+        />
+      </g>
     )
   }
   {
-    variant === 'trace' && (
-      <>
-        <path class="service-glyph__trace" d="M12 62c8-26 14-26 22 0" />
-        <path class="service-glyph__trace" d="M38 62c8-26 14-26 22 0" />
-        <path class="service-glyph__trace" d="M64 62c8-26 14-26 22 0" />
-        <path class="service-glyph__trace-rule" d="M8 76h80" />
-      </>
+    /* CONTENIDO — the same character mid-stroke, making the piece. */
+    variant === 'content' && (
+      <g class="service-glyph__scene">
+        <path
+          class="service-glyph__ground"
+          d="M3.4 55.4c15.8-1.3 31.6-1.4 47.4-.4"
+        />
+        <path
+          class="service-glyph__head"
+          d="M14 6.6a6 6 0 1 1 0 12 6 6 0 0 1 0-12Z"
+        />
+        <path
+          class="service-glyph__solid"
+          d="M8.4 11.6c.3-3.9 3.5-6.8 7.4-6.6 2 .1 3.8 1.1 5 2.6-4.2.1-8.4 1.4-12.4 4Z"
+        />
+        <path
+          class="service-glyph__solid"
+          d="M14 19.6c3.6 0 6.6 2.5 7 6l.9 8c.2 1.3-.8 2.5-2.1 2.5H8.2c-1.3 0-2.3-1.2-2.1-2.5l.9-8c.4-3.5 3.4-6 7-6Z"
+        />
+        <path
+          class="service-glyph__limb"
+          d="M10.5 35.9c-.5 5.7-1.4 11.4-2.8 17"
+        />
+        <path class="service-glyph__limb" d="M17.5 35.9c.6 5.7 1.6 11.4 3 17" />
+        <path
+          class="service-glyph__arm"
+          d="M20.8 26.2c3.4 1.1 6.6 2.9 9.4 5.3"
+        />
+        <path
+          class="service-glyph__object"
+          d="M33.6 14.6c6.9-1 13.9-1 20.8.1 1.2.2 2 1.3 1.8 2.5-1.3 9.4-3.3 18.6-6 27.7-.3 1-1.3 1.7-2.4 1.5-6.2-.7-12.4-1.9-18.4-3.5-1.1-.3-1.7-1.4-1.5-2.5 1.2-7.8 2.5-15.6 3.8-23.3.2-1.2 1.1-2.1 1.9-2.5Z"
+        />
+        <path class="service-glyph__face" d="M34.4 23.4c4.2-.4 8.4-.3 12.6.3" />
+        <path
+          class="service-glyph__accent"
+          d="M33.8 31.4c1.3-3 2.7-3 4 0 1.4 3 2.7 3 4.1 0 1.2-2.6 2.4-3 3.6-1.2"
+        />
+      </g>
     )
   }
 </svg>

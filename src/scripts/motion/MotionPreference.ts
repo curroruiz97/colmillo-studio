@@ -1,60 +1,34 @@
 export type MotionPreference = 'full' | 'reduced';
 
-const STORAGE_KEY = 'colmillo-motion';
+/**
+ * Key of the retired manual override. The visible "Reducir movimiento" control
+ * was removed from the edge menu on 2026-09-10 at the user's request. A value
+ * left behind by it would keep a visitor in reduced motion with no control to
+ * undo it, so it is cleared and the system preference is the only source.
+ */
+const RETIRED_STORAGE_KEY = 'colmillo-motion';
 
 export function initMotionPreference(): () => void {
   const media = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const button = document.querySelector<HTMLButtonElement>(
-    '[data-motion-toggle]',
-  );
-  const label = button?.querySelector<HTMLElement>(
-    '[data-motion-toggle-label]',
-  );
 
-  const stored = window.localStorage.getItem(STORAGE_KEY);
-  let override: MotionPreference | null =
-    stored === 'full' || stored === 'reduced' ? stored : null;
+  try {
+    window.localStorage.removeItem(RETIRED_STORAGE_KEY);
+  } catch {
+    // Storage can be unavailable (privacy modes); there is nothing to clear.
+  }
 
   const apply = () => {
-    const preference: MotionPreference = media.matches
-      ? 'reduced'
-      : (override ?? 'full');
+    const preference: MotionPreference = media.matches ? 'reduced' : 'full';
     document.documentElement.dataset.motion = preference;
-    if (button && label) {
-      button.hidden = false;
-      button.disabled = media.matches;
-      button.setAttribute('aria-pressed', String(preference === 'reduced'));
-      label.textContent = media.matches
-        ? 'Movimiento reducido'
-        : preference === 'reduced'
-          ? 'Activar movimiento'
-          : 'Reducir movimiento';
-    }
     window.dispatchEvent(
       new CustomEvent('colmillo:motionchange', { detail: { preference } }),
     );
   };
 
-  const toggle = () => {
-    if (media.matches) return;
-    override =
-      document.documentElement.dataset.motion === 'reduced'
-        ? 'full'
-        : 'reduced';
-    window.localStorage.setItem(STORAGE_KEY, override);
-    apply();
-  };
-
-  const syncSystemPreference = () => {
-    apply();
-  };
-
-  button?.addEventListener('click', toggle);
-  media.addEventListener('change', syncSystemPreference);
+  media.addEventListener('change', apply);
   apply();
 
   return () => {
-    button?.removeEventListener('click', toggle);
-    media.removeEventListener('change', syncSystemPreference);
+    media.removeEventListener('change', apply);
   };
 }

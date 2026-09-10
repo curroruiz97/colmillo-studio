@@ -5,12 +5,12 @@ import { initEdgeMenu } from './EdgeMenu';
 import { initEditorialMotion } from './EditorialMotion';
 import { initHeroMotion } from './HeroMotion';
 import { initHorizontalProjects } from './HorizontalProjects';
+import { initInstagramBadge } from './InstagramBadge';
 import { initMagneticElements } from './MagneticElements';
 import { initManifestoMotion } from './ManifestoMotion';
 import { initMotionPreference } from './MotionPreference';
 import { initSectionStack } from './SectionStack';
 import { initServicesMotion } from './ServicesMotion';
-import { initStickyHeader } from './StickyHeader';
 import { initSurfaceTone } from './SurfaceTone';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -26,8 +26,9 @@ export function initMotion(): void {
     initEditorialMotion(),
     initManifestoMotion(),
     initHeroMotion(),
-    initStickyHeader(),
     initSurfaceTone(),
+    // Before the menu: it reads the badge's compact band as its exclusion zone.
+    initInstagramBadge(),
     initEdgeMenu(),
     initSectionStack(),
     initServicesMotion(),

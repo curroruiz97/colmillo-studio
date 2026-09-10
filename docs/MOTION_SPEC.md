@@ -62,16 +62,16 @@ reveal, overlap, tension and release.
 
 - `MotionController.ts` mounts each feature once per native document and cleans
   optional enhancements when the explicit motion preference changes.
-- `MotionPreference.ts` combines the system preference with an explicit
-  accessible toggle; reduced motion disables GSAP pins, cursor, magnetism,
-  looping CSS motion and view-transition animation.
+- `MotionPreference.ts` mirrors `prefers-reduced-motion` onto
+  `html[data-motion]` and announces changes; reduced motion disables GSAP pins,
+  cursor, magnetism, looping CSS motion and view-transition animation. The
+  visible manual toggle was retired on 2026-09-10, so the system preference is
+  the only source, and the module clears the override the toggle used to store.
 - `CustomCursor.ts` adds a pointer-events-free pressure cursor only for fine
   pointers. It stretches with pointer velocity, compresses on press and exposes
   short contextual labels on selected controls while retaining the native
   pointer and all focus affordances. It also publishes bounded pointer position
   and velocity variables used by the hero without starting another frame loop.
-- `StickyHeader.ts` uses an intersection observer and toggles `inert` while the
-  home hero is active, preventing hidden links from entering the tab order.
 - `SectionStack.ts` gives each layer a clipped entrance and gently compresses
   the covered layer with transform/opacity and a coordinated pressure edge.
   Large screens receive sticky, rounded physical layers; mobile and
@@ -81,26 +81,42 @@ reveal, overlap, tension and release.
   current card, adds bounded 2D depth to the active scene, and synchronizes
   focus and semantic previous/next controls. Native overflow and scroll snap
   remain the no-JavaScript, touch and reduced-motion fallback.
-- `EdgeMenu.ts` drives the right-edge navigation through three states declared
-  on the wrapper as `data-state`: `closed` leaves a full-height spine, which
-  carries no travelling marker, and a small swelling of the handle inside the
-  viewport, `peek` slides the whole
-  handle in when a fine pointer comes within 72 px of the edge, and `open`
-  brings in the editorial panel. Only transform and opacity animate; no shape
-  morphs. The peek retracts at 152 px, which is wider than the revealed handle
-  so moving onto it never cancels the reveal, and proximity is ignored entirely
-  while the menu is open. Keyboard focus reveals the handle through the same
-  state, so the peek is never the only way to find the navigation.
+- `EdgeMenu.ts` drives the right-edge navigation through one state machine:
+  `closed`, `tracking`, `open` and `open-collapsed`, published as `data-state`
+  (closed | tracking | open) plus `data-close` (expanded | collapsed) while
+  open. Closed, the navigation is only a small orange tab, 20 px inside the
+  edge at mid-height; there is no spine, label or progress readout. Within
+  64 px of the edge a fine pointer arms `tracking`: the tab reaches to 40 px and
+  follows the pointer vertically, never horizontally, through one
+  `gsap.quickTo` on the carrier (0.36 s, `power2.out`) on the shared ticker. It
+  stops below the Instagram control's band (the exclusion zone) and above the
+  foot of the viewport, and returns to mid-height past 104 px. Opening turns
+  the tab into a thin ink close control in the same place; it retracts to a
+  12 px sliver after 2.6 s without the pointer or focus on it, returns when the
+  pointer re-enters the hot zone or the control takes focus, and retracts again
+  1.4 s after they leave. Touch keeps the full control, because nothing could
+  bring it back.
 
   The native `<details>` remains the control and stays usable without
   JavaScript. Where scripting is available the module moves the panel out of
   the disclosure so it can animate in both directions instead of being dropped
-  from rendering the moment it closes. It supports Escape, the handle, a link
-  and the backdrop as close paths, traps and restores focus, makes outside
-  content inert, locks scrolling without shifting the layout, exposes the
-  current numbered scene and keeps the motion preference reachable inside the
-  panel. Under reduced motion the peek is disabled and the panel appears
-  without travel.
+  from rendering the moment it closes. It supports Escape, the close control, a
+  link and the backdrop as close paths, traps and restores focus, makes outside
+  content (and the Instagram control) inert, locks scrolling without shifting
+  the layout and exposes the current numbered scene in the panel. The backdrop
+  is an ink veil at 34% with a 6 px blur, applied only while open. Under
+  reduced motion tracking is disabled, the tab stays at rest and the panel,
+  routes and close control change state without travel.
+- `InstagramBadge.ts` folds the single global Instagram control, in place in
+  the top-right corner, from its hero pose - `INSTAGRAM ↗`, scaled 1.3 from
+  1024 px and 1.15 from 768 px around its own top-right corner - into a round
+  compact control carrying the Instagram glyph (inline SVG), over the first 30%
+  of a viewport of scroll. It is one continuous scroll-linked change of the
+  same element. The scale is a GSAP `quickSetter` write; the three-piece pill,
+  the word, the arrow and the glyph derive from one `--ig-p` progress value.
+  Hovering or focusing the compact control opens it back to the full word.
+  Reduced motion swaps the fold for one state change halfway through the
+  range; other routes are compact from the start.
 - `EditorialMotion.ts` reveals whole editorial blocks and deforms route marks
   by scroll progress; it never splits readable text into animated letters.
 - `SurfaceTone.ts` switches the shared cursor contrast from intersection state

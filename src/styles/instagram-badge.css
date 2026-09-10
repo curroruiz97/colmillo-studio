@@ -1,0 +1,253 @@
+/*
+ * COLMILLO INSTAGRAM
+ *
+ * A single fixed control in the top-right corner. `InstagramBadge.ts` writes
+ * two things: the link's scale (around its top-right corner, so the hero pose
+ * and the compact pose share the corner) and `--ig-p`, the fold progress from
+ * 0 (`INSTAGRAM ↗`) to 1 (the round glyph control). Everything below derives
+ * from those, so the stylesheet never fights the script for a property.
+ *
+ * The pill is three pieces. The left cap slides right and the middle scales
+ * from its right edge until the two caps meet in a circle, so the pill
+ * contracts through transforms alone while its ink outline stays whole.
+ * Hovering or focusing the compact control raises `--ig-open`, which opens it
+ * back to the full label.
+ *
+ * The badge never follows the surface tone: orange with an ink outline reads
+ * on cream, on ink and on the orange contact hero alike.
+ */
+
+@property --ig-open {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
+.ig-badge {
+  --ig-top: clamp(1.25rem, 2.4vw, 1.75rem);
+  /*
+   * Clears the edge menu's tab at full reach (2.5rem) with air to spare, so the
+   * two right-hand controls never meet.
+   */
+  --ig-right: 3.75rem;
+  --ig-height: 2.5rem;
+  --ig-pad: 1rem;
+  --ig-gap: 0.45rem;
+  /* Written by the script. The defaults are the full, unfolded pill. */
+  --ig-p: 0;
+  --ig-cut: 0px;
+  --ig-cut-n: 0;
+  --ig-open: 0;
+  /* How far the pill is folded right now: folded by scroll, opened by hover. */
+  --ig-k: calc(var(--ig-p) * (1 - var(--ig-open)));
+
+  position: fixed;
+  z-index: var(--z-social);
+  inset-block-start: var(--ig-top);
+  inset-inline-end: var(--ig-right);
+  display: block;
+  color: var(--color-brand-ink);
+  text-decoration: none;
+  /* Only the painted pieces take the pointer; the empty box never does. */
+  pointer-events: none;
+  transform-origin: 100% 0;
+  transition:
+    --ig-open 320ms var(--ease-bite),
+    opacity var(--duration-medium) linear,
+    visibility 0s linear 0s;
+}
+
+/* Hidden until the script has measured it, so the first paint never jumps. */
+@media (scripting: enabled) {
+  .ig-badge:not([data-ready]) {
+    opacity: 0;
+  }
+}
+
+/* The panel carries its own Instagram link: the two never compete. */
+body[data-menu-open='true'] .ig-badge {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    --ig-open 320ms var(--ease-bite),
+    opacity var(--duration-fast) linear,
+    visibility 0s linear var(--duration-fast);
+}
+
+.ig-badge:focus-visible {
+  --ig-open: 1;
+  outline: var(--focus-ring);
+  outline-offset: 4px;
+  border-radius: 999px;
+}
+
+/* ----------------------------------------------------------------- face -- */
+
+.ig-badge__face {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--ig-gap);
+  block-size: var(--ig-height);
+  padding-inline: var(--ig-pad) calc(var(--ig-pad) * 0.85);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: transform var(--duration-medium) var(--ease-bite);
+}
+
+/* ----------------------------------------------------------------- pill -- */
+
+.ig-badge__skin {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+}
+
+.ig-badge__cap,
+.ig-badge__mid,
+.ig-badge__end {
+  position: absolute;
+  inset-block: 0;
+  border: var(--border-width) solid var(--color-brand-ink);
+  background: var(--color-brand-orange);
+  pointer-events: auto;
+}
+
+/* One pixel of overlap on each side hides the seams while the middle scales. */
+.ig-badge__cap {
+  inset-inline-start: 0;
+  inline-size: calc(var(--ig-height) / 2 + 1px);
+  border-inline-end: 0;
+  border-radius: 999px 0 0 999px;
+  transform: translateX(calc(var(--ig-cut) * var(--ig-k)));
+}
+
+.ig-badge__mid {
+  inset-inline: calc(var(--ig-height) / 2);
+  border-inline: 0;
+  transform-origin: 100% 50%;
+  transform: scaleX(calc(1 - var(--ig-cut-n) * var(--ig-k)));
+}
+
+.ig-badge__end {
+  inset-inline-end: 0;
+  inline-size: calc(var(--ig-height) / 2 + 1px);
+  border-inline-start: 0;
+  border-radius: 0 999px 999px 0;
+}
+
+/*
+ * The ink offset under the large pill. It is the pressure the hero hover
+ * releases, and it tucks away in the first quarter of the fold.
+ */
+.ig-badge__plate {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: var(--color-brand-ink);
+  opacity: clamp(0, 1 - var(--ig-p) * 4, 1);
+  pointer-events: none;
+  transform: translate(
+    calc(0.28rem * (1 - var(--ig-p))),
+    calc(0.28rem * (1 - var(--ig-p)))
+  );
+  transition: transform var(--duration-medium) var(--ease-bite);
+}
+
+/* --------------------------------------------------------------- labels -- */
+
+/*
+ * The full word is eaten from the left by the travelling cap, and fades before
+ * the cap reaches its last letters.
+ */
+.ig-badge__full {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+  opacity: clamp(0, 1 - var(--ig-k) * 1.8, 1);
+  clip-path: inset(
+    0 0 0
+      max(
+        0px,
+        calc(var(--ig-cut) * var(--ig-k) - var(--ig-pad) + var(--ig-height) / 4)
+      )
+  );
+}
+
+/* The arrow leaves with the word; the glyph takes its place. */
+.ig-badge__arrow {
+  position: relative;
+  z-index: 1;
+  display: block;
+  font-size: 1.45em;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 0.7;
+  opacity: clamp(0, 1 - var(--ig-k) * 1.8, 1);
+  pointer-events: none;
+}
+
+/*
+ * The Instagram glyph fills the round compact control: a square as tall as the
+ * badge, at its right end, which is exactly what is left once the pill has
+ * folded. It only arrives in the second half of the fold.
+ */
+.ig-badge__icon {
+  position: absolute;
+  z-index: 1;
+  inset-block: 0;
+  inset-inline-end: 0;
+  inline-size: var(--ig-height);
+  display: grid;
+  place-items: center;
+  opacity: clamp(0, (var(--ig-k) - 0.5) * 2.5, 1);
+  pointer-events: none;
+}
+
+.ig-badge__icon svg {
+  display: block;
+  inline-size: calc(var(--ig-height) * 0.46);
+  block-size: auto;
+}
+
+/* ------------------------------------------------------------- pointer -- */
+
+@media (hover: hover) and (pointer: fine) {
+  /* Large: a press. The face sinks into its own offset. */
+  .ig-badge[data-pose='hero']:hover .ig-badge__face {
+    transform: translate(0.14rem, 0.14rem) scale(0.98);
+  }
+
+  /* Compact: the pill opens back to the full word, then folds on leave. */
+  .ig-badge[data-pose='compact']:hover {
+    --ig-open: 1;
+  }
+}
+
+.ig-badge:active .ig-badge__face {
+  transform: translate(0.14rem, 0.14rem) scale(0.97);
+}
+
+/* --------------------------------------------------------------- touch --- */
+
+/*
+ * On touch the tab sits at mid-height and never travels, so the corner is
+ * free: the badge moves out to the page gutter.
+ */
+@media (hover: none), (pointer: coarse) {
+  .ig-badge {
+    --ig-right: max(0.75rem, var(--page-gutter));
+  }
+}
+
+@media (max-width: 34rem) {
+  .ig-badge {
+    --ig-top: 1rem;
+    --ig-height: 2.25rem;
+    --ig-pad: 0.85rem;
+  }
+}

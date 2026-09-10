@@ -2,23 +2,28 @@
 /**
  * COLMILLO EDGE MENU
  *
- * The primary navigation lives against the right edge of the viewport and has
- * three states, declared on the wrapper as `data-state`:
+ * The primary navigation lives against the right edge of the viewport. One
+ * state machine in `EdgeMenu.ts` declares it on the wrapper as `data-state`:
  *
- *   closed  the spine and a small swelling of the handle bite into the page
- *   peek    the handle slides fully in (fine pointer proximity or focus only)
- *   open    the panel presses in and takes over
+ *   closed    a small orange tab pressed against the edge, nothing else
+ *   tracking  a fine pointer is near the edge: the tab follows it vertically
+ *             and reaches a few pixels further into the page
+ *   open      the panel presses in and the tab becomes the close control,
+ *             declared as `data-close="expanded"` or `"collapsed"` once it has
+ *             retracted to a sliver
  *
  * The native `<details>` disclosure stays the accessible control so the menu
  * works with no JavaScript, with the keyboard and with a screen reader. When
  * JavaScript is available `EdgeMenu.ts` marks the wrapper `data-enhanced`, moves
  * the panel out of the disclosure so it can animate in both directions, and
  * owns the state machine.
+ *
+ * The carrier is the only thing that moves vertically. It holds both visible
+ * pieces of the summary - the closed tab and the close control - so the tab
+ * that was pressed becomes the close control in the same place.
  */
-import MotionControls from './MotionControls.astro';
 import { publishedContactChannels } from '@/config/contact';
 import { legalNavigation, primaryNavigation } from '@/config/navigation';
-import { demoMode } from '@/data/projects';
 
 const path = Astro.url.pathname;
 const routeIndex = primaryNavigation.findIndex((item) =>
@@ -36,126 +41,112 @@ const sectionIds = ['inicio', 'manifiesto', 'studio', 'proyectos', 'contacto'];
 ---
 
 <div class="edge-menu" data-edge-menu data-state="closed">
-  <span class="edge-menu__spine" aria-hidden="true"></span>
+  <div class="edge-menu__carrier" data-edge-carrier>
+    <details class="edge-menu__disclosure" data-edge-disclosure>
+      <summary
+        class="edge-menu__handle"
+        data-edge-trigger
+        aria-controls="site-menu-panel"
+        aria-expanded="false"
+      >
+        <span class="edge-menu__tab" data-edge-tab aria-hidden="true">
+          <span class="edge-menu__ticks">
+            <span></span><span></span><span></span>
+          </span>
+        </span>
+        <span class="edge-menu__close" data-edge-closer>
+          <span class="edge-menu__close-word">Cerrar</span>
+        </span>
+        <span class="visually-hidden">Menú</span>
+      </summary>
 
-  <details class="edge-menu__disclosure" data-edge-disclosure>
-    <summary
-      class="edge-menu__handle"
-      data-edge-trigger
-      data-cursor-label="Abrir"
-      aria-controls="site-menu-panel"
-      aria-expanded="false"
-    >
-      <span class="edge-menu__ticks" aria-hidden="true">
-        <span></span><span></span><span></span>
-      </span>
-      <span class="edge-menu__handle-label">
-        <span class="edge-menu__word edge-menu__word--closed">Menú</span>
-        <span class="edge-menu__word edge-menu__word--open">Cerrar</span>
-      </span>
-      <span class="edge-menu__handle-count" aria-hidden="true">
-        <span data-edge-current>{routeNumber}</span><span
-          class="edge-menu__handle-total">/{total}</span
-        >
-      </span>
-    </summary>
+      <div class="edge-menu__panel" id="site-menu-panel" data-edge-panel>
+        <span class="edge-menu__skin" aria-hidden="true"></span>
 
-    <div class="edge-menu__panel" id="site-menu-panel" data-edge-panel>
-      <span class="edge-menu__skin" aria-hidden="true"></span>
+        <div class="edge-menu__content">
+          <header class="edge-menu__head">
+            <img
+              class="edge-menu__wordmark"
+              src="/assets/brand/colmillo-wordmark-cream.png"
+              width="865"
+              height="232"
+              alt="Colmillo Studio"
+              decoding="async"
+            />
+            <p class="edge-menu__position">
+              <span data-edge-position>{routeNumber}</span>
+              <span>/{total}</span>
+            </p>
+          </header>
 
-      <div class="edge-menu__content">
-        <header class="edge-menu__head">
-          <img
-            class="edge-menu__wordmark"
-            src="/assets/brand/colmillo-wordmark-cream.png"
-            width="865"
-            height="232"
-            alt="Colmillo Studio"
-            decoding="async"
-          />
-          <p class="edge-menu__position">
-            <span data-edge-position>{routeNumber}</span>
-            <span>/{total}</span>
-          </p>
-        </header>
-
-        <nav class="edge-menu__navigation" aria-label="Navegación principal">
-          <ol class="edge-menu__list">
-            {
-              primaryNavigation.map((item, index) => (
-                <li style={`--edge-item: ${index}`}>
-                  <a
-                    href={item.href}
-                    data-section-link={sectionIds[index]}
-                    data-edge-initial-focus={index === 0 ? '' : undefined}
-                    data-cursor-label="Ir"
-                    aria-current={
-                      routeIndex >= 0 && index === routeIndex
-                        ? 'page'
-                        : undefined
-                    }
-                  >
-                    <span class="edge-menu__row">
-                      <span class="edge-menu__index" aria-hidden="true">
-                        {String(index + 1).padStart(2, '0')}
-                      </span>
-                      <strong>{item.label}</strong>
-                      <span class="edge-menu__mark" aria-hidden="true" />
-                    </span>
-                  </a>
-                </li>
-              ))
-            }
-          </ol>
-        </nav>
-
-        <footer class="edge-menu__foot">
-          {
-            publishedContactChannels.length > 0 && (
-              <ul class="edge-menu__channels" role="list">
-                {publishedContactChannels.map((channel) => (
-                  <li>
-                    <a href={channel.href} data-cursor-label="Abrir">
-                      <span>{channel.label}</span>
-                      <strong>{channel.value ?? channel.label}</strong>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            )
-          }
-
-          <div class="edge-menu__utility">
-            <a
-              class="edge-menu__archive"
-              href="/proyectos/"
-              data-cursor-label="Ver"
-            >
-              {demoMode ? 'Ver archivo completo' : 'Ver proyectos'}
-            </a>
-            <MotionControls />
-          </div>
-
-          <nav aria-label="Información legal">
-            <ul class="edge-menu__legal" role="list">
+          <nav class="edge-menu__navigation" aria-label="Navegación principal">
+            <ol class="edge-menu__list">
               {
-                legalNavigation.map((item) => (
-                  <li>
-                    <a href={item.href}>{item.label}</a>
+                primaryNavigation.map((item, index) => (
+                  <li style={`--edge-item: ${index}`}>
+                    <a
+                      href={item.href}
+                      data-section-link={sectionIds[index]}
+                      data-edge-initial-focus={index === 0 ? '' : undefined}
+                      data-cursor-label="Ir"
+                      aria-current={
+                        routeIndex >= 0 && index === routeIndex
+                          ? 'page'
+                          : undefined
+                      }
+                    >
+                      <span class="edge-menu__row">
+                        <span class="edge-menu__index" aria-hidden="true">
+                          {String(index + 1).padStart(2, '0')}
+                        </span>
+                        <strong>{item.label}</strong>
+                        <span class="edge-menu__mark" aria-hidden="true" />
+                      </span>
+                    </a>
                   </li>
                 ))
               }
-            </ul>
+            </ol>
           </nav>
-        </footer>
+
+          <footer class="edge-menu__foot">
+            {
+              publishedContactChannels.length > 0 && (
+                <ul class="edge-menu__channels" role="list">
+                  {publishedContactChannels.map((channel) => (
+                    <li>
+                      <a href={channel.href} data-cursor-label="Abrir">
+                        <span>{channel.label}</span>
+                        <strong>{channel.value ?? channel.label}</strong>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )
+            }
+
+            <nav aria-label="Información legal">
+              <ul class="edge-menu__legal" role="list">
+                {
+                  legalNavigation.map((item) => (
+                    <li>
+                      <a href={item.href}>{item.label}</a>
+                    </li>
+                  ))
+                }
+              </ul>
+            </nav>
+          </footer>
+        </div>
       </div>
-    </div>
-  </details>
+    </details>
+  </div>
 
   {
     /*
      * A real button rather than a clickable div. It duplicates Escape and the
-     * handle, so it is kept out of the accessibility tree and the tab order.
+     * close control, so it is kept out of the accessibility tree and the tab
+     * order.
      */
   }
   <button

@@ -197,14 +197,15 @@ present an unlicensed substitute as the real brand typeface. Preserve fluid
 `src/scripts/motion/MotionController.ts` is the single lifecycle owner. It
 registers ScrollTrigger and initializes/cleans:
 
-- `MotionPreference.ts`: system preference and persistent override;
+- `MotionPreference.ts`: mirrors the system preference onto `html[data-motion]`
+  (the manual toggle was retired on 2026-09-10);
 - `CustomCursor.ts`: fine-pointer position, velocity/pressure and labels;
 - `EditorialMotion.ts`: scroll reveals and editorial marks;
 - `HeroMotion.ts`: hero compression and viewport-aware media playback;
-- `StickyHeader.ts`: home header visibility after the hero;
 - `SurfaceTone.ts`: visible-surface chrome/cursor tone;
-- `EdgeMenu.ts`: right-edge navigation states, focus/inert/Escape behavior,
-  scroll lock and home progress;
+- `InstagramBadge.ts`: the global Instagram control's hero-to-corner fold;
+- `EdgeMenu.ts`: right-edge navigation states (Y-following tab, auto-collapsing
+  close control), focus/inert/Escape behavior, scroll lock and home progress;
 - `SectionStack.ts`: rounded stack reveal/compression;
 - `HorizontalProjects.ts`: desktop pin/scrub plus native fallback/progress;
 - `MagneticElements.ts`: bounded pointer response with cached bounds.
@@ -300,11 +301,17 @@ licenses and publication approval before enabling client material.
 - Isolated typed fictional demo with three project routes.
 - Responsive project rail with desktop ScrollTrigger enhancement and native
   touch/no-JavaScript/reduced-motion fallbacks.
-- Colmillo Edge Menu: a right-edge rail with closed, peek and open states, a
-  native `<details>` fallback, focus containment, a non-shifting scroll lock and
-  the reported home scene. It replaced the centered bottom trigger on
-  2026-09-10.
-- Sticky header, surface-aware cursor and motion preference control.
+- Colmillo Edge Menu: a small orange tab on the right edge that follows a fine
+  pointer vertically, a panel over a blurred backdrop and a close control that
+  retracts to a sliver, with a native `<details>` fallback, focus containment,
+  a non-shifting scroll lock and the reported home scene. Second iteration on
+  2026-09-10 (see `docs/DECISIONS.md`).
+- Global Instagram control: one element in the top-right corner that folds in
+  place from `INSTAGRAM ↗` into a round Instagram-glyph control, fed by
+  `contactChannels.instagram`.
+- Surface-aware cursor; the system reduced-motion preference is the only motion
+  source (the sticky header and the manual motion toggle were both removed on
+  2026-09-10 at the user's request).
 - Responsive official hero contract and CSS hero/goodbye fallbacks.
 - Validated black/cream wordmark PNGs.
 - Production/demo Playwright matrices and integrity/link/asset/brand/hero/release

@@ -1,5 +1,5 @@
 export interface ContactChannel {
-  /** Short name used where space is tight, such as the sticky header. */
+  /** Short name used where space is tight. */
   label: string;
   /** Public, human-readable identity of the channel. */
   value: string | null;
