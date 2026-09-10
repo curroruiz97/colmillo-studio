@@ -1,4 +1,12 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+
+/** Width of the handle that is actually inside the viewport. */
+async function visibleHandleWidth(page: Page): Promise<number> {
+  return page.locator('[data-edge-trigger]').evaluate((handle) => {
+    const rect = handle.getBoundingClientRect();
+    return document.documentElement.clientWidth - rect.left;
+  });
+}
 
 test('the home foundation publishes only approved contact channels', async ({
   page,
@@ -11,10 +19,6 @@ test('the home foundation publishes only approved contact channels', async ({
   await expect(
     page.getByRole('link', { name: 'Haz que tu marca muerda' }),
   ).toHaveAttribute('href', '#contacto');
-  await expect(page.getByRole('link', { name: 'Seguir' })).toHaveAttribute(
-    'href',
-    '#contacto',
-  );
   await expect(page.locator('#contacto')).toHaveCount(1);
   await expect(page.locator('a[href="#"]')).toHaveCount(0);
 
@@ -63,12 +67,35 @@ test('the standard production artifact excludes every demo route and marker', as
   await expect(page.locator('body')).not.toContainText('Rastro Naranja');
 });
 
-test('the hero uses its static fallback while official media stays disabled', async ({
+test('the hero publishes the official loop over a full first screen', async ({
   page,
 }) => {
   await page.goto('/');
-  await expect(page.locator('[data-hero-stage]')).toBeVisible();
-  await expect(page.locator('.hero video')).toHaveCount(0);
+
+  // The approved client loop, with both responsive sources and a poster.
+  const video = page.locator('.hero__media');
+  await expect(video).toHaveCount(1);
+  await expect(video).toHaveAttribute('poster', /hero-poster\.webp$/);
+  await expect(video).toHaveAttribute('muted', '');
+  await expect(video).toHaveAttribute('playsinline', '');
+  await expect(video).toHaveAttribute('loop', '');
+  const sources = await video
+    .locator('source')
+    .evaluateAll((nodes) => nodes.map((node) => node.getAttribute('src')));
+  expect(sources).toEqual([
+    '/assets/motion/hero/hero-mobile.webm',
+    '/assets/motion/hero/hero-mobile.mp4',
+    '/assets/motion/hero/hero-desktop.webm',
+    '/assets/motion/hero/hero-desktop.mp4',
+  ]);
+
+  // The loop is decorative: it carries no name into the accessibility tree.
+  await expect(video).toHaveAttribute('aria-hidden', 'true');
+
+  // The provisional kinetic composition and its notice are gone for good.
+  await expect(page.locator('[data-hero-stage]')).toHaveCount(0);
+  await expect(page.locator('.hero')).not.toContainText('fallback provisional');
+
   const size = await page.locator('[data-hero]').evaluate((hero) => ({
     height: hero.getBoundingClientRect().height,
     viewport: window.innerHeight,
@@ -204,25 +231,180 @@ test('skip navigation and keyboard focus are available', async ({
   await expect(page.locator('#contenido')).toBeFocused();
 });
 
-test('the side menu works with pointer and keyboard', async ({ page }) => {
+test('the native scrollbar is hidden but scrolling still works', async ({
+  page,
+}) => {
   await page.goto('/');
 
-  const menu = page.locator('[data-side-menu]');
-  const trigger = menu.locator('summary');
+  // Hidden, not merely thin: the layout viewport is the whole viewport, so the
+  // page meets the right edge with nothing reserved beside it.
+  expect(
+    await page.evaluate(
+      () => window.innerWidth - document.documentElement.clientWidth,
+    ),
+  ).toBe(0);
+
+  // The document is still a scroll container.
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollHeight > window.innerHeight,
+    ),
+  ).toBe(true);
+
+  const viewport = page.viewportSize();
+  expect(viewport).not.toBeNull();
+
+  // Wheel and trackpad.
+  await page.mouse.move(viewport!.width / 2, viewport!.height / 2);
+  await page.mouse.wheel(0, 800);
+  await expect
+    .poll(() => page.evaluate(() => window.scrollY))
+    .toBeGreaterThan(0);
+
+  // Keyboard.
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+  await page.locator('main').focus();
+  await page.keyboard.press('PageDown');
+  await expect
+    .poll(() => page.evaluate(() => window.scrollY))
+    .toBeGreaterThan(0);
+
+  // Programmatic and anchor scrolling.
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.evaluate(() =>
+    document
+      .querySelector('#contacto')!
+      .scrollIntoView({ block: 'center', behavior: 'instant' }),
+  );
+  await expect
+    .poll(() => page.evaluate(() => window.scrollY))
+    .toBeGreaterThan(0);
+
+  // Hiding the indicator must not have introduced horizontal overflow.
+  expect(
+    await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth -
+        document.documentElement.clientWidth,
+    ),
+  ).toBeLessThanOrEqual(0);
+});
+
+test('the edge rail carries no progress marker', async ({ page }) => {
+  await page.goto('/');
+
+  const spine = await page.locator('.edge-menu__spine').evaluate((element) => ({
+    after: getComputedStyle(element, '::after').content,
+    before: getComputedStyle(element, '::before').content,
+    width: element.getBoundingClientRect().width,
+  }));
+
+  // The rail is a stable graphic edge: present, and with nothing travelling on
+  // it. `content: none` means the pseudo-element generates no box at all.
+  expect(spine.width).toBeGreaterThan(0);
+  expect(spine.after).toBe('none');
+  expect(spine.before).toBe('none');
+});
+
+test('the edge menu works with pointer and keyboard', async ({ page }) => {
+  await page.goto('/');
+
+  const menu = page.locator('[data-edge-menu]');
+  const disclosure = page.locator('[data-edge-disclosure]');
+  const trigger = page.locator('[data-edge-trigger]');
+
+  await expect(menu).toHaveAttribute('data-state', 'closed');
+  await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  await expect(trigger).toHaveAttribute('aria-controls', 'site-menu-panel');
+
   await trigger.click();
-  await expect(menu).toHaveAttribute('open', '');
+  await expect(disclosure).toHaveAttribute('open', '');
+  await expect(menu).toHaveAttribute('data-state', 'open');
+  await expect(trigger).toHaveAttribute('aria-expanded', 'true');
   await expect(menu.getByRole('link', { name: /Contacto/ })).toBeVisible();
   await expect(page.locator('body')).toHaveAttribute('data-menu-open', 'true');
   await expect(page.locator('main')).toHaveJSProperty('inert', true);
   await expect(menu.locator('[data-motion-toggle]')).toBeVisible();
 
   await page.keyboard.press('Escape');
-  await expect(menu).not.toHaveAttribute('open', '');
+  await expect(disclosure).not.toHaveAttribute('open', '');
+  await expect(menu).toHaveAttribute('data-state', 'closed');
+  await expect(trigger).toHaveAttribute('aria-expanded', 'false');
   await expect(page.locator('main')).toHaveJSProperty('inert', false);
   await expect(trigger).toBeFocused();
 });
 
-test('the menu trigger is mathematically centered at target widths', async ({
+test('the edge menu closes from the rail and from outside the panel', async ({
+  page,
+}) => {
+  const menu = page.locator('[data-edge-menu]');
+  const trigger = page.locator('[data-edge-trigger]');
+
+  await page.goto('/');
+
+  // The same handle that opened it closes it again.
+  await trigger.click();
+  await expect(menu).toHaveAttribute('data-state', 'open');
+  await trigger.click();
+  await expect(menu).toHaveAttribute('data-state', 'closed');
+
+  // Clicking outside the panel closes it too.
+  await trigger.click();
+  await expect(menu).toHaveAttribute('data-state', 'open');
+  await page.locator('[data-edge-close]').click({ position: { x: 40, y: 40 } });
+  await expect(menu).toHaveAttribute('data-state', 'closed');
+  await expect(page.locator('main')).toHaveJSProperty('inert', false);
+  await expect(page.locator('body')).not.toHaveAttribute(
+    'data-menu-open',
+    'true',
+  );
+});
+
+test('the edge handle stays brand orange under the cursor', async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(isMobile, 'Hover styling is a fine-pointer concern.');
+
+  // `--color-brand-orange`, #cd5730.
+  const ORANGE = 'rgb(205, 87, 48)';
+  const INK = 'rgb(18, 16, 15)';
+
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto('/');
+
+  const menu = page.locator('[data-edge-menu]');
+  const handle = page.locator('[data-edge-trigger]');
+
+  // Closed, and peeking under the cursor: the handle is already brand orange,
+  // so hovering changes no colour. Its travel is the response.
+  await expect(handle).toHaveCSS('background-color', ORANGE);
+  await handle.hover();
+  await expect(menu).toHaveAttribute('data-state', 'peek');
+  await expect(handle).toHaveCSS('background-color', ORANGE);
+  await expect(handle).toHaveCSS('color', INK);
+
+  // Open, the handle becomes an outlined close tab; hovering fills it with the
+  // same brand orange rather than any other accent.
+  await handle.click();
+  await expect(menu).toHaveAttribute('data-state', 'open');
+  await handle.hover();
+  await expect(handle).toHaveCSS('background-color', ORANGE);
+  await expect(handle).toHaveCSS('color', INK);
+});
+
+test('the closed edge menu keeps the panel out of reach', async ({ page }) => {
+  await page.goto('/');
+
+  const panel = page.locator('[data-edge-panel]');
+  // Hidden rather than merely off-screen, so it leaves the tab order and the
+  // accessibility tree while the menu is closed.
+  await expect(panel).toBeHidden();
+  await expect(panel).toHaveCSS('visibility', 'hidden');
+});
+
+test('the edge rail stays anchored to the right edge', async ({
   page,
   isMobile,
 }) => {
@@ -232,19 +414,192 @@ test('the menu trigger is mathematically centered at target widths', async ({
   );
 
   for (const viewport of [
+    { width: 1920, height: 1080 },
     { width: 1440, height: 1000 },
+    { width: 1366, height: 768 },
     { width: 834, height: 1112 },
     { width: 390, height: 844 },
   ]) {
     await page.setViewportSize(viewport);
     await page.goto('/');
-    const offset = await page
-      .locator('[data-menu-trigger]')
-      .evaluate((trigger) => {
-        const rect = trigger.getBoundingClientRect();
-        return Math.abs(rect.left + rect.width / 2 - window.innerWidth / 2);
+
+    const geometry = await page
+      .locator('[data-edge-trigger]')
+      .evaluate((handle) => {
+        const rect = handle.getBoundingClientRect();
+        const spine = document
+          .querySelector('.edge-menu__spine')!
+          .getBoundingClientRect();
+        return {
+          edge: document.documentElement.clientWidth,
+          handleRight: rect.right,
+          visible: document.documentElement.clientWidth - rect.left,
+          spineRight: spine.right,
+          spineWidth: spine.width,
+        };
       });
-    expect(offset).toBeLessThanOrEqual(1);
+
+    // The spine is flush against the edge in every state.
+    expect(Math.abs(geometry.spineRight - geometry.edge)).toBeLessThanOrEqual(
+      1,
+    );
+    expect(geometry.spineWidth).toBeGreaterThan(0);
+
+    // The handle is translated outwards, so only a sliver of it is inside the
+    // viewport while the menu is closed. The rest waits off-screen.
+    expect(geometry.handleRight).toBeGreaterThan(geometry.edge);
+    expect(geometry.visible).toBeGreaterThan(0);
+    expect(geometry.visible).toBeLessThanOrEqual(56);
+  }
+});
+
+test('pointer proximity to the right edge reveals the handle', async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(isMobile, 'The peek state is a fine-pointer enhancement.');
+
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto('/');
+
+  const menu = page.locator('[data-edge-menu]');
+  const closedWidth = await visibleHandleWidth(page);
+
+  await page.mouse.move(200, 500);
+  await expect(menu).toHaveAttribute('data-state', 'closed');
+
+  await page.mouse.move(1420, 500);
+  await expect(menu).toHaveAttribute('data-state', 'peek');
+  // The handle travels, so poll until the transition settles.
+  await expect
+    .poll(() => visibleHandleWidth(page))
+    .toBeGreaterThan(closedWidth * 2);
+
+  // Retracts once the pointer leaves the zone again.
+  await page.mouse.move(600, 500);
+  await expect(menu).toHaveAttribute('data-state', 'closed');
+});
+
+test('an open edge menu ignores pointer proximity', async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(isMobile, 'The peek state is a fine-pointer enhancement.');
+
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto('/');
+  await page.locator('[data-edge-trigger]').click();
+  await expect(page.locator('[data-edge-menu]')).toHaveAttribute(
+    'data-state',
+    'open',
+  );
+
+  // Moving away from the edge must not retract an open panel.
+  await page.mouse.move(120, 400);
+  await page.mouse.move(80, 700);
+  await expect(page.locator('[data-edge-menu]')).toHaveAttribute(
+    'data-state',
+    'open',
+  );
+});
+
+test('opening the menu locks scrolling without moving the layout', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.locator('#contacto').scrollIntoViewIfNeeded();
+
+  const read = () =>
+    page.evaluate(() => {
+      const footer = document.querySelector('.site-footer')!;
+      const rect = footer.getBoundingClientRect();
+      return {
+        y: window.scrollY,
+        left: rect.left,
+        right: rect.right,
+        overflowY: getComputedStyle(document.body).overflowY,
+        lockGutter: document.body.style.getPropertyValue(
+          '--scroll-lock-gutter',
+        ),
+      };
+    });
+
+  const before = await read();
+
+  await page.locator('[data-edge-trigger]').click();
+  await expect(page.locator('[data-edge-menu]')).toHaveAttribute(
+    'data-state',
+    'open',
+  );
+
+  const during = await read();
+  expect(during.overflowY).toBe('hidden');
+  expect(Math.abs(during.y - before.y)).toBeLessThanOrEqual(1);
+  expect(Math.abs(during.left - before.left)).toBeLessThanOrEqual(1);
+  expect(Math.abs(during.right - before.right)).toBeLessThanOrEqual(1);
+
+  await page.keyboard.press('Escape');
+  const after = await read();
+  expect(after.overflowY).not.toBe('hidden');
+  expect(after.lockGutter).toBe('');
+  expect(Math.abs(after.y - before.y)).toBeLessThanOrEqual(1);
+});
+
+test('every navigation label stays on a single line', async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(
+    isMobile,
+    'The explicit viewport matrix runs once in desktop Chromium.',
+  );
+
+  for (const viewport of [
+    { width: 1920, height: 1080 },
+    { width: 1440, height: 900 },
+    { width: 1366, height: 768 },
+    { width: 1024, height: 1366 },
+    { width: 768, height: 1024 },
+    { width: 430, height: 932 },
+    { width: 390, height: 844 },
+    { width: 320, height: 720 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto('/');
+    await page.locator('[data-edge-trigger]').click();
+    await expect(page.locator('[data-edge-menu]')).toHaveAttribute(
+      'data-state',
+      'open',
+    );
+
+    const labels = await page
+      .locator('.edge-menu__list strong')
+      .evaluateAll((elements) =>
+        elements.map((element) => {
+          const style = getComputedStyle(element);
+          return {
+            text: element.textContent?.trim() ?? '',
+            height: element.getBoundingClientRect().height,
+            lineHeight: parseFloat(style.lineHeight),
+          };
+        }),
+      );
+
+    expect(labels.length).toBeGreaterThan(0);
+    for (const label of labels) {
+      expect(
+        label.height,
+        label.text + ' wraps at width ' + String(viewport.width),
+      ).toBeLessThan(label.lineHeight * 1.6);
+    }
+
+    expect(
+      await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth -
+          document.documentElement.clientWidth,
+      ),
+    ).toBeLessThanOrEqual(0);
   }
 });
 
@@ -286,9 +641,12 @@ test('core home navigation works without JavaScript', async ({ browser }) => {
   await cta.click();
   await expect(page).toHaveURL(/#contacto$/);
 
-  const menu = page.locator('[data-side-menu]');
+  const menu = page.locator('[data-edge-menu]');
   await menu.locator('summary').click();
-  await expect(menu).toHaveAttribute('open', '');
+  await expect(page.locator('[data-edge-disclosure]')).toHaveAttribute(
+    'open',
+    '',
+  );
   await expect(menu.getByRole('link', { name: 'Ver proyectos' })).toBeVisible();
 
   await context.close();
@@ -303,7 +661,7 @@ test('client navigation remains stable across history changes', async ({
   });
 
   await page.goto('/');
-  const menu = page.locator('[data-side-menu]');
+  const menu = page.locator('[data-edge-menu]');
   await menu.locator('summary').click();
   await menu.getByRole('link', { name: 'Ver proyectos' }).click();
   await expect(page).toHaveURL(/\/proyectos\/$/);

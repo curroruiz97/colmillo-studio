@@ -1,12 +1,18 @@
 ---
-import { heroMedia } from '@/config/assets';
-import { demoMode } from '@/data/projects';
-
-interface Props {
-  followHref: string;
-}
-
-const { followHref } = Astro.props;
+/**
+ * COLMILLO HERO
+ *
+ * One cream canvas with the client loop as the only protagonist. Everything
+ * else is deliberately quiet: the wordmark in the top-left corner, the CTA
+ * under the animation and a hairline scroll hint below it. Navigation belongs
+ * to the edge menu, so the hero only has to leave the right edge clear.
+ *
+ * The loop is decorative — it carries no information that is not already in the
+ * page — so it is hidden from assistive technology and every real affordance
+ * around it is a genuine link. The wordmark repeats the visually hidden `h1`,
+ * and the scroll hint is pure ornament, so both are hidden from the same tree.
+ */
+import { brandWordmark, heroMedia } from '@/config/assets';
 ---
 
 <section
@@ -14,10 +20,28 @@ const { followHref } = Astro.props;
   class="hero"
   aria-labelledby="hero-title"
   data-hero
-  data-surface-tone="dark"
+  data-surface-tone="light"
 >
-  {
-    heroMedia ? (
+  <div class="hero__decor" aria-hidden="true">
+    <span class="hero__shape hero__shape--disc"></span>
+    <span class="hero__shape hero__shape--ring"></span>
+    <span class="hero__shape hero__shape--orbit"></span>
+  </div>
+
+  <div class="hero__inner">
+    <img
+      class="hero__logo"
+      src={brandWordmark.black.src}
+      width={brandWordmark.black.width}
+      height={brandWordmark.black.height}
+      alt=""
+      decoding="async"
+      fetchpriority="high"
+      aria-hidden="true"
+    />
+    <h1 id="hero-title" class="visually-hidden">Colmillo Studio</h1>
+
+    <div class="hero__stage">
       <div class="hero__media-frame">
         <img
           class="hero__poster"
@@ -65,41 +89,19 @@ const { followHref } = Astro.props;
           />
         </video>
       </div>
-    ) : (
-      <div class="hero__stage" data-hero-stage aria-hidden="true">
-        <span class="hero__pressure hero__pressure--one" />
-        <span class="hero__pressure hero__pressure--two" />
-        <span class="hero__pressure hero__pressure--three" />
-        <p class="hero__kinetic" data-hero-word>
-          <>
-            <span>COL</span>
-            <span>MILLO</span>
-          </>
-        </p>
-      </div>
-    )
-  }
 
-  <div class="hero__content content-shell">
-    <p class="hero__eyebrow">Estudio creativo</p>
-    <h1 id="hero-title" class="visually-hidden">Colmillo Studio</h1>
-    <div class="hero__footer">
-      <a class="bite-button" href="#contacto" data-magnetic>
+      <a
+        class="bite-button hero__cta"
+        href="#contacto"
+        data-magnetic
+        data-cursor-label="Contacto"
+      >
         <span>Haz que tu marca muerda</span>
       </a>
-      <a class="hero__scroll" href={followHref}>
-        <span>Seguir</span>
-        <span aria-hidden="true">↓</span>
-      </a>
+
+      <span class="hero__scroll" aria-hidden="true">
+        <span class="hero__scroll-dot"></span>
+      </span>
     </div>
   </div>
-
-  {
-    demoMode && (
-      <p class="dev-note hero__dev-note" data-dev-placeholder>
-        El escenario cinético es el fallback provisional. Se sustituirá por el
-        vídeo oficial optimizado cuando llegue el activo del cliente.
-      </p>
-    )
-  }
 </section>

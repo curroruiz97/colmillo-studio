@@ -118,7 +118,7 @@ colmillo-studio/
 |   |-- content/projects/        # Approved entries; currently empty
 |   |-- data/projects.ts         # Types/loader + isolated fictional demos
 |   |-- layouts/ / pages/
-|   |-- components/layout/       # Header, footer, menu, SEO, motion toggle
+|   |-- components/layout/       # Header, footer, edge menu, SEO, motion
 |   |-- components/sections/     # Home sections
 |   |-- components/projects/     # Project UI
 |   |-- components/ui/
@@ -203,7 +203,8 @@ registers ScrollTrigger and initializes/cleans:
 - `HeroMotion.ts`: hero compression and viewport-aware media playback;
 - `StickyHeader.ts`: home header visibility after the hero;
 - `SurfaceTone.ts`: visible-surface chrome/cursor tone;
-- `SideMenu.ts`: focus/inert/Escape behavior and home progress;
+- `EdgeMenu.ts`: right-edge navigation states, focus/inert/Escape behavior,
+  scroll lock and home progress;
 - `SectionStack.ts`: rounded stack reveal/compression;
 - `HorizontalProjects.ts`: desktop pin/scrub plus native fallback/progress;
 - `MagneticElements.ts`: bounded pointer response with cached bounds.
@@ -299,8 +300,11 @@ licenses and publication approval before enabling client material.
 - Isolated typed fictional demo with three project routes.
 - Responsive project rail with desktop ScrollTrigger enhancement and native
   touch/no-JavaScript/reduced-motion fallbacks.
-- Accessible centered side menu, sticky header, surface-aware cursor and motion
-  preference control.
+- Colmillo Edge Menu: a right-edge rail with closed, peek and open states, a
+  native `<details>` fallback, focus containment, a non-shifting scroll lock and
+  the reported home scene. It replaced the centered bottom trigger on
+  2026-09-10.
+- Sticky header, surface-aware cursor and motion preference control.
 - Responsive official hero contract and CSS hero/goodbye fallbacks.
 - Validated black/cream wordmark PNGs.
 - Production/demo Playwright matrices and integrity/link/asset/brand/hero/release

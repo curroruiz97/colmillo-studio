@@ -34,6 +34,23 @@ async function expectNoOverlap(fixed: Locator, content: Locator) {
   }
 }
 
+/** Waits until the edge panel has finished travelling into place. */
+async function settleEdgePanel(page: Page) {
+  await expect(page.locator('[data-edge-menu]')).toHaveAttribute(
+    'data-state',
+    'open',
+  );
+  await expect
+    .poll(() =>
+      page
+        .locator('[data-edge-panel]')
+        .evaluate(
+          (panel) => new DOMMatrix(getComputedStyle(panel).transform).m41,
+        ),
+    )
+    .toBeLessThanOrEqual(1);
+}
+
 async function collectConsoleErrors(page: Page) {
   const errors: string[] = [];
   page.on('console', (message) => {
@@ -297,15 +314,45 @@ test('the pinned project rail stays in view for the whole pin', async ({
   expect(finalX).toBeLessThan(-100);
 });
 
-test('side rail reports the current home scene', async ({ page }, testInfo) => {
+test('the edge rail reports the current home scene', async ({
+  page,
+}, testInfo) => {
   test.skip(testInfo.project.name !== 'fine-1440');
   await page.goto('/');
-  await page.locator('#contacto').scrollIntoViewIfNeeded();
-  await expect(page.locator('[data-side-menu-current]')).toHaveText('05');
+
+  // The pinned project rail adds a full pin's worth of document height once it
+  // registers. Scrolling before that lands on an earlier scene, which then
+  // stays reported because nothing scrolls again.
+  await expect(page.locator('[data-horizontal-projects]')).toHaveAttribute(
+    'data-horizontal-enhanced',
+    'true',
+  );
+
+  // The rail reports the scene crossing the middle of the viewport.
+  await expect
+    .poll(async () => {
+      await page
+        .locator('#contacto')
+        .evaluate((section) =>
+          section.scrollIntoView({ block: 'center', behavior: 'instant' }),
+        );
+      return page.locator('[data-edge-current]').textContent();
+    })
+    .toBe('05');
+
   await expect(page.locator('[data-section-link="contacto"]')).toHaveAttribute(
     'aria-current',
     'location',
   );
+
+  // The rail itself carries no progress marker: it stays a stable edge.
+  const spineMark = await page
+    .locator('.edge-menu__spine')
+    .evaluate((spine) => {
+      const after = getComputedStyle(spine, '::after');
+      return { content: after.content, background: after.backgroundColor };
+    });
+  expect(spineMark.content).toBe('none');
 });
 
 test('fixed controls do not cover hero, contact or footer content', async ({
@@ -313,9 +360,13 @@ test('fixed controls do not cover hero, contact or footer content', async ({
 }) => {
   await page.goto('/');
   const motion = page.locator('[data-motion-toggle]');
-  const menu = page.locator('.side-menu__trigger');
+  const menu = page.locator('[data-edge-trigger]');
   await expect(motion).not.toBeVisible();
-  await expectNoOverlap(menu, page.locator('.hero__footer a'));
+  // The loop, the CTA and the scroll hint all have to clear the rail.
+  await expectNoOverlap(
+    menu,
+    page.locator('.hero__media-frame, .hero__cta, .hero__scroll'),
+  );
 
   await page.locator('#contacto').scrollIntoViewIfNeeded();
   await expectNoOverlap(
@@ -329,7 +380,20 @@ test('fixed controls do not cover hero, contact or footer content', async ({
 
   await menu.click();
   await expect(motion).toBeVisible();
-  await expect(page.locator('[data-menu-panel]')).toBeVisible();
+  await expect(page.locator('[data-edge-panel]')).toBeVisible();
+});
+
+test('the open panel never hides behind its own handle', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('[data-edge-trigger]').click();
+  await settleEdgePanel(page);
+
+  await expectNoOverlap(
+    page.locator('[data-edge-trigger]'),
+    page.locator(
+      '.edge-menu__list a, .edge-menu__channels a, .edge-menu__archive, .edge-menu__legal a, [data-motion-toggle]',
+    ),
+  );
 });
 
 test('fixed controls do not cover project copy or navigation', async ({
@@ -337,7 +401,7 @@ test('fixed controls do not cover project copy or navigation', async ({
 }) => {
   await page.goto('/proyectos/demo-fauce-elastica/');
   const motion = page.locator('[data-motion-toggle]');
-  const menu = page.locator('.side-menu__trigger');
+  const menu = page.locator('[data-edge-trigger]');
   const copy = page.locator(
     '.project-hero__copy h1, .project-hero__copy p, .project-hero__copy li, .project-hero__copy strong',
   );
@@ -530,4 +594,63 @@ test('demo routes render without browser errors', async ({ page }) => {
     expect(layout.scrollX).toBe(0);
   }
   expect(errors).toEqual([]);
+});
+
+test('the hero composition centres the loop with the CTA under it', async ({
+  page,
+}) => {
+  await page.goto('/');
+
+  const geometry = await page.evaluate(() => {
+    const box = (selector: string) => {
+      const element = document.querySelector(selector);
+      if (!element) return null;
+      const rect = element.getBoundingClientRect();
+      return {
+        left: rect.left,
+        right: rect.right,
+        top: rect.top,
+        bottom: rect.bottom,
+        width: rect.width,
+        height: rect.height,
+        centreX: rect.left + rect.width / 2,
+      };
+    };
+    return {
+      viewport: { width: innerWidth, height: innerHeight },
+      loop: box('.hero__media-frame'),
+      cta: box('.hero__cta'),
+      hint: box('.hero__scroll'),
+      logo: box('.hero__logo'),
+      overflow:
+        document.documentElement.scrollWidth -
+        document.documentElement.clientWidth,
+    };
+  });
+
+  const { loop, cta, hint, logo, viewport } = geometry;
+  expect(loop).not.toBeNull();
+  expect(cta).not.toBeNull();
+  expect(hint).not.toBeNull();
+  if (!loop || !cta || !hint || !logo) return;
+
+  // The loop is the protagonist: it owns a serious share of the first screen.
+  expect(loop.width).toBeGreaterThan(viewport.width * 0.5);
+  expect(loop.height).toBeGreaterThan(viewport.height * 0.2);
+
+  // The CTA sits directly under the loop, centred on it.
+  expect(Math.abs(cta.centreX - loop.centreX)).toBeLessThanOrEqual(2);
+  expect(cta.top).toBeGreaterThanOrEqual(loop.bottom);
+
+  // The scroll hint sits under the CTA, on the same axis, with air between
+  // them, and still finishes inside the first screen.
+  expect(Math.abs(hint.centreX - cta.centreX)).toBeLessThanOrEqual(2);
+  expect(hint.top).toBeGreaterThanOrEqual(cta.bottom + 12);
+  expect(hint.bottom).toBeLessThanOrEqual(viewport.height + 1);
+
+  // The wordmark keeps the top-left corner clear of the animation.
+  expect(logo.top).toBeLessThan(loop.top);
+  expect(logo.left).toBeLessThan(viewport.width * 0.25);
+
+  expect(geometry.overflow).toBeLessThanOrEqual(1);
 });

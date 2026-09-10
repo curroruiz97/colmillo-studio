@@ -1,6 +1,7 @@
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { initCustomCursor } from './CustomCursor';
+import { initEdgeMenu } from './EdgeMenu';
 import { initEditorialMotion } from './EditorialMotion';
 import { initHeroMotion } from './HeroMotion';
 import { initHorizontalProjects } from './HorizontalProjects';
@@ -9,7 +10,6 @@ import { initManifestoMotion } from './ManifestoMotion';
 import { initMotionPreference } from './MotionPreference';
 import { initSectionStack } from './SectionStack';
 import { initServicesMotion } from './ServicesMotion';
-import { initSideMenu } from './SideMenu';
 import { initStickyHeader } from './StickyHeader';
 import { initSurfaceTone } from './SurfaceTone';
 
@@ -28,7 +28,7 @@ export function initMotion(): void {
     initHeroMotion(),
     initStickyHeader(),
     initSurfaceTone(),
-    initSideMenu(),
+    initEdgeMenu(),
     initSectionStack(),
     initServicesMotion(),
     initHorizontalProjects(),

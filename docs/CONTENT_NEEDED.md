@@ -19,13 +19,31 @@
 
 ## Motion Assets
 
-- Hero loop source animation and approved derivatives under
-  `public/assets/motion/hero/` (`hero-desktop.webm`, `hero-desktop.mp4`,
-  `hero-mobile.webm`, `hero-mobile.mp4`, `hero-poster.webp`).
+Received on 2026-09-10:
+
+- Hero loop master at `public/assets/WEB.webm` (VP9, 5040x2160, 30 fps,
+  12.933 s, with an unused Opus track). The approved derivatives are generated
+  from it by `npm run media:hero` and published under
+  `public/assets/motion/hero/`.
+
+Still missing:
+
 - Goodbye animation source and approved derivatives under
   `public/assets/motion/goodbye/` (`goodbye.webm`, `goodbye.mp4`,
   `goodbye-poster.webp`).
 - Permission to convert GIF assets to WebM/MP4 for production performance.
+
+Open questions on the supplied hero master:
+
+- Confirmation that removing the empty sheet on the left and right of the
+  drawing is acceptable. The derivatives crop the 7:3 master to 4:3 around the
+  drawing; only blank paper is removed and the original file is untouched.
+- Confirmation that the drawing may be composited directly on the cream
+  surface, so the sheet white becomes the page colour rather than staying
+  white.
+- A decision on where the 3.15 MB raw master should live. Everything under
+  `public/` is copied verbatim into `dist/`, so the untouched client file is
+  currently published even though nothing references it.
 
 ## Contact
 

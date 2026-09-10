@@ -38,6 +38,35 @@ if (missing.length > 0) {
   );
 }
 
+/*
+ * The hero loop is delivered pre-composited for the cream surface: its sheet is
+ * mapped to `--color-brand-cream` and then cut out. If the token moves and the
+ * derivatives are not regenerated, the drawing's own paper stops matching the
+ * page behind it, so the two values are checked against each other.
+ */
+const preparation = await readFile('scripts/prepare-hero-media.mjs', 'utf8');
+const tokens = await readFile('src/styles/tokens.css', 'utf8');
+
+const bakedCream = preparation
+  .match(/const CREAM = \[([^\]]+)\]/)?.[1]
+  ?.split(',')
+  .map((part) => Number(part.trim()));
+const brandCream = tokens
+  .match(/--color-brand-cream:\s*#([0-9a-f]{6})/i)?.[1]
+  ?.match(/../g)
+  ?.map((pair) => Number.parseInt(pair, 16));
+
+if (!bakedCream || bakedCream.length !== 3 || !brandCream) {
+  throw new Error(
+    'Could not read the baked hero cream or --color-brand-cream to compare them.',
+  );
+}
+if (bakedCream.some((channel, index) => channel !== brandCream[index])) {
+  throw new Error(
+    `Hero media is baked for rgb(${bakedCream.join(', ')}) but --color-brand-cream is rgb(${brandCream.join(', ')}). Regenerate with "node scripts/prepare-hero-media.mjs".`,
+  );
+}
+
 process.stdout.write(
-  'Responsive hero contract passed: desktop/mobile WebM+MP4, poster, dimensions, viewport pause and reduced-motion fallback are wired.\n',
+  'Responsive hero contract passed: desktop/mobile WebM+MP4, poster, dimensions, viewport pause, reduced-motion fallback and the baked cream match the brand token.\n',
 );

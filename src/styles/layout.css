@@ -116,41 +116,6 @@
   font-weight: 950;
 }
 
-.hero {
-  position: relative;
-  min-block-size: 100svh;
-  overflow: clip;
-  background: var(--color-brand-ink);
-  color: var(--color-brand-cream);
-}
-
-.hero__stage {
-  position: absolute;
-  inset: 0;
-  isolation: isolate;
-  overflow: hidden;
-}
-
-.hero__stage::before {
-  position: absolute;
-  z-index: 1;
-  inset: 8% 12%;
-  border: 1px solid
-    color-mix(in srgb, var(--color-brand-cream) 36%, transparent);
-  border-radius: 49% 43% 48% 42% / 42% 52% 40% 56%;
-  content: '';
-  pointer-events: none;
-  transform: translate3d(
-    var(--pointer-shift-x-reverse, 0),
-    var(--pointer-shift-y-reverse, 0),
-    0
-  );
-  transition: border-radius 500ms var(--ease-bite);
-}
-
-.hero__media-frame,
-.hero__poster,
-.hero__media,
 .goodbye-section__media {
   position: absolute;
   inset: 0;
@@ -159,138 +124,12 @@
   object-fit: cover;
 }
 
-.hero__poster {
-  z-index: 0;
-}
-
-.hero__media {
-  z-index: 1;
-}
-
-.hero__kinetic {
-  position: absolute;
-  z-index: 2;
-  inset: 50% auto auto 50%;
-  inline-size: 100%;
-  /* The display word is not prose: it must ignore the paragraph measure cap,
-     which otherwise wrapped MILLO onto a third line above ~1330px. */
-  max-inline-size: none;
-  display: grid;
-  translate: -50% -50%;
-  color: var(--color-brand-orange);
-  font-family: var(--font-display);
-  font-size: clamp(5rem, 20vw, 21rem);
-  font-weight: 950;
-  letter-spacing: -0.095em;
-  line-height: 0.65;
-  text-align: center;
-  text-transform: uppercase;
-  text-shadow: 0 0.08em 0 var(--color-brand-cream);
-}
-
-.hero__kinetic span {
-  /* COLMILLO always reads as exactly two lines: COL / MILLO. */
-  white-space: nowrap;
-}
-
-.hero__kinetic span:last-child {
-  padding-inline-end: 0.08em;
-}
-
-.hero__pressure {
-  position: absolute;
-  z-index: 1;
-  display: block;
-  inline-size: clamp(13rem, 27vw, 28rem);
-  aspect-ratio: 1;
-  border: clamp(1.2rem, 3vw, 3.5rem) solid var(--color-brand-cream);
-  border-radius: 49% 42% 47% 43%;
-  opacity: 0.92;
-}
-
-.hero__pressure--one {
-  inset: -12% auto auto -7%;
-}
-
-.hero__pressure--two {
-  inset: auto -7% -18% auto;
-  border-color: var(--color-brand-orange);
-}
-
-.hero__pressure--three {
-  inset: 19% auto auto 39%;
-  inline-size: clamp(8rem, 15vw, 15rem);
-  border-width: clamp(0.8rem, 1.5vw, 1.75rem);
-}
-
-.hero__content {
-  position: relative;
-  z-index: 4;
-  min-block-size: 100svh;
-  display: grid;
-  align-content: space-between;
-  padding-block: var(--page-gutter) calc(var(--page-gutter) + 4.75rem);
-}
-
-.hero__eyebrow,
 .section-kicker,
 .section-index {
   font-size: var(--font-label);
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-}
-
-.hero__footer {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 2rem;
-}
-
-.hero .bite-button {
-  position: relative;
-  isolation: isolate;
-  overflow: clip;
-  box-shadow: 0 0.45rem 0 var(--color-brand-cream);
-}
-
-.hero .bite-button::after {
-  position: absolute;
-  z-index: -1;
-  inset: 50% auto auto -1.25rem;
-  inline-size: 2.4rem;
-  aspect-ratio: 1;
-  border: var(--border-width) solid var(--color-brand-ink);
-  border-radius: 50%;
-  background: var(--color-brand-ink);
-  content: '';
-  transform: translateY(-50%) scale(0);
-  transition: transform var(--duration-medium) var(--ease-bite);
-}
-
-.hero .bite-button:hover::after,
-.hero .bite-button:focus-visible::after {
-  transform: translateY(-50%) scale(1);
-}
-
-.hero__scroll {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: var(--font-label);
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-decoration: none;
-  text-transform: uppercase;
-}
-
-.hero__dev-note {
-  position: absolute;
-  z-index: 5;
-  inset-block-start: var(--page-gutter);
-  inset-inline-end: var(--page-gutter);
-  max-inline-size: 22rem;
 }
 
 .stack-section {
@@ -559,8 +398,8 @@
 
 .projects-section[data-horizontal-enhanced='true'] .projects-section__track {
   block-size: 100%;
-  /* Clears the fixed menu trigger anchored to the bottom of the viewport. */
-  padding-block-end: clamp(5rem, 9vh, 7rem);
+  /* Clears the fixed edge-menu rail against the right viewport edge. */
+  padding-inline-end: var(--edge-rail-clearance);
 }
 
 .projects-section[data-horizontal-enhanced='true'] .project-card {
@@ -1539,11 +1378,6 @@ body > main > .content-shell {
     display: none;
   }
 
-  .hero__dev-note {
-    inset-block-start: 4.75rem;
-    inset-inline: var(--page-gutter);
-  }
-
   .intro-section__grid,
   .studio-section__grid,
   .contact-section__grid {
@@ -1621,29 +1455,6 @@ body > main > .content-shell {
   .site-header__context span:first-child,
   .site-header__context span + span::before {
     display: none;
-  }
-
-  .hero__kinetic {
-    font-size: clamp(5rem, 29vw, 10rem);
-  }
-
-  .hero__pressure--three {
-    inset: 30% auto auto 22%;
-  }
-
-  .hero__footer {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .hero__scroll {
-    align-self: flex-end;
-    margin-inline-end: 4rem;
-  }
-
-  .hero__dev-note {
-    inset-block-start: 4.75rem;
-    inset-inline: var(--page-gutter);
   }
 
   .stack-section,
@@ -1782,7 +1593,10 @@ body > main > .content-shell {
   }
 
   .project-card {
-    inline-size: calc(100vw - (2 * var(--page-gutter)));
+    /* The card is full-bleed, so it clears the rail itself. */
+    inline-size: calc(
+      100vw - (2 * var(--page-gutter)) - var(--edge-content-rail, 0px)
+    );
     min-block-size: 65svh;
   }
 

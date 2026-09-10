@@ -489,3 +489,219 @@ already solved this for case studies with `demoProjects`, so services follow
 the same isolation contract: the composition and its interaction can be
 designed and QA'd now, `dist/` stays clean, and swapping in approved copy is a
 single-file change.
+
+## 2026-09-10 - The Colmillo Edge Menu Replaces The Centered Trigger
+
+Decision: Retire the centered bottom trigger and the full-surface panel, and
+make the primary navigation a right-edge rail with three states declared on the
+wrapper as `data-state`: `closed`, `peek` and `open`. `SideMenu.astro` and
+`SideMenu.ts` were deleted, their rules were removed from `motion.css`, and the
+replacement lives in `EdgeMenu.astro`, `EdgeMenu.ts` and `edge-menu.css`.
+
+Reason: The user asked for the interaction pattern of a navigation that lives
+just outside the viewport and answers to proximity, expressed in Colmillo's own
+art direction rather than copied. A rail against the edge also frees the bottom
+of every viewport, which previously needed explicit clearance in the pinned
+project rail and the footer. The reference supplied the behaviour only; the
+shape, palette, typography, timings and copy are the project's own.
+
+Superseded: the 2026-09-07 decisions that made the centered trigger and the
+full-surface panel the primary navigation gesture. Everything they protected -
+the semantic `<details>` fallback, native navigation, keyboard support, reduced
+motion and the production content guards - is preserved.
+
+## 2026-09-10 - The Panel Leaves The Disclosure Once JavaScript Runs
+
+Decision: Keep the panel inside `<details>` in the markup, and on
+initialisation move it out to become a sibling, marking the wrapper
+`data-enhanced`. CSS drives an enhanced panel from `data-state` and falls back
+to a plain full-screen panel owned by the native disclosure when the attribute
+is absent. The cleanup restores the original position.
+
+Reason: A closed `<details>` does not render its content, so the panel could
+only ever animate in, never out; closing snapped. Author CSS cannot override
+that, because Chrome hides the content through a slot in the UA shadow tree
+rather than through the light-DOM children - verified in the browser, where
+forcing `display: block` on the panel of a closed disclosure still measured
+0 px high. `details::details-content` would solve it but is too recent to rely
+on. Relocating the panel keeps one accessible control, keeps the no-JavaScript
+path working, and lets both directions of the transition be authored normally.
+
+## 2026-09-10 - Navigation Type Is Sized From The Panel, Not The Viewport
+
+Decision: Make `.edge-menu__panel` a `container-type: inline-size` query
+container and size the route labels with `clamp(1.6rem, 8.2cqi, 4rem)`, with
+`overflow-wrap: normal` so a label can never break mid-word. A Playwright test
+asserts that every label renders on one line at eight widths.
+
+Reason: Viewport-relative sizing broke the fit, because the panel's share of
+the viewport changes with the breakpoints while its paddings do not: `4.7vw`
+wrapped `MANIFIESTO`, `PROYECTOS` and `CONTACTO` onto two lines at 1920. Sizing
+from the panel keeps comparable headroom everywhere. The query container is the
+panel and not the scrolling content box, so the font size cannot chase a
+scrollbar that its own height brings and removes. The global
+`overflow-wrap: anywhere` rule would otherwise split a route name mid-word, and
+the licensed Bootzy TM face will change these metrics, so the one-line
+assertion is the guard rather than a fixed size.
+
+## 2026-09-10 - The Rail Reservation Goes On Containers, Not On `body`
+
+Decision: On coarse pointers, where the whole tappable handle stays inside the
+viewport, reserve `--edge-rail-clearance` on `.content-shell`, `.site-footer`,
+the fixed header's end inset and the full-bleed project card. Do not put the
+reservation on `body`.
+
+Reason: The 46 px touch handle measurably covered the project hero summary and
+a capability item at 390 px. Padding `body` fixed the overlap but shrank every
+full-bleed section, leaving a cream band down the right edge of the dark hero.
+The inner containers already exist on every route, so reserving there keeps
+backgrounds reaching the edge behind the rail. `body` keeps only the scroll-lock
+gutter, which `EdgeMenu.ts` publishes as `--scroll-lock-gutter` so the two
+reservations compose instead of overwriting each other.
+
+## 2026-09-10 - Content Is Not Displaced When The Panel Opens
+
+Decision: Do not translate `main` when the edge menu opens, even though a small
+leftward shift would suit Colmillo's pressure vocabulary. The pressure is
+expressed by the panel's own contour, its orange edge and the staggered reveal
+of the routes instead.
+
+Reason: The 2026-09-09 decision records that any transform on `main` makes it
+the containing block for every fixed descendant, which sends ScrollTrigger's
+pinned project rail to the document origin for the whole pin. A regression test
+asserts that no ancestor of the rail declares a transform. The user's brief
+explicitly allowed dropping the effect if it conflicted with sticky or
+ScrollTrigger behaviour, and it does.
+
+## 2026-09-10 - The Reported Scene Is The One Crossing The Viewport Centre
+
+Decision: Narrow the scene observer's root to a band around the viewport centre
+(`rootMargin: '-45% 0px -45% 0px'`) and keep a ratio per tracked section rather
+than comparing only the sections present in one callback batch.
+
+Reason: `intersectionRatio` is a fraction of the target, not of the viewport, so
+a short section fully in view scored 1.0 while the tall section actually filling
+the screen scored far less - the rail reported `03 STUDIO` while the reader was
+on Contacto. Comparing within a single batch hid this behind intermittent
+ordering and made the test flaky rather than wrong. The centre band normally
+leaves one candidate and matches what the reader is looking at. `SurfaceTone`
+already narrows its root the same way.
+
+## 2026-09-10 - The Handle Does Not Follow The Surface Tone
+
+Decision: The edge handle is brand orange with ink text on every surface. Only
+the spine and its progress mark follow `data-surface-tone`.
+
+Reason: The handle is the affordance, and access to the navigation is the first
+priority in the brief. Tying it to the tone made it disappear the moment a
+section's declared tone and its actual media disagreed, which is exactly what
+the home hero showed once the official cream hero media was wired while the
+section still declared `data-surface-tone="dark"`. Orange reads on both cream
+and ink, and it matches the coarse-pointer treatment, so the affordance is now
+one thing everywhere.
+
+Amended the same day at the user's request: the hover state was briefly
+`--color-brand-red` and is now brand orange throughout. The closed and peeking
+handle therefore does not change colour under the cursor - its travel into the
+viewport is the response - and only the open state's transparent outlined tab
+fills on hover.
+
+## 2026-09-10 - The Native Scrollbar Is Hidden And The Rail Carries No Marker
+
+Decision: Hide the document scrollbar in `globals.css` with `scrollbar-width`,
+`-ms-overflow-style` and `html::-webkit-scrollbar`, and hide the edge panel's own
+the same way. Remove the orange progress marker from the edge rail, together
+with `.edge-menu__spine::after`, its `accent` tone override, the
+`--edge-mark-size` and `--edge-progress` custom properties and the
+`setProperty` call that fed them.
+
+Reason: Both were requested directly. Only the indicator is removed, never the
+behaviour: the document is still a scroll container, so wheel, trackpad,
+keyboard, touch, scroll anchoring, programmatic and anchor scrolling are
+untouched, and that is asserted at eight widths. Removing the marker leaves the
+rail a stable graphic edge rather than a second progress readout competing with
+the numbered one the handle and the panel already carry; the section observer is
+unchanged because it still drives those readouts and `aria-current="location"`.
+
+Two consequences are worth recording. With no reserved scrollbar the layout
+viewport equals the visual viewport, so fixed chrome anchored to `right: 0` now
+sits flush against the true edge and `--scroll-lock-gutter` resolves to 0 px; the
+compensation is kept only as a guard for engines that still reserve the space.
+And the page loses the scrollbar as a visible position indicator - the deliberate
+trade for the cleaner edge, mitigated by the numbered scene readout that the rail
+and panel already publish.
+
+## 2026-09-10 - The Hero Loop Is Delivered Pre-Composited For Cream
+
+Decision: derive the hero loop from the supplied master with its sheet mapped to
+`--color-brand-cream` and then cut out, and treat the result as an asset that is
+only valid on a cream surface. `npm run check:hero` compares the cream baked
+into `scripts/prepare-hero-media.mjs` with the token and fails if they diverge.
+
+Reason: the master is black line art on a uniform sheet measured at
+RGB(250, 250, 250), and the hero surface is flat cream. Mapping the sheet to the
+page colour makes every antialiased edge blend ink into cream before encoding,
+so no keying step has to invent an edge and no halo is possible. Cutting the
+sheet afterwards is then exact, because the pixels being cut are already the
+page colour.
+
+The trade is that the derivative cannot be moved onto another background without
+being regenerated. That is recorded in the script header, in
+`docs/CONTENT_NEEDED.md` and enforced by the token check.
+
+## 2026-09-10 - The Sheet Is Cut Everywhere, Not Only Where It Touches The Border
+
+Decision: make every pixel at or above luminance 240 transparent, including the
+white *inside* the drawing - faces, shirts, shoes, the handbag, the cathedral.
+
+Reason: the first implementation isolated the background with a 4-connected
+flood fill seeded from the frame border, which is the textbook way to keep
+interior white opaque. Measured against the rendered page that was wrong. Those
+interior areas are large, flat and exactly the sheet colour, so after encoding
+they landed 1 to 3 levels away from the cream behind them and read as a faint
+rectangle over the flat page - visible in a 1920x1080 capture.
+
+Because the sheet and the page are the same colour, letting the page show
+through the drawing is identical in appearance and exact in value. The cost is
+file size: the alpha plane becomes a detailed mask instead of one large region,
+which took the desktop WebM from 1.65 MB to 4.27 MB at the same CRF. It was
+brought back to 2.12 MB with alternate reference frames, a slower preset and
+CRF 52, verified against the rendered result rather than against a metric.
+Exactness on the first screen was judged worth the remaining 0.5 MB.
+
+## 2026-09-10 - The Hero Is A Centred Canvas, Not The Editorial Measure
+
+Decision: the hero opts out of `.content-shell`. Its inner grid is full width
+with page gutters, and the loop is centred on the viewport.
+
+Reason: `.content-shell` is left-aligned from the page gutter above 48rem and
+capped at 90rem, which is right for the editorial routes but left the loop
+sitting at x=764 on a 1920 viewport while `SEGUIR` sat at x=1769. The first
+screen reads as one composition rather than as a column, so it is centred; every
+other section keeps the shared measure.
+
+## 2026-09-10 - The Hero Loop Sizes From A Height Budget
+
+Decision: the loop's height is `min(100svh - --hero-reserved, width cap * 3/4)`,
+where `--hero-reserved` is the sum of the gutters, the label line, the two gaps,
+the CTA and the sliver reserved for the bottom-right control.
+
+Reason: two earlier attempts each failed one half of the range. A fixed `svh`
+cap pushed the CTA off a 1366x768 window; letting the loop fill a `1fr` row put
+250 px of empty paper between the loop and the CTA on a 1024x1366 tablet, which
+contradicts the requirement that the CTA sit directly under the animation. The
+budget satisfies both: the loop shrinks on a short window and stops growing on a
+tall one, and the group stays centred. Verified at 1920x1080, 1440x900,
+1366x768, 1024x1366, 768x1024, 430x932, 390x844 and 320x720.
+
+## 2026-09-10 - The Hero Poster Is Only Rendered Under Reduced Motion
+
+Decision: `.hero__poster` is `display: none` by default and revealed only when
+motion is reduced.
+
+Reason: the previous hero video was opaque and covered the poster beneath it.
+The delivered loop is transparent, so the poster showed through the drawing and
+two different frames of the animation were visible at once. Everyone else
+receives the same file through the video's own `poster` attribute, so the still
+frame still paints before the first decoded frame and nothing extra is
+downloaded.

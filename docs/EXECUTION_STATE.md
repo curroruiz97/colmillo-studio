@@ -5,7 +5,7 @@ repository state, not an aspirational roadmap.
 
 ## Last Updated
 
-2026-09-09
+2026-09-10
 
 ## Current Phase
 
@@ -22,9 +22,12 @@ change the standard repository release contract.
 
 - Repository root: `C:\Users\fruiz\Desktop\colmillo-studio`.
 - Branch: `main`.
-- Local HEAD: `f1e53bf Document authorized Vercel demo deployment`.
-- Remote `origin/main`: `6032d56 Initial Colmillo Studio implementation`.
-- Local `main` is one commit ahead of `origin/main`.
+- Local HEAD at the 2026-09-10 session: `44b0650 Publish approved contact
+  channels, fix scroll defects and rebuild services`.
+- `origin/main` is at the same commit; the branch was published on 2026-09-10 at
+  the user's explicit request and local and remote are in sync.
+- The 2026-09-10 edge-menu work and the concurrent hero-media work are both
+  uncommitted at the time of writing.
 - Remote: `https://github.com/curroruiz97/colmillo-studio.git`.
 - Pre-existing uncommitted user change: `package-lock.json` has 102 deleted
   `libc` metadata lines in optional platform packages. It was inspected and
@@ -99,11 +102,13 @@ change the standard repository release contract.
 - Reduced layout work in magnetic interactions by caching bounds on pointer
   entry.
 - Corrected the runbook to GPT-5.6 Sol, high reasoning and standard service.
-- Replaced the competing fixed utilities with a mathematically centered menu
-  trigger and a full-viewport editorial navigation surface. The panel includes
-  numbered routes, project return, motion preference and legal links; Escape,
-  focus containment/restoration and `inert` behavior are implemented while the
-  native `<details>` fallback remains usable without JavaScript.
+- Replaced the competing fixed utilities with a single primary navigation
+  gesture carrying numbered routes, project return, motion preference and legal
+  links; Escape, focus containment/restoration and `inert` behavior are
+  implemented while the native `<details>` fallback remains usable without
+  JavaScript. Superseded on 2026-09-10: the centered bottom trigger and its
+  full-viewport panel were replaced by the right-edge Colmillo Edge Menu, which
+  keeps every one of those guarantees. See the 2026-09-10 session below.
 - Simplified the global header to logo plus current-route context until real
   contact channels exist. The supplied black/cream variants continue to switch
   by surface with intrinsic dimensions.
@@ -111,8 +116,9 @@ change the standard repository release contract.
   through bounded pointer, velocity, surface-tone and progress state. Added
   hero exit compression, whole-block editorial reveals, pressure edges and
   active-project depth without another dependency or permanent frame loop.
-- Added responsive menu/project clearance and an automated ±1 px centering
-  assertion across 1440×1000, 834×1112, 390×844 and 320×720.
+- Added responsive menu/project clearance across 1440×1000, 834×1112, 390×844
+  and 320×720. Superseded on 2026-09-10: the centering assertion was replaced by
+  an edge-anchoring assertion, because the trigger is no longer centered.
 - Tested cross-document View Transitions and removed them after reproducing a
   touch back/forward rejection. Native navigation and the short CSS entry remain
   authoritative; the entry does not scale the viewport and is disabled when
@@ -552,3 +558,388 @@ approval before enabling either release or indexing. No further technical work
 from the current creative-polish plan is pending. Do not push `main`, manually
 deploy or alter Vercel until the user explicitly authorizes that separate
 production-impacting action.
+
+
+## 2026-09-10 Session: Colmillo Edge Menu
+
+Claude Code session, requested by the user: replace the primary navigation with
+a right-edge rail modelled on the *behaviour* of hellomonday.com, expressed in
+Colmillo's own art direction. Only the navigation was redesigned.
+
+### What replaced what
+
+The centered bottom trigger (`MENU | 01`) and its full-surface panel are gone.
+Deleted: `src/components/layout/SideMenu.astro`, `src/scripts/motion/SideMenu.ts`
+and every `.side-menu*` rule in `src/styles/motion.css`, including its
+fine-pointer hover block and its `max-width: 48rem` block. No dead selectors,
+hooks or test references remain; searching `src`, `tests` and `scripts` for
+`side-menu` returns nothing.
+
+New files:
+
+- `src/components/layout/EdgeMenu.astro` - wrapper, spine, `<details>`
+  disclosure whose `<summary>` is the handle, panel and backdrop button.
+- `src/scripts/motion/EdgeMenu.ts` - state machine, focus containment, `inert`,
+  scroll lock and reported scene.
+- `src/styles/edge-menu.css` - imported into the existing `components` layer.
+
+Two-line registrations in `MotionController.ts`, `BaseLayout.astro` and
+`src/styles/index.css`.
+
+### Behaviour
+
+Three states on `[data-edge-menu]` as `data-state`:
+
+- `closed`: a full-height spine (14 px desktop, 8 px phone) tapered at both
+  ends, plus a 24 px swelling of the handle at mid-height. The spine carries no
+  travelling marker: it is a stable graphic edge.
+- `peek`: one passive `pointermove` listener arms the reveal when a fine pointer
+  comes within 72 px of the right edge; the handle slides fully in (89-108 px
+  depending on width) showing a vertical `MENU`, three editorial rules of
+  unequal length and `01/05`. It retracts past 152 px, which is wider than the
+  revealed handle so moving onto it cannot cancel the reveal. Keyboard focus
+  triggers the same reveal, so the peek is never the only route in. Disabled
+  under reduced motion and on coarse pointers.
+- `open`: the panel travels in on `translateX` alone. Its ink surface has large
+  elliptical tapers at both ends, a 4 rem bite cut out of the contour with a
+  radial-gradient mask, and a 2 px orange pressure edge. Routes reveal on a
+  46 ms stagger. The handle becomes a `CERRAR` tab. Proximity is ignored while
+  open.
+
+Close paths: the handle, Escape, any link, and the backdrop. Focus moves to the
+first route on open and returns to the handle on Escape. `main`, the sticky
+header and the footer become `inert`. The scroll lock publishes
+`--scroll-lock-gutter` so a classic scrollbar, where one exists, cannot move the
+layout when it is removed.
+
+### Measured geometry
+
+| Viewport | Panel | Handle inside | Route type |
+| --- | --- | --- | --- |
+| 1920x1080 | 704 px (37%) | 108 px | 58 px |
+| 1440x900 | 662 px (46%) | 94 px | 54 px |
+| 1366x768 | 628 px (46%) | 89 px | 52 px |
+| 1024x1366 | 544 px (53%) | 46 px | 45 px |
+| 768x1024 | 492 px (64%) | 46 px | 40 px |
+| 430x932 | 430 px (100%) | 46 px | 35 px |
+| 390x844 | 390 px (100%) | 46 px | 32 px |
+
+Zero horizontal overflow and zero console errors at every size, no label wraps,
+and the panel never needs its own scrollbar at any of them.
+
+### Content
+
+Only the five real routes, from `primaryNavigation`: Inicio, Manifiesto, Studio,
+Proyectos, Contacto. The panel footer shows the two approved channels from
+`contactChannels` (`hola@colmillostudio.com`, `@colmillo.studio`), the projects
+link, the motion toggle and the legal routes. Nothing was invented, and no
+Servicios entry was added because Services is a demo-gated home section with no
+route of its own.
+
+### Defects found and fixed during QA
+
+- Route labels wrapped onto two lines at 1920 under viewport-relative sizing.
+  Now sized from the panel with a container query. See `docs/DECISIONS.md`.
+- The active mark and the header/footer controls sat under the handle. The panel
+  content now clears it, and the mark moved beside the label.
+- Reserving the rail on `body` shrank every full-bleed section and left a cream
+  band down the right edge of the hero. Moved to the inner containers.
+- The 46 px touch handle covered the project hero summary at 390 px.
+- The scene observer compared each section's ratio of itself, so a short fully
+  visible section outranked the tall one filling the screen: the rail reported
+  `03` while the reader was on Contacto, and the spec was intermittently red.
+- The handle inherited `data-surface-tone`, so it vanished on a section whose
+  declared tone and actual media disagree.
+
+### Verification performed this session
+
+- `npm.cmd run check`: 0 errors, 0 warnings, 0 hints.
+- `npx.cmd eslint src tests`: clean.
+- `npm.cmd run build`: 9 pages. `check:production`: passed, 133,670 uncompressed
+  JavaScript bytes against the 220,000 budget, no demo content, placeholders or
+  GIFs. `check:links`, `check:brand` and `check:hero`: passed.
+- `npm.cmd run build:demo`: 12 pages.
+- Demo Playwright suite: 37 passed, 14 intentional skips, run five consecutive
+  times with no flakes after the observer fix.
+- Production Playwright suite: 32 passed, 6 intentional skips, and 2 failures
+  that belong to concurrent work (below). Run three times.
+- Chromium screenshot pass at 1920x1080, 1440x900, 1366x768, 1024x1366,
+  768x1024, 430x932 and 390x844, covering closed, peek, open and the rail over a
+  light surface, plus reduced motion and keyboard focus.
+
+New specs: closing from the rail and the backdrop, the panel being unreachable
+while closed, the rail's anchoring at five widths, proximity reveal and retract,
+proximity being ignored while open, the scroll lock not moving the layout, every
+label staying on one line at eight widths, and the open panel never hiding
+content behind its own handle.
+
+### Concurrent work by another session - do not assume ownership
+
+While this session was running, another process delivered the official hero
+media. Its files are `public/assets/WEB.webm`, `public/assets/motion/hero/`,
+`scripts/prepare-hero-media.mjs`, `src/styles/hero-section.css`, plus edits to
+`src/components/sections/HeroSection.astro`, `src/config/assets.ts` and
+`src/scripts/motion/HeroMotion.ts`. That work was left completely untouched.
+Both sessions added an import to `src/styles/index.css`; both imports are
+present and neither overwrote the other.
+
+Three consequences, all theirs to resolve:
+
+- `tests/e2e/foundations.spec.ts:74` (`the hero uses its static fallback while
+  official media stays disabled`) now fails in both production projects, because
+  the rewritten hero no longer renders `[data-hero-stage]` and the media slots in
+  `src/config/assets.ts` are populated. That spec asserts the pre-intake
+  contract and needs updating as part of the intake.
+- `npm.cmd run lint` reports 4 errors in `scripts/prepare-hero-media.mjs`: an
+  unused `rm` import and three undefined `Buffer` references. Linting `src` and
+  `tests` alone is clean.
+- The home hero still declares `data-surface-tone="dark"` while its new media is
+  cream, so shared tone-following chrome now resolves against the wrong
+  background. The edge handle no longer depends on the tone, but the spine and
+  the custom cursor still do.
+
+### Exact recommended next action
+
+Phase 4 intake continues and is unchanged by this session; the navigation itself
+has nothing pending. Before this working tree is green, the hero intake session
+must reconcile its failing spec, its lint errors and the hero's declared surface
+tone. Do not push `main`, deploy or alter Vercel without explicit authorization.
+
+### 2026-09-10 follow-up: hidden scrollbar and a marker-free rail
+
+Two adjustments requested after the navigation was accepted.
+
+- `src/styles/globals.css` hides the document scrollbar with
+  `scrollbar-width: none`, `-ms-overflow-style: none` and
+  `html::-webkit-scrollbar { display: none }`. Only the indicator is removed;
+  the document remains a scroll container. `.edge-menu__content` hides its own
+  the same way so the panel matches on short viewports.
+- The orange progress marker was removed from the rail:
+  `.edge-menu__spine::after`, the `accent` tone override for it, and the
+  `--edge-mark-size` and `--edge-progress` custom properties are gone, together
+  with the single `setProperty` call in `EdgeMenu.ts` that fed them. The section
+  observer is unchanged, because it still drives the numbered readouts and
+  `aria-current="location"`.
+
+Consequence worth knowing: with no reserved scrollbar the layout viewport is now
+the full viewport, so the spine sits flush against the true right edge
+(`right` measured 1920 at a 1920 px viewport, previously 1905). The scroll-lock
+gutter now resolves to 0 px everywhere and is retained only as a guard.
+
+Verified at 1920x1080, 1440x900, 1366x768, 1024x1366, 768x1024, 430x932,
+390x844 and 320x720: reserved scrollbar space 0, horizontal overflow 0, and
+wheel, keyboard, touch, programmatic and anchor scrolling all still move the
+page. Opening the menu still locks scrolling with no horizontal shift and
+restores the position on close. No console errors at any size.
+
+Full repository validation after the change: `check` 0/0/0, `lint` clean across
+the whole repository, `build` 9 pages, `check:production` passed at 133,553
+JavaScript bytes, `check:links`, `check:brand` and `check:hero` passed,
+`build:demo` 12 pages, production suite 38 passed with 6 skips, demo suite
+37 passed with 14 skips over three consecutive runs.
+
+Two new specs guard this: the native scrollbar being hidden while wheel,
+keyboard, programmatic and anchor scrolling still work, and the rail generating
+no pseudo-element marker.
+
+Note that the hero-media session's earlier failing spec and lint errors have
+since been resolved by that session; the whole repository now lints clean and
+both suites are green.
+
+## 2026-09-10 Session: Home Hero Rebuilt Around The Client Loop
+
+Claude Code session, requested by the user. Only the hero was redesigned. The
+right-edge menu was being built by a parallel session and was not touched; the
+hero only reserves clearance for it through `--edge-rail-clearance`.
+
+### Client asset analysed
+
+`public/assets/WEB.webm`, supplied by the user and left byte-for-byte untouched.
+Measured with ffprobe and by sampling frames: VP9 profile 0, 5040x2160 (7:3),
+30 fps, 12.933 s, 3,150,513 bytes, `yuv420p` with no alpha, plus an unused
+stereo Opus track. The drawing is black line art on a uniform sheet measured at
+RGB(250, 250, 250); the ink sits near RGB(40, 40, 40) and the image is
+effectively neutral (U/V within 126-130). Across all 388 frames the drawing
+never leaves 12.9%-67.5% horizontally, so a third of the master is blank paper.
+The last scene returns to the first, so the loop closes.
+
+The figures contain large interior white areas - faces, shirts, shoes, a
+handbag, a cathedral - drawn in exactly the sheet colour, so no threshold can
+tell "background" from "inside the drawing" by value alone.
+
+### Derivatives
+
+`scripts/prepare-hero-media.mjs` (new, wired as `npm run media:hero`) generates
+the approved files. It requires ffmpeg on `PATH` or `FFMPEG_PATH`; ffmpeg is not
+a repository dependency. It crops the master to 4:3 around the drawing (blank
+paper only), maps every channel to `cream * min(1, value / 250)` so the sheet
+becomes `--color-brand-cream`, and cuts every pixel at or above luminance 240 to
+alpha 0. Nothing else is graded, and timing, duration and 30 fps are preserved.
+Re-running it produces byte-identical output.
+
+Published to `public/assets/motion/hero/` and activated in
+`src/config/assets.ts`: `hero-desktop.webm` 2,116,549 (VP9 + alpha, 1440x1080),
+`hero-desktop.mp4` 1,329,372, `hero-mobile.webm` 737,041 (768x576),
+`hero-mobile.mp4` 546,069, `hero-poster.webp` 14,172. `check:assets` now reports
+8 missing slots instead of 13.
+
+Two attempts were rejected on evidence before this one; both are recorded in
+`docs/DECISIONS.md`. A border-seeded flood fill left interior white opaque, and
+after encoding it landed 1-3 levels off the page cream, which read as a faint
+rectangle on the flat canvas. A binary global cut fixed that exactly but cost
+file size, recovered with alternate reference frames, `-cpu-used 1` and CRF 52.
+
+### Hero composition
+
+- `HeroSection.astro` rebuilt: label, visually hidden `h1`, the loop, the CTA
+  under it and `SEGUIR` in an orange disc in the bottom-right corner.
+- The provisional kinetic `COLMILLO` stage and the "fallback provisional"
+  notice are gone from the markup, the styles and the keyframes.
+- New `src/styles/hero-section.css` in the `sections` layer. The dead hero rules
+  were removed from `layout.css` and the three orphaned keyframes from
+  `motion.css`; `.section-kicker`/`.section-index` and `.goodbye-section__media`
+  were preserved where they shared a selector with the hero.
+- Surface changed from ink to cream (`data-surface-tone="light"`), decorations
+  inverted to ink: a solid disc bleeding off the bottom-left, an open ring off
+  the top-right and one thin orange trace that leaves the canvas on both sides.
+  Mobile keeps only the disc. No new colours.
+- `HeroMotion.ts` no longer references the removed stage. It owns playback and
+  the exit compression, and now also pauses in a backgrounded tab.
+- `check-hero-contract.mjs` additionally asserts that the cream baked into the
+  derivatives equals `--color-brand-cream`.
+
+### Defects found and fixed during QA
+
+- The transparent loop revealed the poster underneath it, showing two frames of
+  the animation at once. `.hero__poster` is now hidden except under reduced
+  motion.
+- On coarse pointers the loop overlapped the edge-menu handle at 768, 430, 390
+  and 320 px. The stage keeps the rail clearance and the width cap is measured
+  against the paper that is actually left.
+- On a 1024x1366 tablet the CTA sat 250 px below the loop. Replaced the `1fr`
+  stage row with an explicit height budget.
+- On mobile the ink disc covered "ESTUDIO CREATIVO". Moved to the bottom-left.
+- The CTA wrapped to two lines at 1920 while fitting one at 1440. The hero CTA
+  raises the shared 18.5rem measure cap to `min(100%, 24rem)`.
+- A reused output buffer in the preparation script could be handed to the
+  encoder stream twice; each frame now gets its own buffer.
+
+### Verification performed this session
+
+- `npm.cmd run check`: 72 files, 0 errors, 0 warnings, 0 hints.
+- `npm.cmd run lint`: passed.
+- `npm.cmd run build`: 9 pages. `check:production`: passed, 22 files, 133,553
+  JavaScript bytes, no demo content or placeholders. `check:links`: passed.
+  `check:hero`: passed. `check:assets`: 8 intentional missing slots.
+- `npm.cmd run test:e2e`: 38 passed, 6 intentional skips.
+- `npm.cmd run test:e2e:demo`: 40 passed, 14 intentional skips, including a new
+  spec asserting the loop's share of the first screen, the CTA centred under it,
+  `SEGUIR` in the bottom-right corner and no horizontal overflow.
+- Playwright geometry and screenshot pass at 1920x1080, 1440x900, 1366x768,
+  1024x1366, 768x1024, 430x932, 390x844 and 320x720, in three modes: full
+  motion, `prefers-reduced-motion: reduce` and JavaScript disabled. No overlap
+  between the loop, CTA, `SEGUIR` and the edge-menu handle at any size, zero
+  horizontal overflow and no console errors anywhere.
+- Firefox was installed and the hero verified in Gecko at 1440x900: the VP9
+  alpha WebM plays and composites correctly, no console errors, no overflow.
+  Chromium and Firefox are the two engines actually exercised; WebKit was not
+  installed, and the cream-flattened colour plane is what protects a decoder
+  that ignores WebM alpha.
+- Measured the rendered result against the page colour: 85% of sampled pixels
+  are exactly the page cream and the worst near-background deviation is 12
+  levels on a single antialiased line edge, down from a flat 1-3 level offset
+  across whole interior regions before the fix.
+- Prettier passes on every file touched this session except
+  `scripts/check-hero-contract.mjs`, `tests/e2e/foundations.spec.ts` and
+  `package.json`, which differ from Prettier only by the pre-existing
+  repository-wide CRLF mismatch; that was verified by diffing with line endings
+  normalised. No mass reformat was performed.
+
+### Open items for the user
+
+- `public/assets/WEB.webm` is published in `dist/` (3.15 MB, unreferenced)
+  because Astro copies all of `public/`. The file was deliberately not moved or
+  deleted. Moving it out of `public/` and pointing `HERO_SOURCE` at the new
+  location is the recommended fix once the user confirms.
+- The 4:3 crop and compositing the drawing on cream are both creative decisions
+  taken on the user's brief; both are listed in `docs/CONTENT_NEEDED.md` for
+  explicit confirmation.
+- ffmpeg is required to regenerate the derivatives and is not vendored.
+
+## Session: hero wordmark, minimal scroll hint and decor depth (2026-09-10)
+
+Four scoped adjustments to the existing hero, requested by the user. Nothing
+outside the hero was touched: the loop, its sources, the CTA label, the edge
+menu, the palette and every other section are unchanged.
+
+### What changed
+
+- **Wordmark replaces the "Estudio creativo" label.** The eyebrow paragraph and
+  its orange dot are gone. `.hero__logo` renders the already validated
+  `public/assets/brand/colmillo-wordmark-black.png` at its intrinsic 906x242
+  ratio, sized `clamp(6.5rem, 9vw, 9rem)` and left in the existing page gutter.
+  It is decorative (`alt=""`, `aria-hidden`) because the visually hidden `h1`
+  already announces "Colmillo Studio". The dimensions now live in a new
+  `brandWordmark` export in `src/config/assets.ts`, matching what
+  `check-brand-assets.mjs` enforces, so the two cannot drift.
+- **`SEGUIR` removed, replaced by a hairline scroll hint.** The orange disc,
+  its label, arrow, hover pressure and focus ring are deleted, along with the
+  `followHref` prop and its call site in `index.astro`. `.hero__scroll` is a
+  4-px ink dot that drifts down ~17.6 px while fading out over 1.5 s and
+  restarts, centred on the CTA's axis in the stage's third row. It carries no
+  text, no disc, no border and no background.
+- **The hint is ornament, not an affordance.** It is `aria-hidden` and
+  `pointer-events: none`. The route out of the first screen is the CTA and the
+  edge menu, both unchanged, so no navigation was lost with the removed link.
+  `foundations.spec.ts` no longer asserts a "Seguir" link.
+- **The orange trace now sits behind the ink shapes.** It previously won on
+  source order alone and crossed over them in places. `.hero__shape--orbit` is
+  pinned to `z-index: 0` and the disc and ring to `1`, giving the intended
+  cream -> orange line -> ink shapes -> loop -> UI depth. Its path, thickness
+  and colour are untouched.
+
+### Why the hint is CSS and not GSAP
+
+`reduced-motion.css` already collapses every animation to `0.01ms` with a single
+iteration under both `prefers-reduced-motion: reduce` and the site's own
+`html[data-motion='reduced']` toggle. With no fill mode, the dot therefore falls
+back to its base styles — parked at the top, fully opaque — for free. A CSS
+keyframe needs no JavaScript, adds no bytes to the motion bundle and nothing to
+tear down, so no library was added and GSAP keeps only the existing hero exit
+compression (its `.hero__follow` target was retargeted to `.hero__scroll`).
+
+### Height budget
+
+`--hero-reserved` was rebuilt around the new furniture: two page gutters, the
+wordmark block, two stage gaps plus the hint's own tighter `--hero-scroll-gap`,
+the CTA and the hint. The hint hangs closer to the CTA than the CTA hangs to
+the loop, so it reads as a footnote to the button rather than a third peer.
+
+### Verification performed this session
+
+- `npm.cmd run check`: 72 files, 0 errors, 0 warnings, 0 hints.
+- `npm.cmd run lint`: passed. `check:hero`, `check:brand`, `check:links`,
+  `check:production` (22 files, 133,553 JS bytes) and `check:assets` all passed.
+- `npm.cmd run test:e2e`: 39 passed, 7 intentional skips.
+- `npm.cmd run test:e2e:demo`: 40 passed, 14 intentional skips. The hero
+  composition spec was updated to assert the hint centred under the CTA with
+  air between them and inside the first screen, and the wordmark above the loop
+  in the top-left, in place of the old `SEGUIR` corner assertions.
+- Playwright geometry sweep at 1920x1080, 1440x900, 1440x1000, 1366x768,
+  834x1112, 390x844 and 320x720: no overlap between the wordmark, loop, CTA,
+  hint and the edge-menu handle; zero horizontal overflow; the orange trace
+  behind both ink shapes at every size. The loop keeps 50%, 54%, 62%, 46%, 78%,
+  86% and 83% of the viewport width respectively.
+- Sampled the dot's computed transform and opacity over time in three modes:
+  full motion loops 0 -> 17.5 px with opacity 1 -> 0 and restarts;
+  `prefers-reduced-motion: reduce` and `localStorage` `colmillo-motion=reduced`
+  both hold it static at y=0, opacity 1. No console errors.
+
+### Notes for the next session
+
+- `npm.cmd run format:check` still reports the pre-existing repository-wide
+  line-ending mismatch (71 files). Every file touched this session was checked
+  against Prettier ignoring line endings and is clean; no mass reformat was
+  made.
+- Nothing here unblocks Phase 4. The wordmark was already an approved asset;
+  no new client content, copy or claim was introduced.

@@ -20,6 +20,11 @@ reveal, overlap, tension and release.
 - Looping video in production, not raw GIF.
 - CTA remains reachable and readable.
 - Reduced-motion users receive a poster/static version.
+- The loop is the only loud element. The label, the CTA and the continuation
+  control sit around a large field of empty cream and never compete with it.
+- The loop carries a real alpha channel and is composited directly on the cream
+  surface. It is decorative and hidden from assistive technology; every control
+  around it is a real link.
 
 ## Cursor
 
@@ -76,10 +81,26 @@ reveal, overlap, tension and release.
   current card, adds bounded 2D depth to the active scene, and synchronizes
   focus and semantic previous/next controls. Native overflow and scroll snap
   remain the no-JavaScript, touch and reduced-motion fallback.
-- `SideMenu.ts` drives a centered full-surface editorial panel while the native
-  `<details>` remains usable without JavaScript. It supports Escape, traps and
-  restores focus, makes outside content inert, exposes the current numbered
-  scene and keeps the motion preference reachable inside the panel.
+- `EdgeMenu.ts` drives the right-edge navigation through three states declared
+  on the wrapper as `data-state`: `closed` leaves a full-height spine, which
+  carries no travelling marker, and a small swelling of the handle inside the
+  viewport, `peek` slides the whole
+  handle in when a fine pointer comes within 72 px of the edge, and `open`
+  brings in the editorial panel. Only transform and opacity animate; no shape
+  morphs. The peek retracts at 152 px, which is wider than the revealed handle
+  so moving onto it never cancels the reveal, and proximity is ignored entirely
+  while the menu is open. Keyboard focus reveals the handle through the same
+  state, so the peek is never the only way to find the navigation.
+
+  The native `<details>` remains the control and stays usable without
+  JavaScript. Where scripting is available the module moves the panel out of
+  the disclosure so it can animate in both directions instead of being dropped
+  from rendering the moment it closes. It supports Escape, the handle, a link
+  and the backdrop as close paths, traps and restores focus, makes outside
+  content inert, locks scrolling without shifting the layout, exposes the
+  current numbered scene and keeps the motion preference reachable inside the
+  panel. Under reduced motion the peek is disabled and the panel appears
+  without travel.
 - `EditorialMotion.ts` reveals whole editorial blocks and deforms route marks
   by scroll progress; it never splits readable text into animated letters.
 - `SurfaceTone.ts` switches the shared cursor contrast from intersection state
@@ -96,5 +117,14 @@ reveal, overlap, tension and release.
 - Magnetic controls cache their bounds on pointer entry, avoiding a layout read
   on every pointer-move event.
 - Official hero slots accept mobile and desktop WebM/MP4 sources plus a poster
-  and intrinsic dimensions. The poster remains beneath video, observers pause
-  media outside the viewport, and reduced motion hides/pauses the video.
+  and intrinsic dimensions. Observers pause media outside the viewport, a
+  `visibilitychange` listener pauses it in a backgrounded tab, and reduced
+  motion hides and pauses the video.
+- The still frame is *not* rendered beneath the loop any more. The delivered
+  WebM is transparent, so a poster underneath it would show a second frame of
+  the animation through the drawing. `.hero__poster` is therefore hidden by
+  default and revealed only under reduced motion; everyone else gets the same
+  file through the video's own `poster` attribute, at no extra request.
+- `HeroMotion.ts` owns playback state and the exit compression only. The hero
+  composition itself is complete CSS: it renders identically with no
+  JavaScript.

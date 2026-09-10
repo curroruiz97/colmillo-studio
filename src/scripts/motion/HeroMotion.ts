@@ -1,8 +1,15 @@
 import gsap from 'gsap';
 
+/**
+ * Hero behaviour.
+ *
+ * The loop is a progressive enhancement in every direction: the poster sits
+ * underneath it, reduced motion pauses and hides the video, and the section is
+ * complete without JavaScript. This module only decides *when* the loop is
+ * allowed to run and adds the exit compression as the hero leaves.
+ */
 export function initHeroMotion(): () => void {
   const hero = document.querySelector<HTMLElement>('[data-hero]');
-  const stage = hero?.querySelector<HTMLElement>('[data-hero-stage]');
   const videos = [
     ...document.querySelectorAll<HTMLVideoElement>('[data-motion-video]'),
   ];
@@ -11,20 +18,33 @@ export function initHeroMotion(): () => void {
     return () => undefined;
   }
 
+  const onScreen = new Set<HTMLVideoElement>();
+  const sync = () => {
+    for (const video of videos) {
+      if (onScreen.has(video) && !document.hidden) {
+        void video.play().catch(() => undefined);
+      } else {
+        video.pause();
+      }
+    }
+  };
+
   const observer = new IntersectionObserver((entries) => {
     for (const entry of entries) {
-      const visible = entry.isIntersecting;
-      if (entry.target === hero && stage) {
-        stage.dataset.playing = String(visible);
-      }
-      if (entry.target instanceof HTMLVideoElement) {
-        if (visible) void entry.target.play().catch(() => undefined);
-        else entry.target.pause();
+      if (!(entry.target instanceof HTMLVideoElement)) continue;
+      if (entry.isIntersecting) {
+        onScreen.add(entry.target);
+        void entry.target.play().catch(() => undefined);
+      } else {
+        onScreen.delete(entry.target);
+        entry.target.pause();
       }
     }
   });
-  observer.observe(hero);
   videos.forEach((video) => observer.observe(video));
+
+  // A backgrounded tab must not keep decoding frames.
+  document.addEventListener('visibilitychange', sync);
 
   const context = gsap.context(() => {
     gsap
@@ -37,24 +57,24 @@ export function initHeroMotion(): () => void {
         },
       })
       .to(
-        stage ?? hero.querySelector('.hero__media-frame'),
-        {
-          scale: 0.93,
-          yPercent: 7,
-          borderRadius: '0 0 4.5rem 4.5rem',
-          transformOrigin: '50% 100%',
-          ease: 'none',
-        },
+        hero.querySelector('.hero__media-frame'),
+        { scale: 0.94, yPercent: -6, opacity: 0.55, ease: 'none' },
         0,
       )
       .to(
-        hero.querySelector('.hero__content'),
-        { yPercent: -4, opacity: 0.72, ease: 'none' },
+        [hero.querySelector('.hero__cta'), hero.querySelector('.hero__scroll')],
+        { yPercent: -18, opacity: 0.4, ease: 'none' },
+        0,
+      )
+      .to(
+        hero.querySelector('.hero__decor'),
+        { yPercent: -10, ease: 'none' },
         0,
       );
   }, hero);
 
   return () => {
+    document.removeEventListener('visibilitychange', sync);
     observer.disconnect();
     context.revert();
   };

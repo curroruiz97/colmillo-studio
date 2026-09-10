@@ -32,12 +32,29 @@
 - Hero media renders correctly.
 - CTA is visible and works.
 - Sticky contact header appears after hero.
-- Side menu works.
-- Centered menu trigger remains within ±1 px of the viewport center at
-  1440×1000, 834×1112, 390×844 and 320×720.
-- Full-surface menu traps/restores focus, applies `inert` outside, closes with
-  Escape and keeps its motion preference operable.
-- Side rail reports the current numbered scene.
+- Edge menu works.
+- The native scrollbar is hidden while wheel, trackpad, keyboard, touch,
+  programmatic and anchor scrolling all still move the page, with no horizontal
+  overflow introduced.
+- The edge rail carries no travelling progress marker.
+- The spine is flush against the right viewport edge and only a sliver of the
+  handle is inside it while closed, at 1920×1080, 1440×1000, 1366×768,
+  834×1112 and 390×844.
+- Fine-pointer proximity to the right edge reveals the handle, moving away
+  retracts it, and an open panel ignores proximity entirely.
+- Keyboard focus reveals the handle without any pointer.
+- The panel traps/restores focus, applies `inert` outside, closes from the
+  handle, a link, the backdrop and Escape, and keeps its motion preference
+  operable.
+- Opening locks scrolling without moving the layout horizontally or losing the
+  scroll position.
+- Every navigation label stays on one line with no horizontal overflow at
+  1920×1080, 1440×900, 1366×768, 1024×1366, 768×1024, 430×932, 390×844 and
+  320×720.
+- The open panel never hides its own content behind the handle.
+- A coarse pointer gets a permanently visible handle of at least 44 px and page
+  content clears it.
+- The edge rail reports the current numbered scene.
 - Section stacking does not obscure content.
 - Horizontal projects section works and has fallback.
 - Contextual cursor labels and project progress reflect the active card on a

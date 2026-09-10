@@ -55,12 +55,60 @@ html[data-motion='reduced'] .custom-cursor {
   display: none;
 }
 
+/*
+ * Reduced motion keeps the complete edge menu but removes its travel: the panel
+ * appears where it belongs instead of sliding, and proximity never moves the
+ * handle. `EdgeMenu.ts` disables the peek state for the same reason.
+ */
+html[data-motion='reduced'] .edge-menu__panel,
+html[data-motion='reduced'] .edge-menu__handle,
+html[data-motion='reduced'] .edge-menu__row {
+  transition-property: opacity, visibility;
+}
+
+html[data-motion='reduced'] .edge-menu__row {
+  transform: none;
+}
+
+html[data-motion='reduced'] .edge-menu[data-state='open'] .edge-menu__panel {
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .edge-menu__panel,
+  .edge-menu__handle,
+  .edge-menu__row {
+    transition-property: opacity, visibility;
+  }
+
+  .edge-menu__row {
+    transform: none;
+  }
+
+  .edge-menu[data-state='open'] .edge-menu__panel {
+    transform: none;
+  }
+}
+
+/*
+ * Reduced motion swaps the loop for its still frame. The poster is hidden by
+ * default because the loop is transparent: leaving it underneath would show
+ * two frames of the animation at once.
+ */
 html[data-motion='reduced'] .hero__media {
   display: none;
+}
+
+html[data-motion='reduced'] .hero__poster {
+  display: block;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .hero__media {
     display: none;
+  }
+
+  .hero__poster {
+    display: block;
   }
 }

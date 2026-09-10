@@ -8,6 +8,18 @@
 html {
   min-inline-size: 0;
   scroll-behavior: smooth;
+  /*
+   * The native scrollbar is hidden so the page meets the edge cleanly. Only the
+   * indicator is removed: the document is still a scroll container, so wheel,
+   * trackpad, keyboard, touch, scroll anchoring and programmatic scrolling all
+   * behave exactly as before.
+   */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar {
+  display: none;
 }
 
 body {

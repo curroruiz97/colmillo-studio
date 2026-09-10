@@ -28,7 +28,12 @@
   --section-space: clamp(5rem, 12vw, 11rem);
   --section-radius: clamp(1.5rem, 4vw, 4.5rem);
   --header-height: clamp(3.75rem, 5vw, 4.75rem);
-  --menu-rail-width: clamp(2.75rem, 4vw, 4.5rem);
+  /*
+   * Width the fixed edge-menu rail occupies inside the viewport. On a fine
+   * pointer only the handle's sliver is inside; a coarse pointer keeps the
+   * whole tappable handle inside, so `edge-menu.css` raises it there.
+   */
+  --edge-rail-clearance: 1.5rem;
   --content-width: 90rem;
   --reading-width: 48rem;
 
@@ -38,6 +43,10 @@
   --duration-fast: 160ms;
   --duration-medium: 320ms;
   --duration-slow: 720ms;
+  /*
+   * Fixed layers. The edge menu owns one slot and orders its own spine, scrim,
+   * panel and handle inside it.
+   */
   --z-header: 80;
   --z-menu: 90;
   --z-cursor: 120;

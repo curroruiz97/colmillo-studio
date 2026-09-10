@@ -23,7 +23,7 @@ const showIntro = demoMode || contentAvailability.homeIntro;
 ---
 
 <BaseLayout>
-  <HeroSection followHref={showIntro ? '#manifiesto' : '#contacto'} />
+  <HeroSection />
   {showIntro && <IntroSection />}
   {(demoMode || contentAvailability.services) && <ServicesSection />}
   <ProjectsHorizontal projects={projects} />

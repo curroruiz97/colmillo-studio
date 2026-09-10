@@ -1,7 +1,7 @@
 ---
 import Footer from '@/components/layout/Footer.astro';
+import EdgeMenu from '@/components/layout/EdgeMenu.astro';
 import SeoHead from '@/components/layout/SeoHead.astro';
-import SideMenu from '@/components/layout/SideMenu.astro';
 import SiteHeader from '@/components/layout/SiteHeader.astro';
 import '@/styles/index.css';
 
@@ -42,7 +42,7 @@ const {
   </head>
   <body>
     <a class="skip-link" href="#contenido">Saltar al contenido</a>
-    {!hideNavigation && <SideMenu />}
+    {!hideNavigation && <EdgeMenu />}
     {!hideNavigation && <SiteHeader />}
     <main id="contenido" tabindex="-1">
       <slot />

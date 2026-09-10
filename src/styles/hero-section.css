@@ -1,0 +1,320 @@
+/* COLMILLO HERO
+ *
+ * A single cream canvas. The client loop is the only thing that is allowed to
+ * be loud; the wordmark, the CTA and the scroll hint are placed around a large
+ * field of empty paper and never compete with it.
+ *
+ * Geometry:
+ *   top-left      the black wordmark
+ *   centre        the loop, optically lifted above the middle
+ *   under it      "Haz que tu marca muerda"
+ *   under that    the scroll hint, centred on the same axis
+ *   right edge    reserved for the fixed edge menu
+ *
+ * Three shapes carry the visual language and nothing more: a solid ink disc
+ * bleeding off the bottom-left, an open ink ring bleeding off the top-right,
+ * and one thin orange line holding the two masses together. All of them sit
+ * behind the loop and outside its box, and the orange trace sits behind the
+ * two ink masses so it never cuts across them.
+ */
+
+.hero {
+  /* Widest the 4:3 loop may ever get. Height still wins when it is scarcer. */
+  --hero-media-inline: 62vw;
+  --hero-gap: clamp(1.25rem, 3.5vh, 2.5rem);
+  --hero-logo-inline: clamp(6.5rem, 9vw, 9rem);
+  /* The 906x242 wordmark, rounded so the budget never under-reserves it. */
+  --hero-logo-block: calc(var(--hero-logo-inline) / 3.7);
+  /* The dot plus its travel, with a little air underneath. */
+  --hero-scroll-block: 1.75rem;
+  --hero-scroll-travel: 1.1rem;
+  /*
+   * The hint hangs closer to the CTA than the CTA hangs to the loop: it is a
+   * footnote to the button, not a third peer in the stack.
+   */
+  --hero-scroll-gap: clamp(1rem, 2.2vh, 1.75rem);
+  /*
+   * Everything the first screen must show besides the loop: both page gutters,
+   * the wordmark, the three gaps, the CTA and the scroll hint. Whatever is left
+   * is the loop's height budget, so the CTA and the hint stay directly under
+   * the animation on a tall window and the animation shrinks instead of pushing
+   * them off a short one.
+   */
+  --hero-reserved: calc(
+    (var(--page-gutter) * 2) + var(--hero-logo-block) + (var(--hero-gap) * 2) +
+      var(--hero-scroll-gap) + 5.5rem + var(--hero-scroll-block)
+  );
+  --hero-media-block: calc(100svh - var(--hero-reserved));
+
+  position: relative;
+  isolation: isolate;
+  min-block-size: 100svh;
+  overflow: clip;
+  background: var(--color-brand-cream);
+  color: var(--color-brand-ink);
+}
+
+/* ----------------------------------------------------------------- decor -- */
+
+.hero__decor {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: clip;
+  pointer-events: none;
+}
+
+.hero__shape {
+  position: absolute;
+  display: block;
+}
+
+/*
+ * Depth inside the decor layer, from the paper up: the thin orange trace, then
+ * the two ink masses. The trace is a mark the shapes sit on top of, never a
+ * line drawn across them, so it is pinned underneath them explicitly instead of
+ * relying on source order.
+ */
+.hero__shape--disc,
+.hero__shape--ring {
+  z-index: 1;
+}
+
+.hero__shape--orbit {
+  z-index: 0;
+}
+
+/* Solid ink mass bleeding off the bottom-left corner. */
+.hero__shape--disc {
+  inline-size: clamp(14rem, 26vw, 30rem);
+  aspect-ratio: 1;
+  inset-block-end: clamp(-11rem, -12vw, -5rem);
+  inset-inline-start: clamp(-13rem, -14vw, -6rem);
+  border-radius: 49% 43% 48% 42% / 42% 52% 40% 56%;
+  background: var(--color-brand-ink);
+}
+
+/* Its open counterweight, diagonally opposite. */
+.hero__shape--ring {
+  inline-size: clamp(13rem, 26vw, 30rem);
+  aspect-ratio: 1;
+  inset-block-start: clamp(-10rem, -11vw, -4.5rem);
+  inset-inline-end: clamp(-9rem, -10vw, -4rem);
+  border: clamp(0.9rem, 2vw, 2.4rem) solid var(--color-brand-ink);
+  border-radius: 52% 46% 50% 44% / 45% 54% 43% 56%;
+}
+
+/*
+ * One thin orange trace. It leaves the canvas on both sides on purpose: a
+ * closed ellipse would read as a frame around the loop instead of as a mark
+ * running underneath it.
+ */
+.hero__shape--orbit {
+  inset: 24% -16% 12% -14%;
+  border: 1px solid
+    color-mix(in srgb, var(--color-brand-orange) 45%, transparent);
+  border-radius: 49% 43% 48% 42% / 42% 52% 40% 56%;
+  rotate: -4deg;
+}
+
+/* --------------------------------------------------------------- content -- */
+
+/*
+ * The hero deliberately opts out of `.content-shell`. The rest of the site is
+ * a left-aligned editorial measure; this one screen is a centred canvas, so the
+ * loop reads as the middle of the page on any width.
+ */
+.hero__inner {
+  position: relative;
+  z-index: 1;
+  min-block-size: 100svh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: var(--hero-gap);
+  padding-inline: var(--page-gutter);
+  padding-block: var(--page-gutter);
+}
+
+/*
+ * The wordmark, at its natural ratio. `.hero__inner` already holds the page
+ * gutter on both axes, so the mark only has to stop the grid from stretching
+ * it across the row.
+ */
+.hero__logo {
+  justify-self: start;
+  align-self: start;
+  inline-size: var(--hero-logo-inline);
+  block-size: auto;
+}
+
+/*
+ * The loop takes every pixel of height the screen can spare and the CTA sits
+ * on the row underneath it, so the animation grows with the window instead of
+ * floating inside a fixed box.
+ */
+.hero__stage {
+  display: grid;
+  grid-template-rows: auto auto auto;
+  align-content: center;
+  justify-items: center;
+  gap: var(--hero-gap);
+  /* Never let the loop and the CTA collide with the edge-menu rail. */
+  padding-inline-end: var(--edge-rail-clearance);
+}
+
+/* ----------------------------------------------------------------- media -- */
+
+.hero__media-frame {
+  position: relative;
+  /* Height first: the smaller of the height budget and the height implied by
+     the width cap. Width always follows from the ratio, so the frame is exactly
+     the drawing and never letterboxes. */
+  block-size: min(
+    var(--hero-media-block),
+    calc(var(--hero-media-inline) * 3 / 4)
+  );
+  inline-size: auto;
+  aspect-ratio: 4 / 3;
+}
+
+.hero__poster,
+.hero__media {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  /* The drawing must never be cropped. */
+  object-fit: contain;
+}
+
+/*
+ * The loop has a real alpha channel, so anything left underneath it shows
+ * through its background. The still frame is therefore only rendered where the
+ * loop is not: under reduced motion (see `reduced-motion.css`). Every other
+ * visitor gets the same file through the video's own `poster` attribute, so
+ * hiding it here costs no extra request.
+ */
+.hero__poster {
+  z-index: 0;
+  display: none;
+}
+
+.hero__media {
+  z-index: 1;
+}
+
+/* ------------------------------------------------------------------- cta -- */
+
+.hero__cta {
+  /*
+   * The shared button caps its measure at 18.5rem, which forces the hero's own
+   * CTA onto two lines on a wide screen while the same label fits on one at
+   * 1440. Here it gets enough room to stay a single line wherever the column
+   * allows it, and still wraps rather than overflowing when it does not.
+   */
+  max-inline-size: min(100%, 24rem);
+  box-shadow: 0 0.4rem 0 var(--color-brand-ink);
+}
+
+/* --------------------------------------------------------- scroll hint --- */
+
+/*
+ * A single ink dot that drifts down and fades out. It is ornament, not an
+ * affordance: the CTA and the edge menu are the ways out of the first screen,
+ * so the hint stays out of the accessibility tree and out of the hit area.
+ *
+ * It is a CSS animation rather than a GSAP tween on purpose. The global reduced
+ * motion rules in `reduced-motion.css` already collapse every animation, so
+ * both `prefers-reduced-motion` and the site's own motion toggle leave the dot
+ * exactly where its base styles put it - parked at the top, fully opaque - with
+ * no JavaScript involved and nothing extra to tear down.
+ */
+.hero__scroll {
+  position: relative;
+  display: block;
+  /* Trim the stage's own row gap down to the hint's tighter one. */
+  margin-block-start: calc(var(--hero-scroll-gap) - var(--hero-gap));
+  inline-size: 0.5rem;
+  block-size: var(--hero-scroll-block);
+  pointer-events: none;
+}
+
+.hero__scroll-dot {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 50%;
+  inline-size: 0.4rem;
+  aspect-ratio: 1;
+  margin-inline-start: -0.2rem;
+  border-radius: 50%;
+  background: var(--color-brand-ink);
+  animation: hero-scroll-hint 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes hero-scroll-hint {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+
+  18% {
+    opacity: 1;
+  }
+
+  68% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(var(--hero-scroll-travel));
+    opacity: 0;
+  }
+}
+
+/* ------------------------------------------------------------ responsive -- */
+
+@media (max-width: 64rem) {
+  .hero {
+    /* Tablets give the loop proportionally more of the canvas. */
+    --hero-media-inline: 78vw;
+  }
+
+  .hero__shape--orbit {
+    inset: 28% -20% 14% -18%;
+  }
+}
+
+@media (max-width: 48rem) {
+  .hero {
+    /* A coarse pointer keeps the entire tappable handle on screen, so the loop
+       is measured against the paper that is actually left. */
+    --hero-media-inline: calc(
+      100vw - (var(--page-gutter) * 2) - var(--edge-rail-clearance)
+    );
+  }
+
+  /*
+   * Only one shape survives. It stays in the bottom-left corner, where the
+   * wordmark, the loop, the CTA and the hint all leave the paper empty.
+   */
+  .hero__shape--disc {
+    inline-size: clamp(11rem, 46vw, 16rem);
+    inset-block-end: clamp(-6rem, -16vw, -3.5rem);
+    inset-inline-start: clamp(-9rem, -28vw, -5rem);
+  }
+
+  .hero__shape--ring,
+  .hero__shape--orbit {
+    display: none;
+  }
+}
+
+/* Short windows: keep the CTA and the hint on screen before keeping the loop big. */
+@media (max-height: 34rem) {
+  .hero {
+    --hero-media-inline: 52vw;
+    --hero-scroll-block: 1.35rem;
+    --hero-scroll-travel: 0.8rem;
+    --hero-scroll-gap: 0.85rem;
+  }
+}

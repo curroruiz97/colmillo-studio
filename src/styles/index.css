@@ -6,8 +6,10 @@
 @import './globals.css' layer(base);
 @import './layout.css' layer(layout);
 @import './typography.css' layer(components);
+@import './hero-section.css' layer(sections);
 @import './manifesto-home.css' layer(sections);
 @import './services-section.css' layer(sections);
+@import './edge-menu.css' layer(components);
 @import './utilities.css' layer(utilities);
 @import './motion.css' layer(motion);
 @import './reduced-motion.css' layer(motion);

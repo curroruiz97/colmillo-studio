@@ -1,0 +1,678 @@
+/*
+ * COLMILLO EDGE MENU
+ *
+ * One fixed surface pressed against the right edge of the viewport. States are
+ * declared on `[data-edge-menu]` as `data-state`: closed, peek and open.
+ *
+ * Only `transform` and `opacity` animate. The shapes themselves never morph:
+ * the handle and the panel keep the same contour in every state and simply
+ * travel, so the gesture reads as one physical movement rather than a stack of
+ * effects.
+ *
+ * Internal layering inside the single `--z-menu` slot:
+ *   0 spine  ·  1 scrim  ·  2 panel  ·  3 handle
+ */
+
+.edge-menu {
+  /* Full-height strip that stays inside the viewport in every state. */
+  --edge-spine-width: 0.875rem;
+  /* Part of the handle that stays inside the viewport while closed. */
+  --edge-handle-sliver: 1.5rem;
+  --edge-handle-width: clamp(5.5rem, 6.5vw, 6.75rem);
+  --edge-handle-height: clamp(9rem, 22vh, 12.5rem);
+  --edge-panel-width: min(46vw, 44rem);
+
+  position: fixed;
+  z-index: var(--z-menu);
+  inset: 0;
+  pointer-events: none;
+}
+
+/*
+ * Compensates a classic scrollbar while `EdgeMenu.ts` locks scrolling, so
+ * removing it cannot move the layout horizontally. `globals.css` hides the
+ * indicator, so this normally resolves to 0px; it stays as the guard for any
+ * engine that still reserves scrollbar space.
+ */
+body {
+  padding-inline-end: var(--scroll-lock-gutter, 0px);
+}
+
+/* ---------------------------------------------------------------- spine -- */
+
+.edge-menu__spine {
+  position: absolute;
+  z-index: 0;
+  inset-block: 0;
+  inset-inline-end: 0;
+  inline-size: var(--edge-spine-width);
+  /* Tapered ends so it reads as a graphic interference, not as a scrollbar. */
+  border-start-start-radius: 100% 7rem;
+  border-end-start-radius: 100% 7rem;
+  background: var(--color-brand-ink);
+  pointer-events: none;
+  transition: background-color var(--duration-medium) linear;
+}
+
+html[data-surface-tone='dark'] .edge-menu__spine {
+  background: var(--color-brand-cream);
+}
+
+html[data-surface-tone='accent'] .edge-menu__spine {
+  background: var(--color-brand-ink);
+}
+
+/* --------------------------------------------------------------- handle -- */
+
+/*
+ * The disclosure itself has no box of its own: the handle and the panel are
+ * both positioned against `.edge-menu`. `display: contents` is deliberately
+ * avoided here because it interferes with the native disclosure widget.
+ */
+.edge-menu__disclosure {
+  display: block;
+}
+
+.edge-menu__handle {
+  position: absolute;
+  z-index: 3;
+  inset-inline-end: 0;
+  inset-block-start: 50%;
+  inline-size: var(--edge-handle-width);
+  block-size: var(--edge-handle-height);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.75rem, 2vh, 1.35rem);
+  padding-inline: 0.35rem 0.2rem;
+  /* Flat against the viewport edge, organic where it bites into the page. */
+  border-radius: 54% 0 0 58% / 47% 0 0 53%;
+  /*
+   * The handle is the affordance, so it is brand orange on every surface rather
+   * than following `data-surface-tone`. That keeps it legible on cream and on
+   * ink alike, and it never disappears if a section's tone and its media
+   * disagree. The spine still follows the tone, because it is surface detail.
+   */
+  background: var(--color-brand-orange);
+  color: var(--color-brand-ink);
+  cursor: pointer;
+  list-style: none;
+  pointer-events: auto;
+  transform: translate(calc(100% - var(--edge-handle-sliver)), -50%);
+  transition:
+    transform 340ms var(--ease-bite),
+    background-color var(--duration-medium) linear,
+    box-shadow var(--duration-medium) linear,
+    color var(--duration-medium) linear;
+}
+
+.edge-menu__handle::-webkit-details-marker {
+  display: none;
+}
+
+.edge-menu__handle::marker {
+  content: '';
+}
+
+.edge-menu__handle > * {
+  opacity: 0;
+  transition: opacity var(--duration-fast) linear;
+}
+
+.edge-menu[data-state='peek'] .edge-menu__handle,
+.edge-menu[data-state='open'] .edge-menu__handle,
+.edge-menu__handle:focus-visible {
+  transform: translate(0, -50%);
+}
+
+.edge-menu[data-state='peek'] .edge-menu__handle > *,
+.edge-menu[data-state='open'] .edge-menu__handle > *,
+.edge-menu__handle:focus-visible > * {
+  opacity: 1;
+}
+
+.edge-menu__handle:focus-visible {
+  outline: 3px solid var(--color-brand-orange);
+  outline-offset: 3px;
+}
+
+.edge-menu[data-state='open'] .edge-menu__handle {
+  background: transparent;
+  color: var(--color-brand-cream);
+  box-shadow: inset 0 0 0 var(--border-width) var(--color-brand-cream);
+}
+
+.edge-menu__handle-label {
+  writing-mode: vertical-rl;
+  rotate: 180deg;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.3em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.edge-menu__word--open,
+.edge-menu[data-state='open'] .edge-menu__word--closed {
+  display: none;
+}
+
+.edge-menu[data-state='open'] .edge-menu__word--open {
+  display: inline;
+}
+
+.edge-menu__handle-count {
+  writing-mode: vertical-rl;
+  rotate: 180deg;
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.6rem;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+}
+
+.edge-menu__handle-total {
+  opacity: 0.55;
+}
+
+/* Three editorial rules of different lengths, not a hamburger icon. */
+.edge-menu__ticks {
+  display: grid;
+  gap: 0.28rem;
+  inline-size: 1.4rem;
+  justify-items: center;
+}
+
+.edge-menu__ticks span {
+  block-size: 2px;
+  background: currentColor;
+  transition:
+    inline-size var(--duration-medium) var(--ease-bite),
+    opacity var(--duration-fast) linear;
+}
+
+.edge-menu__ticks span:nth-child(1) {
+  inline-size: 100%;
+}
+.edge-menu__ticks span:nth-child(2) {
+  inline-size: 58%;
+}
+.edge-menu__ticks span:nth-child(3) {
+  inline-size: 82%;
+}
+
+/* Open compresses the three rules into one mark rather than into an X. */
+.edge-menu[data-state='open'] .edge-menu__ticks span:nth-child(1),
+.edge-menu[data-state='open'] .edge-menu__ticks span:nth-child(3) {
+  inline-size: 34%;
+}
+
+.edge-menu[data-state='open'] .edge-menu__ticks span:nth-child(2) {
+  inline-size: 34%;
+  opacity: 0.45;
+}
+
+/* ---------------------------------------------------------------- scrim -- */
+
+.edge-menu__scrim {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  padding: 0;
+  border: 0;
+  background: rgb(18 16 15 / 15%);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-medium) linear;
+}
+
+.edge-menu[data-state='open'] .edge-menu__scrim {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ---------------------------------------------------------------- panel -- */
+
+.edge-menu__panel {
+  position: absolute;
+  z-index: 2;
+  inset-block: 0;
+  inset-inline-end: 0;
+  inline-size: var(--edge-panel-width);
+  /*
+   * The navigation type is sized from this box rather than from the viewport,
+   * so the longest label keeps comparable headroom at every width instead of
+   * depending on how much of the viewport the panel happens to occupy.
+   */
+  container-type: inline-size;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  color: var(--color-brand-cream);
+  pointer-events: none;
+  visibility: hidden;
+  transform: translateX(100%);
+  transition:
+    transform 420ms var(--ease-bite),
+    visibility 0s linear 420ms;
+}
+
+.edge-menu[data-state='open'] .edge-menu__panel {
+  pointer-events: auto;
+  visibility: visible;
+  transform: translateX(0);
+  transition:
+    transform 420ms var(--ease-bite),
+    visibility 0s linear 0s;
+}
+
+/*
+ * The ink surface is a separate, non-scrolling layer so the contour is
+ * independent of the panel's scroll state.
+ */
+.edge-menu__skin {
+  position: absolute;
+  inset: 0;
+  /* Large soft tapers at the ends; a single bite taken out of the contour. */
+  border-start-start-radius: 8.5rem 24vh;
+  border-end-start-radius: 8.5rem 24vh;
+  background: var(--color-brand-ink);
+  box-shadow: inset var(--border-width) 0 0 0 var(--color-brand-orange);
+  mask-image: radial-gradient(circle 4rem at 0 66%, transparent 99%, #000 100%);
+}
+
+.edge-menu__content {
+  position: relative;
+  z-index: 1;
+  min-block-size: 0;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: clamp(1.25rem, 3vh, 2.75rem);
+  overflow: auto;
+  overscroll-behavior: contain;
+  /* Matches the document: the indicator is hidden, the scrolling is not. */
+  scrollbar-width: none;
+  padding-block: clamp(1.35rem, 3vh, 2.75rem);
+  /*
+   * The start side clears the tapered contour and the bite. The end side clears
+   * the handle, which stays pinned to the viewport edge while the panel is open.
+   */
+  padding-inline: clamp(2.75rem, 5.5vw, 5.5rem)
+    calc(var(--edge-handle-width) + 0.75rem);
+}
+
+/* ------------------------------------------------------- panel: header -- */
+
+.edge-menu__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.edge-menu__wordmark {
+  inline-size: clamp(7rem, 11vw, 10rem);
+  block-size: auto;
+}
+
+.edge-menu__position {
+  display: flex;
+  gap: 0.2rem;
+  margin: 0;
+  color: var(--color-brand-orange);
+  font-size: var(--font-label);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+}
+
+.edge-menu__position span:last-child {
+  opacity: 0.55;
+}
+
+/* --------------------------------------------------------- panel: list -- */
+
+.edge-menu__navigation {
+  align-self: center;
+  inline-size: 100%;
+}
+
+.edge-menu__list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.edge-menu__list li {
+  /* Clips the staggered reveal. Link outlines are drawn inside. */
+  overflow: clip;
+  border-block-start: 1px solid
+    color-mix(in srgb, currentColor 32%, transparent);
+}
+
+.edge-menu__list li:last-child {
+  border-block-end: 1px solid color-mix(in srgb, currentColor 32%, transparent);
+}
+
+.edge-menu__list a {
+  display: block;
+  padding-block: clamp(0.3rem, 1.1vh, 0.85rem);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    transform var(--duration-medium) var(--ease-bite),
+    color var(--duration-fast) linear;
+}
+
+.edge-menu__list a:focus-visible {
+  outline: 3px solid var(--color-brand-cream);
+  outline-offset: -3px;
+}
+
+/*
+ * The reveal owns the inner row so the link keeps its own transform for the
+ * hover response and neither overwrites the other.
+ */
+.edge-menu__row {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.6rem, 1.6vw, 1.2rem);
+  transform: translateY(115%);
+  transition: transform 460ms var(--ease-bite);
+  transition-delay: calc(90ms + (var(--edge-item) * 46ms));
+}
+
+.edge-menu[data-state='open'] .edge-menu__row {
+  transform: translateY(0);
+}
+
+.edge-menu__index {
+  flex: 0 0 2.5rem;
+  color: var(--color-brand-orange);
+  font-size: var(--font-label);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+
+.edge-menu__list strong {
+  font-size: clamp(1.6rem, 8.2cqi, 4rem);
+  font-weight: 850;
+  letter-spacing: -0.06em;
+  line-height: 0.88;
+  text-transform: uppercase;
+  /*
+   * The global rule allows breaking anywhere, which would split a route name
+   * mid-word. A label is a single word: it must stay whole.
+   */
+  overflow-wrap: normal;
+}
+
+/* Active state is a mark plus a shift, never colour alone. */
+.edge-menu__mark {
+  flex: 0 0 auto;
+  inline-size: 0.7rem;
+  aspect-ratio: 1;
+  border-radius: 54% 40% 56% 42%;
+  background: var(--color-brand-orange);
+  opacity: 0;
+  transform: scale(0.2);
+  transition:
+    opacity var(--duration-fast) linear,
+    transform var(--duration-medium) var(--ease-bite);
+}
+
+.edge-menu__list a[aria-current] {
+  color: var(--color-brand-orange);
+  transform: translateX(0.5rem);
+}
+
+.edge-menu__list a[aria-current] .edge-menu__mark {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.edge-menu__list a[aria-current] .edge-menu__index {
+  color: inherit;
+}
+
+/* --------------------------------------------------------- panel: foot -- */
+
+.edge-menu__foot {
+  display: grid;
+  gap: clamp(0.85rem, 2vh, 1.5rem);
+  font-size: var(--font-label);
+}
+
+.edge-menu__channels {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.edge-menu__channels a {
+  display: grid;
+  gap: 0.1rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.edge-menu__channels span {
+  color: var(--color-brand-orange);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.edge-menu__channels strong {
+  font-size: clamp(0.95rem, 1.3vw, 1.15rem);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.edge-menu__utility {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.edge-menu__archive {
+  color: inherit;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.edge-menu__legal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+}
+
+.edge-menu__legal a {
+  color: inherit;
+  opacity: 0.72;
+}
+
+/* ------------------------------------------------------------- pointer -- */
+
+@media (hover: hover) and (pointer: fine) {
+  /*
+   * The closed and peeking handle is already brand orange, so hovering it
+   * changes no colour: the travel into the viewport is the response. Only the
+   * open state, which is a transparent outlined tab, fills on hover.
+   */
+  .edge-menu[data-state='open'] .edge-menu__handle:hover {
+    background: var(--color-brand-orange);
+    color: var(--color-brand-ink);
+    box-shadow: inset 0 0 0 var(--border-width) var(--color-brand-orange);
+  }
+
+  .edge-menu__list a:hover {
+    color: var(--color-brand-orange);
+    transform: translateX(0.45rem);
+  }
+
+  .edge-menu__list a[aria-current]:hover {
+    transform: translateX(0.85rem);
+  }
+
+  .edge-menu__channels a:hover strong,
+  .edge-menu__archive:hover,
+  .edge-menu__legal a:hover {
+    color: var(--color-brand-orange);
+  }
+}
+
+/* ---------------------------------------------------------- coarse/touch -- */
+
+@media (hover: none), (pointer: coarse) {
+  :root {
+    /* The whole handle stays inside the viewport, so the page has to clear it. */
+    --edge-rail-clearance: 3.25rem;
+    --edge-content-rail: var(--edge-rail-clearance);
+  }
+
+  /*
+   * The reservation goes on the page's inner containers rather than on `body`,
+   * so full-bleed section backgrounds still reach the edge behind the rail.
+   */
+  .content-shell {
+    inline-size: min(
+      100% - (2 * var(--page-gutter)) - var(--edge-rail-clearance),
+      var(--content-width)
+    );
+    margin-inline-start: auto;
+    margin-inline-end: calc(var(--page-gutter) + var(--edge-rail-clearance));
+  }
+
+  .site-footer {
+    padding-inline-end: calc(var(--page-gutter) + var(--edge-rail-clearance));
+  }
+
+  .site-header {
+    inset-inline-end: calc(var(--page-gutter) + var(--edge-rail-clearance));
+  }
+
+  .edge-menu {
+    /* No hover means no peek, so the handle has to be evident and tappable. */
+    --edge-handle-sliver: 2.875rem;
+    --edge-handle-width: 2.875rem;
+    --edge-handle-height: clamp(8rem, 18vh, 10rem);
+    --edge-panel-width: min(72vw, 30rem);
+  }
+
+  .edge-menu__handle {
+    padding-inline: 0.2rem;
+    border-radius: 46% 0 0 46% / 22% 0 0 22%;
+  }
+
+  .edge-menu__handle > * {
+    opacity: 1;
+  }
+
+  .edge-menu__ticks {
+    inline-size: 1.15rem;
+  }
+
+  .edge-menu[data-state='open'] .edge-menu__handle {
+    background: transparent;
+    color: var(--color-brand-cream);
+  }
+}
+
+@media (max-width: 68rem) {
+  .edge-menu {
+    --edge-panel-width: min(64vw, 34rem);
+  }
+}
+
+/*
+ * Phone widths only. A tablet keeps a lateral panel, because a full-width one
+ * would lose the sense that the navigation arrives from outside the viewport.
+ */
+@media (max-width: 34rem) {
+  .edge-menu {
+    --edge-spine-width: 0.5rem;
+    --edge-panel-width: 100%;
+  }
+
+  .edge-menu__skin {
+    border-start-start-radius: 3.5rem 12vh;
+    border-end-start-radius: 3.5rem 12vh;
+    mask-image: none;
+  }
+
+  .edge-menu__content {
+    padding-inline: var(--page-gutter)
+      calc(var(--page-gutter) + var(--edge-handle-width));
+  }
+
+  .edge-menu__index {
+    flex-basis: 2rem;
+  }
+
+  .edge-menu__head {
+    padding-inline-end: 0;
+  }
+}
+
+/* Short viewports keep every control reachable through the panel's own scroll. */
+@media (max-height: 34rem) {
+  .edge-menu {
+    --edge-handle-height: clamp(6rem, 40vh, 9rem);
+  }
+
+  .edge-menu__navigation {
+    align-self: start;
+  }
+
+  .edge-menu__list strong {
+    font-size: clamp(1.6rem, 6vh, 2.6rem);
+  }
+}
+
+/* ---------------------------------------------------------- no JavaScript -- */
+
+/*
+ * Without the enhancement the native disclosure owns visibility: the panel is
+ * simply present when the details element is open, with no state machine, no
+ * travel and no shaped contour that would depend on it.
+ */
+.edge-menu:not([data-enhanced]) .edge-menu__panel {
+  position: fixed;
+  inset: 0;
+  inline-size: 100%;
+  pointer-events: auto;
+  visibility: visible;
+  transform: none;
+  transition: none;
+}
+
+.edge-menu:not([data-enhanced]) .edge-menu__skin {
+  border-radius: 0;
+  mask-image: none;
+}
+
+.edge-menu:not([data-enhanced]) .edge-menu__row {
+  transform: none;
+  transition: none;
+}
+
+.edge-menu:not([data-enhanced]) .edge-menu__scrim {
+  display: none;
+}

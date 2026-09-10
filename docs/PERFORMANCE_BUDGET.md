@@ -59,3 +59,32 @@
   surface contrast uses `IntersectionObserver`, and editorial motion reuses
   ScrollTrigger. No second permanent animation loop was added.
 - No Lenis, WebGL, React or additional UI dependency was introduced.
+
+## Hero Media, 2026-09-10
+
+The official hero loop is published from `public/assets/motion/hero/`. A visitor
+downloads the poster plus exactly one video:
+
+| File               | Codec           | Size       | Bytes     |
+| ------------------ | --------------- | ---------- | --------- |
+| `hero-poster.webp` | WebP with alpha | 1440x1080  | 14,172    |
+| `hero-desktop.webm`| VP9 with alpha  | 1440x1080  | 2,116,549 |
+| `hero-desktop.mp4` | H.264, opaque   | 1440x1080  | 1,329,372 |
+| `hero-mobile.webm` | VP9 with alpha  | 768x576    | 737,041   |
+| `hero-mobile.mp4`  | H.264, opaque   | 768x576    | 546,069   |
+
+Notes:
+
+- The `<source>` media queries split at 48rem, so a phone never fetches the
+  desktop pair. The MP4s exist only for decoders without WebM and are not
+  requested when the WebM plays.
+- `preload="metadata"` keeps the loop off the critical path. The LCP candidate
+  is the poster, which is 14 KB and shared with the video's `poster` attribute,
+  so it is fetched once.
+- Playback is paused outside the viewport, in a backgrounded tab and under
+  reduced motion.
+- The raw 3.15 MB client master at `public/assets/WEB.webm` is currently copied
+  into `dist/` because everything under `public/` is. Nothing references it.
+  See `docs/CONTENT_NEEDED.md`.
+- Production JavaScript after this change: 133,553 uncompressed bytes, inside
+  the 220,000 budget.
