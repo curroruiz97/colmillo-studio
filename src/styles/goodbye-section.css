@@ -1,0 +1,183 @@
+/*
+ * GOODBYE — the pre-footer stage (phase 1: architecture)
+ *
+ * One screen. A permanent visual layer fills the section and never changes;
+ * over it sits an editorial block on the left: the slides' copy and one round
+ * arrow button hanging off the headline's last line, read as one composition.
+ * Only the copy moves.
+ *
+ * Until the final visual is chosen the stage is the bare ink surface: white
+ * type and the orange button on black. Copy, visual, transition and CTA are
+ * the next phase's decisions; the sizes below are a neutral baseline.
+ */
+
+.goodbye-section {
+  position: relative;
+  z-index: 15;
+  display: grid;
+  min-block-size: 100svh;
+  overflow: clip;
+  background: var(--color-brand-ink);
+  color: var(--color-white);
+}
+
+/*
+ * Exactly one screen on a desktop once the slides share one cell. A short
+ * window, every narrower screen and the no-JavaScript list grow with their
+ * content instead of cutting it.
+ */
+@media (min-width: 64.01rem) and (min-height: 40rem) {
+  .goodbye-section[data-goodbye-enhanced] {
+    block-size: 100svh;
+  }
+}
+
+/* Vertical pans stay native scroll; a horizontal swipe changes the slide. */
+.goodbye-section[data-goodbye-enhanced] {
+  touch-action: pan-y pinch-zoom;
+}
+
+/* ---------------------------------------------------------- visual --- */
+
+.goodbye-section__visual {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.goodbye-section__visual > :is(video, img) {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+/* ------------------------------------------------------ composition --- */
+
+.goodbye-section__inner {
+  position: relative;
+  display: grid;
+  align-content: center;
+  padding-block: clamp(5rem, 12svh, 8rem);
+}
+
+.goodbye-section__composition {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: clamp(1rem, 2.4vw, 2.5rem);
+  max-inline-size: min(100%, 60rem);
+}
+
+/* Without JavaScript every slide is read in turn. */
+.goodbye-section__viewport {
+  display: grid;
+  row-gap: clamp(2.5rem, 6vw, 4rem);
+}
+
+/*
+ * Enhanced: every slide sits in the same cell, and through subgrid every
+ * title shares row 1 and every body row 2. The block is therefore as tall as
+ * its tallest slide, and the button in row 1 always hangs off the headline.
+ * The column clips sideways only, so the hand-over is masked at its edges
+ * while descenders and accents keep their room.
+ */
+[data-goodbye-enhanced] .goodbye-section__composition {
+  grid-template-rows: auto auto;
+}
+
+[data-goodbye-enhanced] .goodbye-section__viewport {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  grid-template-rows: subgrid;
+  row-gap: 0;
+  overflow-x: clip;
+}
+
+[data-goodbye-enhanced] .goodbye-slide {
+  display: grid;
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  grid-template-rows: subgrid;
+}
+
+/* ------------------------------------------------------------ copy --- */
+
+.goodbye-slide__title {
+  grid-row: 1;
+  align-self: end;
+  max-inline-size: 16ch;
+  margin: 0;
+  font-size: clamp(2.6rem, 5.8vw, 6.5rem);
+  font-weight: 850;
+  letter-spacing: -0.045em;
+  line-height: 0.98;
+  text-wrap: balance;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.goodbye-slide__body {
+  grid-row: 2;
+  max-inline-size: 36ch;
+  margin: clamp(1.25rem, 2.2vw, 2rem) 0 0;
+  font-size: clamp(1.02rem, 1.25vw, 1.3rem);
+  line-height: 1.45;
+}
+
+/* ---------------------------------------------------------- button --- */
+
+.goodbye-section__next {
+  display: grid;
+  grid-column: 2;
+  grid-row: 1;
+  align-self: end;
+  place-items: center;
+  inline-size: clamp(3.5rem, 5.4vw, 6rem);
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-brand-orange);
+  color: var(--color-brand-ink);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: scale var(--duration-fast) var(--ease-bite);
+}
+
+.goodbye-section__next[hidden] {
+  display: none;
+}
+
+.goodbye-section__next svg {
+  inline-size: 42%;
+  block-size: auto;
+  transition: translate var(--duration-medium) var(--ease-bite);
+}
+
+.goodbye-section__next:active {
+  scale: 0.94;
+}
+
+.goodbye-section__next:focus-visible {
+  outline: 3px solid var(--color-white);
+  outline-offset: 4px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .goodbye-section__next:hover svg {
+    translate: 12% 0;
+  }
+}
+
+/* ----------------------------------------------------------- phone --- */
+
+@media (max-width: 47.99rem) {
+  .goodbye-slide__title {
+    font-size: clamp(2rem, 10vw, 3.4rem);
+  }
+
+  /* Still well above the 44px touch-target minimum. */
+  .goodbye-section__next {
+    inline-size: 3.25rem;
+  }
+}

@@ -1,19 +1,4 @@
-@keyframes goodbye-bite {
-  0%,
-  100% {
-    transform: translateY(0) scale(1);
-  }
-  50% {
-    transform: translateY(-3vh) scale(1.04, 0.92);
-  }
-}
-
-.goodbye-section__bite {
-  animation: goodbye-bite 5.8s var(--ease-bite) infinite;
-}
-
-.bite-button,
-[data-deformable] {
+.bite-button {
   transition: border-radius var(--duration-medium) var(--ease-bite);
 }
 
@@ -112,8 +97,7 @@ html[data-surface-tone='dark'] .custom-cursor__core {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .bite-button:hover,
-  [data-deformable]:hover {
+  .bite-button:hover {
     border-radius: 42% 50% 44% 48%;
   }
   .bite-button:hover > span {
@@ -154,8 +138,7 @@ body > main {
 }
 
 @media (scripting: none) {
-  body > main,
-  .goodbye-section__bite {
+  body > main {
     animation: none;
   }
 }

@@ -21,9 +21,9 @@ reveal, overlap, tension and release.
 - CTA remains reachable and readable.
 - Reduced-motion users receive a poster/static version.
 - The loop is the only loud element. The label, the CTA and the continuation
-  control sit around a large field of empty cream and never compete with it.
-- The loop carries a real alpha channel and is composited directly on the cream
-  surface. It is decorative and hidden from assistive technology; every control
+  control sit around a large field of empty white and never compete with it.
+- The loop carries a real alpha channel and is composited directly on the white
+  surface (`hero-*-white.*`, baked for `--color-background`). It is decorative and hidden from assistive technology; every control
   around it is a real link.
 
 ## Cursor
@@ -46,17 +46,53 @@ reveal, overlap, tension and release.
 - Keyboard and reduced-motion users must be able to navigate all projects.
 - Project cards must remain accessible links.
 - The rail is images first: at rest a tile is only its picture. The title is
-  revealed by a cream cut-out that bites up into the image's bottom-left corner
+  revealed by a page-coloured cut-out that bites up into the image's bottom-left corner
   on hover and keyboard focus, and stays open on screens without hover.
 - The rail ends on the `Ver proyectos` route; it is the last piece of the
   moving track, never a row under it.
 - The pinned rail never cuts a tile off at the bottom of the viewport.
 
+## Studio
+
+- A pause, not a sequence: no pin, no scrub, no travelling letters, no blur and
+  no scaling. The character loop is the only protagonist.
+- `StudioMotion.ts` runs one entry timeline, once: the two headline lines
+  rising out of their own clips, then the lede and the CTA wrapper, while
+  the loop lifts 26px from transparent. The CTA link keeps the shared magnetic
+  pull; the reveal lives on its wrapper so the two transforms never collide.
+- The loop plays only while it is within 20% of the viewport and the tab is
+  visible, and is fetched only then (`preload="none"`, no `autoplay`). Each pass
+  rises out of the paper and sinks back into it over eight frames; the first
+  pass starts on the poster frame so the still hands straight over to motion.
+- Reduced motion and no JavaScript render the finished spread with the loop
+  parked on its poster, which is the first frame it would play.
+
 ## Goodbye
 
-- Uses final client animation once supplied.
-- Until then, use only a clearly marked development placeholder or static
-  structure.
+Rebuilt on 2026-09-10 as a full-screen stage. Phase 1 (architecture) only; the
+visual, the copy, the final transition and the CTA are still open.
+
+- One permanent visual layer (`goodbyeVisual`: a loop or a still, `null` until
+  approved; the bare ink surface meanwhile) that never changes, and an editorial
+  block on the left: the slides' copy plus one round orange arrow button hanging
+  off the headline's last line.
+- No dots, visible counter, cards, thumbnails or autoplay. Only the reader
+  advances it: the button (click, Enter, Space; ArrowLeft/ArrowRight while it
+  has focus) or, on touch, a horizontal swipe on the stage. Vertical gestures
+  stay native scroll (`touch-action: pan-y pinch-zoom`).
+- `GoodbyeSlides.ts`: the current slide leaves to the left while the next
+  enters from the right, masked at the copy column's edges (`overflow-x:
+  clip`), 0.9 s `power3.inOut`; the last slide wraps to the first. A request
+  made during a hand-over is ignored. These values are a neutral baseline for
+  the next phase to tune.
+- Every slide shares one grid cell and, through subgrid, the same title and
+  body rows, so the block never changes height and the button never moves.
+  Inactive slides are `inert` and hidden; the column is a polite live region.
+- Exactly `100svh` on a desktop (from 64.01rem wide and 40rem tall); narrower
+  or shorter screens keep `100svh` as a minimum and grow with their content.
+- Reduced motion swaps the copy in place with no travel and parks a video
+  visual on its poster. No JavaScript: the slides are listed one after another
+  and the button stays hidden.
 
 ## Page Transitions
 
@@ -94,7 +130,7 @@ reveal, overlap, tension and release.
   arrows, progress meter and active-card dimming were retired on 2026-09-10.
 - Project tile hover (CSS only, `projects-section.css`): the frame compresses
   to 0.982 and bites its top-right corner, the image scales to 1.06 and a
-  cream cut-out with concave fillets rises with the title and an orange arrow
+  page-coloured cut-out with concave fillets rises with the title and an orange arrow
   (about 0.46 s, `--ease-bite`); leaving plays it back. `:focus-visible` gets
   the same reveal; `(hover: none)` keeps it open; reduced motion makes it
   instant through the global transition rules.
@@ -124,6 +160,16 @@ reveal, overlap, tension and release.
   is an ink veil at 34% with a 6 px blur, applied only while open. Under
   reduced motion tracking is disabled, the tab stays at rest and the panel,
   routes and close control change state without travel.
+
+  Tab tone: the tab is brand orange except over an orange surface, where it
+  turns ink with cream rules (a 160 ms colour transition). The module samples
+  the colour actually painted under the tab - the first opaque background
+  among the hit-testable elements at that point, the menu and faded layers
+  excluded - at most once per frame after a scroll, a resize, a vertical move
+  or an entry animation, plus once more 180 ms after scrolling settles. It
+  publishes `data-tab-tone="accent"`; it does not read `data-surface-tone`.
+  Route labels are sentence case ("Inicio", "Manifiesto"), as written in
+  `primaryNavigation`.
 - `InstagramBadge.ts` folds the single global Instagram control, in place in
   the top-right corner, from its hero pose - `INSTAGRAM ↗`, scaled 1.3 from
   1024 px and 1.15 from 768 px around its own top-right corner - into a round
@@ -138,9 +184,10 @@ reveal, overlap, tension and release.
   by scroll progress; it never splits readable text into animated letters.
 - `SurfaceTone.ts` switches the shared cursor contrast from intersection state
   rather than sampling layout on every frame.
-- The development goodbye fallback is an original CSS jaw/letter composition
-  with a scroll-driven compression. It is not a substitute for the official
-  asset and cannot enter the standard build.
+- The former goodbye fallback (a CSS jaw/letter composition with a
+  scroll-driven compression) was removed on 2026-09-10 with its keyframes and
+  its `SectionStack.ts` scrub; see "Goodbye" above for the stage that replaced
+  it.
 - Page entry uses a short CSS bite reveal on `main`; native document navigation
   owns links and history. This replaced ClientRouter after real back/forward QA
   exposed a rejected transition (`Transition was skipped`). The CSS reveal
@@ -161,3 +208,59 @@ reveal, overlap, tension and release.
 - `HeroMotion.ts` owns playback state and the exit compression only. The hero
   composition itself is complete CSS: it renders identically with no
   JavaScript.
+
+## Home Entry Intro
+
+- `HomeIntro.ts` plays once per browser tab session on the home only
+  (`src/config/intro.ts`: `repeat: 'session'`, key `colmilloIntroPlayed`;
+  `'always'` replays it on every full load). Reloading the home plays it again
+  (`replayOnReload`, requested by the user on 2026-09-10); returning to the
+  home through a link does not. The O always opens onto the hero: while the
+  page is covered it is pinned to the top, because Chrome restores a reload's
+  old scroll position even with `scrollRestoration = 'manual'` set in the head
+  (measured: `scrollY` 907 right after a mid-page reload). The head script
+  still sets `'manual'` and the intro hands restoration back (`'auto'`) when
+  it ends, so later history traversals remember their position. A deep link to a fragment and a
+  back/forward traversal never play it; other routes do not carry it.
+- Sequence (~2.3 s at 1440×900, measured with a paused Playwright clock): the
+  solid page-white ground for 0.2 s; C-O-L-M-I-L-L-O set one letter at a time
+  (0.1 s apart, 0.46 s `power3.out`, rising 14 px from `scaleY(0.96)`, no
+  blur, bounce or rotation); every landing nudges the letters already set by
+  1.5 px and releases them; a ~0.2 s beat with a 3 px orange seed in the final
+  O's counter; the counter opens from its centre (0.3 s) onto the real home;
+  the O grows (1.2 s) while travelling to the viewport centre until its counter
+  contains the whole viewport; the rest of the word holds, then fades.
+- The O's growth is interpolated in log space (`power3.inOut`) with the centre
+  travelling on `power2.inOut`, so it translates and scales at once. It eases
+  towards 1.35× the covering scale and the overlay is removed the moment the
+  counter covers the viewport, so the ease's slow tail is never on screen.
+- Geometry: one SVG in the units of the traced wordmark. The ground is a
+  60,000-unit rectangle with the final O's silhouette cut out (even-odd), in
+  the same transformed group as the O, so the hole and the O grow together.
+  The transform is an SVG attribute, re-rasterised every frame: the O stays
+  vector-sharp at any scale. The covering scale is solved from the counter's
+  own polygon for every point of the viewport's outline, so 21:9, 16:9, 4:3,
+  portrait and 320 px screens are all covered.
+- The letters are the official wordmark: `scripts/trace-wordmark.mjs` extracts
+  the 50% iso-line of `colmillo-wordmark-black.png` with marching squares and
+  refuses to write unless the curves stay within 0.45 source px of it (0.33 px
+  measured) and no re-rasterised pixel flips inside/out.
+- Theme: ink letters on the page's light ground (`--color-background`, white
+  since 2026-09-10; the config value is still named `'cream'`). A light O
+  opening onto the light home reads as a filled disc; the ink O keeps its ring
+  against the page and the site is unmistakably seen through its counter.
+  `theme: 'ink'` restores cream letters on ink.
+- Handover: `colmillo:introreveal` fires at 62% of the covering scale and
+  releases the hero loop from its first frame (held and rewound while covered;
+  `pause()` also clears the autoplay flag); the hero settles from 1.02 around
+  `50% 20%`. `colmillo:introend` follows ~0.1 s later: overlay hidden, the
+  `html[data-intro]` scroll lock and cursor hold removed.
+- Readiness: the O only opens after the hero wordmark and the loop's poster
+  have decoded, waiting at most 1.2 s more; nothing below the fold is awaited.
+- Input: a key, wheel or touch plays the rest at 3.2× instead of cutting it.
+  The overlay is `aria-hidden`, never traps focus and sits under the skip link.
+- Reduced motion: the still wordmark for 0.35 s, a 0.3 s fade, the page. No
+  expansion.
+- Failure: without JavaScript the overlay is `display: none`. If the module
+  never claims the head script's attribute, a 4 s timer returns the page; the
+  module has a 9 s guard; a CSS animation hides the overlay after 7 s.

@@ -5,7 +5,12 @@
 - Official brand manual.
 - Original vector logo master (SVG, PDF or editable source) for future
   large-format and non-header uses. The supplied black/cream raster wordmarks
-  are already cleaned and active in the header.
+  are already cleaned and active in the header. Until it arrives, the home
+  intro uses `src/components/intro/wordmarkGlyphs.ts`, a verified trace of the
+  black PNG (`scripts/trace-wordmark.mjs`, 0.33 px worst deviation). When the
+  master arrives, replace the traced paths with its COLMILLO letters and keep
+  the same data shape (`d`, `outer`, `counter`, `counterCentre`,
+  `counterPolygon`).
 - Favicon source at `public/assets/brand/favicon.svg`.
 - Rules for logo spacing, scaling and background usage.
 
@@ -26,11 +31,41 @@ Received on 2026-09-10:
   from it by `npm run media:hero` and published under
   `public/assets/motion/hero/`.
 
+- Studio character loop at `public/assets/video estudio.mp4` (H.264,
+  1280x720, 24 fps, 6 s, with an unused AAC track). The home Studio derivatives
+  are generated from it by `npm run media:studio` and published under
+  `public/assets/motion/studio/`.
+
+Open questions on the supplied Studio loop:
+
+- Confirmation of the technical loop treatment. The clip does not return to its
+  first frame, so the derivative sinks into the paper over its last third of a
+  second and rises out of it over its first, replacing the jump with a short
+  breath. Every frame is kept in order; the alternative is the untreated hard
+  jump every six seconds.
+- Confirmation that the empty paper above and below the drawing may be cropped
+  and that its beige paper may become the page white. Since 2026-09-10 the
+  published derivatives are `studio-*-white.*`: the ink and the orange keep
+  their values, and the paper-coloured areas inside the drawing (the sneakers,
+  the light highlights on the band) turn white with the paper. The previous
+  cream set is kept beside them.
+- A decision on where the 1.5 MB master should live. Like the hero master, it
+  is copied into `dist/` because it sits under `public/`, even though nothing
+  references it; `media-src/` is the recommended home. The same applies to
+  `public/assets/frame video.png` (1 MB, unreferenced).
+
 Still missing:
 
 - Goodbye animation source and approved derivatives under
   `public/assets/motion/goodbye/` (`goodbye.webm`, `goodbye.mp4`,
   `goodbye-poster.webp`).
+- Goodbye stage (rebuilt 2026-09-10, architecture only), still to be decided
+  before it can publish: whether its permanent visual is a video or an image,
+  and that file; the copy of each slide (a large title and an optional
+  supporting line, as many slides as wanted); the section's accessible name;
+  the final transition; and whether it carries a CTA and where it leads. The
+  slides in `src/data/goodbye.ts` are structural placeholders ("Titular 01"…)
+  and never reach `dist/`.
 - Permission to convert GIF assets to WebM/MP4 for production performance.
 
 Open questions on the supplied hero master:
@@ -38,9 +73,15 @@ Open questions on the supplied hero master:
 - Confirmation that removing the empty sheet on the left and right of the
   drawing is acceptable. The derivatives crop the 7:3 master to 4:3 around the
   drawing; only blank paper is removed and the original file is untouched.
-- Confirmation that the drawing may be composited directly on the cream
-  surface, so the sheet white becomes the page colour rather than staying
-  white.
+- Resolved 2026-09-10: the light surfaces are white at the client's request,
+  so the drawing's sheet stays white. The published derivatives are
+  `hero-*-white.*`; the original cream set is kept beside them.
+- A decision on the superseded cream derivatives
+  (`public/assets/motion/hero/hero-*.{webm,mp4}`, `hero-poster.webp`,
+  `public/assets/motion/studio/studio-loop.*`, `studio-poster.webp`, about
+  5.9 MB). They are unreferenced but still copied into `dist/` because they sit
+  under `public/`. They were kept rather than overwritten; moving them to
+  `media-src/` is the recommended tidy-up once the white set is approved.
 - A decision on where the 3.15 MB raw master should live. Everything under
   `public/` is copied verbatim into `dist/`, so the untouched client file is
   currently published even though nothing references it.
@@ -70,6 +111,11 @@ Still missing:
   exist. The design has no slot for a second accent line, so do not budget one.
 - Studio/about page copy and approved process or methodology, if it should be
   published.
+- Home Studio copy: one editorial headline that sets in at most two lines (about
+  18 characters per line) and one supporting sentence of about one line. The section is built and waiting in
+  `src/data/studio.ts`; the current demonstration headline ("Tensamos cada idea
+  hasta que muerde.") and lede are placeholders and must not be published. Fill
+  `approvedStudio`, then enable `contentAvailability.studio`.
 - Project/client list.
 - Project descriptions.
 - Project media.

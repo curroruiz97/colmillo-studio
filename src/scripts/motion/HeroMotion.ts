@@ -18,23 +18,40 @@ export function initHeroMotion(): () => void {
     return () => undefined;
   }
 
+  // While the home intro covers the page the loop waits on its first frame,
+  // so the hero starts as the intro opens instead of mid-loop behind it.
+  // `autoplay` may already have advanced it a few frames; pausing also clears
+  // the element's autoplay flag, so the browser will not restart it.
+  let held = document.documentElement.dataset.intro === 'full';
+  if (held) {
+    videos.forEach((video) => {
+      video.pause();
+      if (video.currentTime > 0) video.currentTime = 0;
+    });
+  }
+
   const onScreen = new Set<HTMLVideoElement>();
   const sync = () => {
     for (const video of videos) {
-      if (onScreen.has(video) && !document.hidden) {
+      if (!held && onScreen.has(video) && !document.hidden) {
         void video.play().catch(() => undefined);
       } else {
         video.pause();
       }
     }
   };
+  const release = () => {
+    held = false;
+    sync();
+  };
+  window.addEventListener('colmillo:introreveal', release);
 
   const observer = new IntersectionObserver((entries) => {
     for (const entry of entries) {
       if (!(entry.target instanceof HTMLVideoElement)) continue;
       if (entry.isIntersecting) {
         onScreen.add(entry.target);
-        void entry.target.play().catch(() => undefined);
+        if (!held) void entry.target.play().catch(() => undefined);
       } else {
         onScreen.delete(entry.target);
         entry.target.pause();
@@ -74,6 +91,7 @@ export function initHeroMotion(): () => void {
   }, hero);
 
   return () => {
+    window.removeEventListener('colmillo:introreveal', release);
     document.removeEventListener('visibilitychange', sync);
     observer.disconnect();
     context.revert();

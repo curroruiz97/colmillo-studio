@@ -52,28 +52,6 @@ export function initSectionStack(): () => void {
         });
       }
     });
-
-    const goodbyeWord = document.querySelector<HTMLElement>(
-      '[data-goodbye-word]',
-    );
-    if (goodbyeWord) {
-      gsap.fromTo(
-        goodbyeWord,
-        { scaleX: 1.16, scaleY: 0.72, yPercent: 18 },
-        {
-          scaleX: 0.92,
-          scaleY: 1.08,
-          yPercent: -8,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: goodbyeWord.closest('section'),
-            start: 'top bottom',
-            end: 'bottom top',
-            scrub: 0.7,
-          },
-        },
-      );
-    }
   });
 
   return () => {

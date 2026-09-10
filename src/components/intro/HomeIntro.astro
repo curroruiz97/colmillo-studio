@@ -1,0 +1,89 @@
+---
+/**
+ * COLMILLO HOME INTRO
+ *
+ * A decorative overlay, hidden from assistive technology and absent without
+ * JavaScript. It is one SVG in the coordinate system of the traced wordmark
+ * (`wordmarkGlyphs.ts`, generated from the official PNG):
+ *
+ *   portal   the ink ground: an enormous rectangle with the silhouette of the
+ *            final O cut out of it (even-odd)
+ *   letters  C O L M I L L, each in a `press` group for the pressure nudge
+ *   portal   the plug (ink, the O's silhouette, later its ring while the
+ *            counter irises open), the final O itself and the orange seed
+ *
+ * Both portal groups receive the same transform, so the O and the hole in the
+ * ground grow together: the page underneath is seen through the counter. The
+ * ground bleeds past the SVG box through `overflow: visible`, which is why the
+ * first paint is already solid ink before any script has run.
+ */
+import { homeIntro } from '@/config/intro';
+import { wordmarkBox, wordmarkGlyphs } from './wordmarkGlyphs';
+
+const final = wordmarkGlyphs.at(-1);
+const letters = wordmarkGlyphs.slice(0, -1);
+if (!final?.outer || !final.counter || !final.counterCentre) {
+  throw new Error(
+    'The traced final O must expose its outer and counter paths.',
+  );
+}
+const { width, height } = wordmarkBox;
+// Far beyond any viewport at any portal scale, in wordmark units.
+const ground = 'M-60000 -60000H60000V60000H-60000Z';
+const [seedX, seedY] = final.counterCentre;
+---
+
+{
+  homeIntro.enabled && (
+    <div
+      class="home-intro"
+      data-home-intro
+      data-intro-theme={homeIntro.theme}
+      aria-hidden="true"
+    >
+      <svg
+        class="home-intro__stage"
+        viewBox={`0 0 ${width} ${height}`}
+        focusable="false"
+        data-intro-stage
+        data-counter={final.counterPolygon}
+        data-counter-centre={`${seedX},${seedY}`}
+        data-outer={final.outer}
+        data-counter-path={final.counter}
+      >
+        <g data-intro-portal>
+          <path
+            class="home-intro__ground"
+            d={`${ground}${final.outer}`}
+            fill-rule="evenodd"
+          />
+        </g>
+        {letters.map((glyph) => (
+          <g data-intro-press>
+            <g class="home-intro__letter" data-intro-letter>
+              <path d={glyph.d} fill-rule="evenodd" />
+            </g>
+          </g>
+        ))}
+        <g data-intro-portal>
+          <path
+            class="home-intro__plug"
+            d={final.outer}
+            fill-rule="evenodd"
+            data-intro-plug
+          />
+          <g class="home-intro__letter" data-intro-letter>
+            <path d={final.d} fill-rule="evenodd" />
+          </g>
+          <circle
+            class="home-intro__seed"
+            cx={seedX}
+            cy={seedY}
+            r="3"
+            data-intro-seed
+          />
+        </g>
+      </svg>
+    </div>
+  )
+}

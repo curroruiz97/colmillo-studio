@@ -8,7 +8,12 @@
   --color-brand-red: #9d2d22;
   --color-white: #ffffff;
 
-  --color-background: var(--color-brand-cream);
+  /*
+   * Every light surface is pure white (client direction, 2026-09-10). Cream
+   * remains a brand colour for type, borders and details on the dark surfaces;
+   * light surfaces take this token rather than naming a colour.
+   */
+  --color-background: var(--color-white);
   --color-text: var(--color-brand-ink);
   --color-accent: var(--color-brand-orange);
   --color-accent-text: var(--color-brand-orange-aa);
@@ -50,4 +55,6 @@
   --z-social: 85;
   --z-menu: 90;
   --z-cursor: 120;
+  /* The home entry intro covers everything except the skip link (1000). */
+  --z-intro: 200;
 }

@@ -20,6 +20,7 @@
     "check:manifest": "node scripts/check-manifest-idempotence.mjs",
     "check:hero": "node scripts/check-hero-contract.mjs",
     "media:hero": "node scripts/prepare-hero-media.mjs",
+    "media:studio": "node scripts/prepare-studio-media.mjs",
     "release:check": "node scripts/release-check.mjs",
     "release:manifest": "node scripts/release-manifest.mjs",
     "test:e2e": "npm run build && playwright test",

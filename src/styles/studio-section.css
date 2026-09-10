@@ -1,0 +1,200 @@
+/*
+ * STUDIO — the pause
+ *
+ * The calmest section after the manifesto's choreography and the pinned rail:
+ * a two-line headline, one supporting line and the route into /studio/ on the
+ * left, the character loop on the right, and generous white around both. No
+ * pin, no scrub, no decoration. The loop's paper is the section's white, so
+ * the drawing sits on the canvas itself with no frame or plate.
+ *
+ * Order: title, lede, then the loop and the CTA. Phones put the loop before
+ * the CTA so the button is the last thing read; tablets in portrait keep the
+ * text block whole above the loop; from 64rem, or a landscape tablet, the
+ * spread splits into two columns.
+ *
+ * The headline is set in at most two lines at every width. Each line is its
+ * own block, and the type is sized per layout so the longer line fits its
+ * column; only enlarged text (200%) may wrap further, never overflow.
+ */
+
+.studio-section__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'title'
+    'lede'
+    'media'
+    'cta';
+  align-content: center;
+}
+
+/* ------------------------------------------------------------ copy --- */
+
+/*
+ * An editorial headline, not a poster: clearly above the services heading and
+ * clearly below the manifesto's words.
+ */
+.studio-section__title {
+  grid-area: title;
+  max-inline-size: none;
+  margin: 0;
+  /* On a phone the column is the viewport less two gutters and the touch
+     rail; the longer line is about 9.6em wide at this tracking. */
+  font-size: clamp(1.35rem, calc((100vw - 5.25rem) / 9.6), 4.4rem);
+  font-weight: 850;
+  letter-spacing: -0.045em;
+  line-height: 0.98;
+}
+
+/* Each line is its own clip, so the entry reveal lifts it without the text
+   ever travelling across the page. The padding keeps descenders inside it. */
+.studio-section__line {
+  display: block;
+  overflow: clip;
+  padding-block-end: 0.12em;
+  margin-block-end: -0.12em;
+}
+
+.studio-section__line > span {
+  display: inline-block;
+}
+
+/* The accessible orange: large bold type on white clears AA comfortably. */
+.studio-section__accent {
+  color: var(--color-accent-text);
+}
+
+.studio-section__lede {
+  grid-area: lede;
+  max-inline-size: 34ch;
+  margin: clamp(1.25rem, 2.2vw, 2rem) 0 0;
+  font-size: clamp(1.02rem, 1.25vw, 1.3rem);
+  line-height: 1.45;
+}
+
+.studio-section__cta {
+  grid-area: cta;
+  justify-self: start;
+  margin-block-start: clamp(2rem, 3.6vw, 3.25rem);
+}
+
+/* A keyboard user can reach the link before its entry reveal has run. */
+.studio-section__cta:focus-within {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+.studio-section__button {
+  max-inline-size: min(100%, 24rem);
+  box-shadow: 0 0.4rem 0 var(--color-brand-ink);
+}
+
+/* ------------------------------------------------------------ loop --- */
+
+.studio-section__media {
+  grid-area: media;
+  inline-size: 100%;
+  margin-block-start: clamp(2.5rem, 9vw, 4rem);
+  /* Decorative: it must never take the pointer away from anything. */
+  pointer-events: none;
+}
+
+.studio-section__video {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: 1280 / 512;
+  object-fit: contain;
+  background: var(--color-background);
+  /*
+   * The derivative's paper is the page white, but a lossy codec can still land
+   * a level off it. Feathering the box's edges leaves no line for such an
+   * offset to draw. Each feather stays inside paper the ink never reaches in
+   * any frame: 8.3% on the left, 4.2% on the right, 9.4% above and below.
+   */
+  mask-image:
+    linear-gradient(to right, transparent, #000 3.5%, #000 97%, transparent),
+    linear-gradient(to bottom, transparent, #000 6%, #000 94%, transparent);
+  mask-composite: intersect;
+}
+
+/*
+ * On a phone the touch rail reserves its tab's width on the right of every
+ * content column. The loop's own right margin is blank paper, so it may reach
+ * into that strip and be as wide as the screen allows; the text never does.
+ */
+@media (max-width: 47.99rem) {
+  .studio-section__media {
+    inline-size: auto;
+    margin-inline-end: calc(-1 * var(--edge-content-rail, 0px));
+  }
+}
+
+/* ------------------------------------------------- tablet portrait --- */
+
+@media (min-width: 48rem) {
+  .studio-section__inner {
+    grid-template-areas:
+      'title'
+      'lede'
+      'cta'
+      'media';
+    padding-block: clamp(6rem, 12vw, 9rem);
+    /* Off the gutter, like the services heading. */
+    padding-inline-start: clamp(1rem, 4vw, 2.5rem);
+  }
+
+  .studio-section__title {
+    font-size: clamp(3rem, 7.4vw, 4.6rem);
+  }
+
+  .studio-section__media {
+    margin-block-start: clamp(3.5rem, 8vw, 5rem);
+  }
+}
+
+/* ------------------------------------------- two-column spread --- */
+
+@media (min-width: 64.01rem), (min-width: 56rem) and (orientation: landscape) {
+  /*
+   * The text sits well off the page's left gutter, on the same line as the
+   * services heading, while the loop runs to the right gutter and stops short
+   * of the edge-menu rail. The text column is almost half, which is what lets
+   * the headline hold two lines; the loop gives up the width to pay for it.
+   */
+  .studio-section__inner {
+    inline-size: auto;
+    margin-inline: 0;
+    padding-inline: calc(var(--page-gutter) + clamp(1.5rem, 4.5vw, 5.5rem))
+      calc(var(--page-gutter) + var(--edge-rail-clearance));
+    padding-block: clamp(4.5rem, 8vw, 7.5rem);
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    /* The two fr spacers hang the text block a little above centre. */
+    grid-template-rows: minmax(0, 0.55fr) auto auto auto minmax(0, 1fr);
+    grid-template-areas:
+      '. media'
+      'title media'
+      'lede media'
+      'cta media'
+      '. media';
+    column-gap: clamp(2.5rem, 5vw, 6rem);
+  }
+
+  .studio-section__title {
+    font-size: clamp(2.5rem, 3.8vw, 5rem);
+  }
+
+  .studio-section__media {
+    align-self: center;
+    justify-self: end;
+    max-inline-size: 60rem;
+    margin: 0;
+  }
+}
+
+/* A short laptop keeps the whole spread inside one sticky screen. */
+@media (min-width: 64.01rem) and (max-height: 50rem) {
+  .studio-section__inner {
+    padding-block: clamp(3.5rem, 8vh, 5rem);
+  }
+}

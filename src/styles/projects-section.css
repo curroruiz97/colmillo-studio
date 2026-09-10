@@ -2,7 +2,7 @@
  * Home project rail.
  *
  * The images are the section. At rest a tile is only its picture; the title
- * rides in on a cream cut-out that bites up into the bottom-left corner of the
+ * rides in on a page-coloured cut-out that bites up into the bottom-left corner of the
  * image on hover or keyboard focus, and stays open on screens without hover.
  *
  * Two layouts share the same markup:
@@ -22,7 +22,7 @@
   position: relative;
   z-index: 8;
   overflow: clip;
-  background: var(--color-brand-cream);
+  background: var(--color-background);
   color: var(--color-brand-ink);
 }
 
@@ -133,7 +133,7 @@
   scroll-snap-align: end;
 }
 
-/* The hero's bite button, a size up, with its ink offset on cream. */
+/* The hero's bite button, a size up, with its ink offset on the page. */
 .projects-section__cta {
   min-block-size: 4.75rem;
   padding: 1.2rem 2.6rem;
@@ -194,7 +194,7 @@
   gap: 0.5rem;
   padding: 0.7rem 1rem 0.05rem 0.35rem;
   border-start-end-radius: var(--notch);
-  background: var(--color-brand-cream);
+  background: var(--color-background);
   transform: translateY(calc(100% + var(--notch)));
   transition: transform 460ms var(--ease-bite);
 }
@@ -207,7 +207,7 @@
   background: radial-gradient(
     circle at 100% 0,
     transparent calc(var(--notch) - 0.5px),
-    var(--color-brand-cream) var(--notch)
+    var(--color-background) var(--notch)
   );
   content: '';
 }

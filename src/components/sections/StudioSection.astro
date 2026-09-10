@@ -1,34 +1,93 @@
 ---
-import { demoMode } from '@/data/projects';
+/**
+ * COLMILLO STUDIO — home section 03
+ *
+ * A quiet editorial spread: a large headline, one supporting line and the
+ * route into /studio/ on the left, the client's character loop on the right,
+ * and a lot of white around both. The loop is the only protagonist.
+ *
+ * The loop is decorative — it carries nothing the page does not already say —
+ * so it is hidden from assistive technology and takes no pointer interaction.
+ * Its paper is the section's own white (see `scripts/prepare-studio-media.mjs`),
+ * so it sits on the canvas with no frame, card or plate.
+ *
+ * The headline comes from `homeStudio`. While it is demonstration copy the
+ * section carries `data-dev-placeholder`, which `check:production` forbids in
+ * the standard build.
+ */
+import { studioMedia } from '@/config/assets';
+import { homeStudio } from '@/data/studio';
+
+const { title, lede, placeholder } = homeStudio;
 ---
 
 <section
   id="studio"
-  class="stack-section stack-section--orange studio-section"
+  class="stack-section stack-section--cream studio-section"
   aria-labelledby="studio-title"
   data-stack-section
-  data-surface-tone="accent"
+  data-surface-tone="light"
+  data-studio
+  data-dev-placeholder={placeholder ? '' : undefined}
 >
-  <div class="content-shell studio-section__grid">
-    <p class="section-index" aria-hidden="true">03</p>
+  <div class="content-shell studio-section__inner">
     <h2 id="studio-title" class="studio-section__title">
-      <span>COLMILLO</span>
-      <span>STUDIO</span>
+      {
+        title.map((line) => (
+          <span class="studio-section__line">
+            <span data-studio-line>
+              {line.text}{' '}
+              {line.accent && (
+                <span class="studio-section__accent">{line.accent} </span>
+              )}
+            </span>
+          </span>
+        ))
+      }
     </h2>
-    <div class="studio-section__seal" aria-hidden="true" data-deformable>
-      <span>Presión</span>
-      <span>Materia</span>
-      <span>Movimiento</span>
-    </div>
-    <a class="section-route" href="/studio/" data-cursor-label="Abrir">
-      Abrir Studio <span aria-hidden="true">↗</span>
-    </a>
+
     {
-      demoMode && (
-        <p class="dev-note" data-dev-placeholder>
-          El texto de estudio se incorporará cuando el cliente apruebe el copy.
+      lede && (
+        <p class="studio-section__lede" data-studio-reveal>
+          {lede}
         </p>
       )
     }
+
+    {
+      /* Same bite button as the hero and the manifesto. The wrapper carries the
+        entry reveal and the link carries the magnetic pull, because both drive
+        `transform` and would overwrite each other on one element. */
+    }
+    <div class="studio-section__cta" data-studio-reveal>
+      <a
+        class="bite-button studio-section__button"
+        href="/studio/"
+        data-magnetic
+        data-cursor-label="Abrir"
+      >
+        <span>Abrir Studio</span>
+      </a>
+    </div>
+
+    <div class="studio-section__media" data-studio-media>
+      <video
+        class="studio-section__video"
+        muted
+        loop
+        playsinline
+        preload="none"
+        poster={studioMedia.poster}
+        width={studioMedia.width}
+        height={studioMedia.height}
+        aria-hidden="true"
+        tabindex="-1"
+        data-studio-video
+        data-studio-start={studioMedia.posterTime}
+      >
+        <source src={studioMedia.webm} type="video/webm" />
+        <source src={studioMedia.mp4} type="video/mp4" />
+      </video>
+    </div>
   </div>
 </section>

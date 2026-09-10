@@ -2,13 +2,15 @@
 import { getCollection } from 'astro:content';
 import ContactSection from '@/components/sections/ContactSection.astro';
 import GoodbyeSection from '@/components/sections/GoodbyeSection.astro';
+import HomeIntro from '@/components/intro/HomeIntro.astro';
+import HomeIntroBoot from '@/components/intro/HomeIntroBoot.astro';
 import HeroSection from '@/components/sections/HeroSection.astro';
 import IntroSection from '@/components/sections/IntroSection.astro';
 import ProjectsHorizontal from '@/components/sections/ProjectsHorizontal.astro';
 import ServicesSection from '@/components/sections/ServicesSection.astro';
 import StudioSection from '@/components/sections/StudioSection.astro';
-import { goodbyeMedia } from '@/config/assets';
 import { contentAvailability } from '@/config/content';
+import { homeGoodbye } from '@/data/goodbye';
 import {
   demoMode,
   demoProjects,
@@ -33,11 +35,13 @@ const showIntro = demoMode || contentAvailability.homeIntro;
 ---
 
 <BaseLayout>
+  <HomeIntroBoot slot="head" />
+  <HomeIntro slot="overlay" />
   <HeroSection />
   {showIntro && <IntroSection />}
   {(demoMode || contentAvailability.services) && <ServicesSection />}
   <ProjectsHorizontal projects={projects} />
   {(demoMode || contentAvailability.studio) && <StudioSection />}
-  {(demoMode || goodbyeMedia) && <GoodbyeSection />}
+  {homeGoodbye && <GoodbyeSection content={homeGoodbye} />}
   <ContactSection />
 </BaseLayout>

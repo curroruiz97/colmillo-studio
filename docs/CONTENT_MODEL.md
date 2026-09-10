@@ -74,8 +74,11 @@ ensure those markers and messages are absent.
 ## Motion Media
 
 Hero and goodbye media are configured in `src/config/assets.ts`. Each approved
-slot requires local WebM and MP4 sources, a poster, and intrinsic width/height.
-Keep the slot `null` until all derivatives exist and have been visually checked.
+video slot requires local WebM and MP4 sources, a poster, and intrinsic
+width/height. The goodbye slot, `goodbyeVisual`, may instead be a still image
+(`kind: 'image'`, with intrinsic width/height). Keep a slot `null` until all
+derivatives exist and have been visually checked. The goodbye slides' copy
+lives in `src/data/goodbye.ts` (`approvedGoodbye`).
 `npm run check:production` rejects raw GIFs in the generated site.
 `npm run check:assets` reports missing official files without blocking prelaunch;
 set `REQUIRE_CLIENT_ASSETS=true` in release CI to make the intake mandatory.

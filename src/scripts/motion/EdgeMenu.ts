@@ -165,10 +165,77 @@ export function initEdgeMenu(): () => void {
     ease: 'power2.out',
   });
   let offset = 0;
+
+  /* -------------------------------------------------------- tab tone -- */
+
+  /**
+   * The tab is brand orange, so on an orange surface it would disappear. The
+   * colour actually painted under its resting point is sampled - the first
+   * opaque background among the hit-testable elements there, the menu itself
+   * excluded - and the menu is marked `data-tab-tone="accent"` when that is the
+   * brand orange, which the stylesheet turns ink. At most one sample per frame,
+   * only after a scroll, a resize or a vertical move, never while open.
+   */
+  const ORANGE = [205, 87, 48];
+  const ORANGE_TOLERANCE = 28;
+  const backgroundUnder = (x: number, y: number) => {
+    for (const element of document.elementsFromPoint(x, y)) {
+      if (menu.contains(element)) continue;
+      const channels = getComputedStyle(element)
+        .backgroundColor.match(/[\d.]+/g)
+        ?.map(Number);
+      if (!channels || channels.length < 3 || (channels[3] ?? 1) < 0.5) {
+        continue;
+      }
+      // A faded layer (a decorative mark at 28% opacity) does not hide what
+      // is painted beneath it, so it does not decide the tone either.
+      let opacity = 1;
+      for (
+        let node: Element | null = element;
+        node && opacity >= 0.5;
+        node = node.parentElement
+      ) {
+        opacity *= Number(getComputedStyle(node).opacity);
+      }
+      if (opacity < 0.5) continue;
+      return channels;
+    }
+    return null;
+  };
+  let toneFrame = 0;
+  const sampleTone = () => {
+    toneFrame = 0;
+    if (isOpen(state)) return;
+    const color = backgroundUnder(window.innerWidth - 8, metrics.half + offset);
+    const accent =
+      color !== null &&
+      ORANGE.every(
+        (channel, index) =>
+          Math.abs((color[index] ?? 0) - channel) <= ORANGE_TOLERANCE,
+      );
+    if (accent) menu.dataset.tabTone = 'accent';
+    else delete menu.dataset.tabTone;
+  };
+  const queueTone = () => {
+    if (!toneFrame) toneFrame = requestAnimationFrame(sampleTone);
+  };
+  /*
+   * Scroll-driven layers (the stack reveal, scrubbed timelines) finish moving a
+   * few frames after the scroll event, so one more sample follows once the
+   * page has settled.
+   */
+  let settleTimer = 0;
+  const onScroll = () => {
+    queueTone();
+    window.clearTimeout(settleTimer);
+    settleTimer = window.setTimeout(queueTone, 180);
+  };
+
   const placeY = (next: number) => {
     offset = next;
     if (motionReduced()) gsap.set(carrier, { y: next });
     else followY(next);
+    queueTone();
   };
 
   /* ------------------------------------------------------ close control -- */
@@ -345,6 +412,7 @@ export function initEdgeMenu(): () => void {
     measure();
     if (isOpen(state)) placeY(limit(offset, EDGE_MARGIN, metrics.closeHalf));
     else if (state === 'closed') placeY(0);
+    queueTone();
   };
 
   /* ------------------------------------------------- reported home scene -- */
@@ -411,6 +479,11 @@ export function initEdgeMenu(): () => void {
   /* ------------------------------------------------------------- wiring -- */
 
   measure();
+  queueTone();
+  window.addEventListener('scroll', onScroll, { passive: true });
+  // The page enters with an opacity reveal on `main`; sample again once any
+  // entry animation has finished, so the first tone is the settled one.
+  document.addEventListener('animationend', queueTone);
   disclosure.addEventListener('toggle', onToggle);
   menu.addEventListener('click', onMenuClick);
   trigger.addEventListener('focus', onTriggerFocus);
@@ -430,6 +503,11 @@ export function initEdgeMenu(): () => void {
       applyOpenState(false);
     }
     cancelCollapse();
+    cancelAnimationFrame(toneFrame);
+    window.clearTimeout(settleTimer);
+    window.removeEventListener('scroll', onScroll);
+    document.removeEventListener('animationend', queueTone);
+    delete menu.dataset.tabTone;
     observer.disconnect();
     ratios.clear();
     disclosure.removeEventListener('toggle', onToggle);

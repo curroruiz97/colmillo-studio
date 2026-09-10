@@ -131,9 +131,9 @@ body {
   /* Flat against the viewport edge, organic where it bites into the page. */
   border-radius: 62% 0 0 56% / 50% 0 0 50%;
   /*
-   * Brand orange on every surface: the tab is the affordance, so it never
-   * follows `data-surface-tone` and never disappears when a section's tone and
-   * its media disagree.
+   * Brand orange, except where the page under it is orange too (see below). It
+   * never follows a section's declared `data-surface-tone`, which can disagree
+   * with its media; only the colour actually painted under the tab counts.
    */
   background: var(--color-brand-orange);
   color: var(--color-brand-ink);
@@ -141,7 +141,19 @@ body {
   transform: translateX(calc(var(--edge-tab-width) - var(--edge-tab-rest)));
   transition:
     transform 360ms var(--ease-bite),
-    border-radius var(--duration-medium) var(--ease-bite);
+    border-radius var(--duration-medium) var(--ease-bite),
+    background-color var(--duration-fast) linear,
+    color var(--duration-fast) linear;
+}
+
+/*
+ * An orange tab on an orange surface would vanish. `EdgeMenu.ts` samples the
+ * colour painted under the tab and marks `data-tab-tone="accent"` when it is
+ * the brand orange; the tab turns ink there and its rules turn cream.
+ */
+.edge-menu[data-tab-tone='accent'] .edge-menu__tab {
+  background: var(--color-brand-ink);
+  color: var(--color-brand-cream);
 }
 
 .edge-menu[data-state='tracking'] .edge-menu__tab,
@@ -460,7 +472,7 @@ body {
   font-weight: 850;
   letter-spacing: -0.06em;
   line-height: 0.88;
-  text-transform: uppercase;
+  /* Sentence case, as written in `primaryNavigation`: "Inicio", "Manifiesto". */
   /*
    * The global rule allows breaking anywhere, which would split a route name
    * mid-word. A label is a single word: it must stay whole.

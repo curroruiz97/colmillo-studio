@@ -1,0 +1,55 @@
+---
+/**
+ * Decides, before the first paint, whether this load of the home plays the
+ * entry intro, and publishes the answer as `html[data-intro]`.
+ *
+ * It must run in the head: the overlay is `display: none` until that attribute
+ * exists, so without JavaScript the home is simply visible, and with it the
+ * first frame is already the solid intro ground instead of a flash of the page.
+ *
+ * The attribute is also the scroll lock and the cursor hold (`home-intro.css`).
+ * If the intro module never claims it (a failed or blocked script), the timer
+ * hands the page back after four seconds.
+ *
+ * Skipped: returns to the home in the same tab session (`repeat: 'session'`),
+ * deep links to a fragment and history traversal. A reload of the home plays
+ * it again when `replayOnReload` is set.
+ *
+ * A reload would otherwise restore the old scroll position and open the O onto
+ * the middle of the page, so the browser's restoration is paused for this load
+ * and `HomeIntro.ts` hands it back when the intro ends.
+ */
+import { homeIntro } from '@/config/intro';
+
+const boot = `(() => {
+  const intro = ${JSON.stringify(homeIntro)};
+  const root = document.documentElement;
+  if (location.hash) return;
+  const navigation = performance.getEntriesByType('navigation')[0];
+  const type = navigation ? navigation.type : 'navigate';
+  if (type === 'back_forward') return;
+  const replay = type === 'reload' && intro.replayOnReload;
+  if (intro.repeat === 'session') {
+    try {
+      if (sessionStorage.getItem(intro.storageKey) && !replay) return;
+      sessionStorage.setItem(intro.storageKey, 'true');
+    } catch {
+      // Storage can be blocked; the intro then plays without memory.
+    }
+  }
+  if (type === 'reload' && 'scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+  }
+  root.dataset.intro = matchMedia('(prefers-reduced-motion: reduce)').matches
+    ? 'reduced'
+    : 'full';
+  setTimeout(() => {
+    if (root.dataset.intro && !root.dataset.introState) {
+      delete root.dataset.intro;
+      history.scrollRestoration = 'auto';
+    }
+  }, 4000);
+})();`;
+---
+
+{homeIntro.enabled && <script is:inline set:html={boot} />}

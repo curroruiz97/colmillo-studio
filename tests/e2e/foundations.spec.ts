@@ -1,4 +1,13 @@
 import { expect, test, type Page } from '@playwright/test';
+import { homeIntro } from '../../src/config/intro';
+
+// The home entry intro has its own spec (intro.spec.ts); here it would only
+// cover the page for its first seconds, so every test starts as a return visit.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript((key) => {
+    sessionStorage.setItem(key, 'true');
+  }, homeIntro.storageKey);
+});
 
 /** Width of the closed tab that is actually inside the viewport. */
 async function visibleTabWidth(page: Page): Promise<number> {
@@ -76,22 +85,41 @@ test('the hero publishes the official loop over a full first screen', async ({
   // The approved client loop, with both responsive sources and a poster.
   const video = page.locator('.hero__media');
   await expect(video).toHaveCount(1);
-  await expect(video).toHaveAttribute('poster', /hero-poster\.webp$/);
+  await expect(video).toHaveAttribute('poster', /hero-poster-white\.webp$/);
   await expect(video).toHaveAttribute('muted', '');
   await expect(video).toHaveAttribute('playsinline', '');
   await expect(video).toHaveAttribute('loop', '');
   const sources = await video
     .locator('source')
     .evaluateAll((nodes) => nodes.map((node) => node.getAttribute('src')));
+  // The white-paper derivatives, matching the white surface behind them.
   expect(sources).toEqual([
-    '/assets/motion/hero/hero-mobile.webm',
-    '/assets/motion/hero/hero-mobile.mp4',
-    '/assets/motion/hero/hero-desktop.webm',
-    '/assets/motion/hero/hero-desktop.mp4',
+    '/assets/motion/hero/hero-mobile-white.webm',
+    '/assets/motion/hero/hero-mobile-white.mp4',
+    '/assets/motion/hero/hero-desktop-white.webm',
+    '/assets/motion/hero/hero-desktop-white.mp4',
   ]);
 
   // The loop is decorative: it carries no name into the accessibility tree.
   await expect(video).toHaveAttribute('aria-hidden', 'true');
+
+  // White canvas; the ring and the scroll dot carry the brand orange.
+  await expect(page.locator('.hero')).toHaveCSS(
+    'background-color',
+    'rgb(255, 255, 255)',
+  );
+  await expect(page.locator('.hero__media-frame')).toHaveCSS(
+    'background-color',
+    'rgb(255, 255, 255)',
+  );
+  await expect(page.locator('.hero__shape--ring')).toHaveCSS(
+    'border-top-color',
+    'rgb(205, 87, 48)',
+  );
+  await expect(page.locator('.hero__scroll-dot')).toHaveCSS(
+    'background-color',
+    'rgb(205, 87, 48)',
+  );
 
   // The provisional kinetic composition and its notice are gone for good.
   await expect(page.locator('[data-hero-stage]')).toHaveCount(0);
@@ -320,6 +348,51 @@ test('the edge tab stays brand orange under the cursor', async ({
   await closer.hover();
   await expect(closer).toHaveCSS('background-color', ORANGE);
   await expect(closer).toHaveCSS('color', INK);
+});
+
+test('the edge tab turns ink over an orange surface and back', async ({
+  page,
+}) => {
+  const ORANGE = 'rgb(205, 87, 48)';
+  const INK = 'rgb(18, 16, 15)';
+  const tab = page.locator('[data-edge-tab]');
+
+  // The contact hero is painted brand orange, so the orange tab would vanish.
+  await page.goto('/contacto/');
+  await expect(page.locator('[data-edge-menu]')).toHaveAttribute(
+    'data-tab-tone',
+    'accent',
+  );
+  await expect(tab).toHaveCSS('background-color', INK);
+
+  // Scrolled onto the ink channels, it is orange again.
+  await page.locator('.contact-page__channels').evaluate((section) => {
+    window.scrollTo({
+      top:
+        section.getBoundingClientRect().top +
+        window.scrollY -
+        window.innerHeight / 4,
+      behavior: 'instant',
+    });
+  });
+  await expect(tab).toHaveCSS('background-color', ORANGE);
+
+  // On the white home it stays orange.
+  await page.goto('/');
+  await expect(tab).toHaveCSS('background-color', ORANGE);
+});
+
+test('menu routes are written in sentence case', async ({ page }) => {
+  await page.goto('/');
+  const labels = page.locator('.edge-menu__list strong');
+  await expect(labels.first()).toHaveCSS('text-transform', 'none');
+  expect(await labels.allTextContents()).toEqual([
+    'Inicio',
+    'Manifiesto',
+    'Studio',
+    'Proyectos',
+    'Contacto',
+  ]);
 });
 
 test('the closed edge menu keeps the panel out of reach', async ({ page }) => {

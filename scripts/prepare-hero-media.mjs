@@ -5,32 +5,41 @@
  * The master (`media-src/WEB.webm`) is never modified.
  *
  * The artwork is black line art drawn on a uniform off-white sheet measured at
- * RGB(250, 250, 250). The hero surface behind it is flat
- * `--color-brand-cream`. Two steps follow from that:
+ * RGB(250, 250, 250). The hero surface behind it is a flat page colour, the
+ * "paper target" chosen with `--paper=`:
  *
- * 1. COLOUR. Every channel is mapped `cream * min(1, value / 250)`, so the
- *    sheet becomes exactly the page cream and every antialiased edge already
- *    blends ink into cream. Nothing else is graded.
+ * - `white` (default): `--color-white`, the light surface since 2026-09-10.
+ *   Writes `hero-*-white.*`, the files the site publishes.
+ * - `cream`: `--color-brand-cream`, the original surface. Writes the original
+ *   unsuffixed `hero-*.*` set, byte-identical to the first delivery.
+ *
+ * Two steps follow from that:
+ *
+ * 1. COLOUR. Every channel is mapped `paper * min(1, value / 250)`, so the
+ *    sheet becomes exactly the page colour and every antialiased edge already
+ *    blends ink into it. The master is neutral grey, so on white this is a
+ *    uniform 2% lift and the ink keeps its colour. Nothing else is graded.
  *
  * 2. ALPHA. Any pixel at or above `SHEET_THRESHOLD` becomes fully transparent.
- *    Because those pixels were already mapped to cream, cutting them is exact:
- *    it cannot produce a halo, and it removes the codec's 1-3 level drift
- *    across a large flat field, which is visible as a faint rectangle when the
- *    loop sits on a flat cream page.
+ *    Because those pixels were already mapped to the page colour, cutting them
+ *    is exact: it cannot produce a halo, and it removes the codec's 1-3 level
+ *    drift across a large flat field, which is visible as a faint rectangle
+ *    when the loop sits on a flat page.
  *
  *    The cut is deliberately not limited to sheet connected to the frame
  *    border. The figures contain large interior white areas — faces, shirts,
  *    shoes, a handbag, the cathedral — drawn in exactly the sheet colour. A
  *    border-seeded flood fill keeps those opaque, which is what produced the
- *    drift in the first place. Letting the page cream show through them is
+ *    drift in the first place. Letting the page show through them is
  *    identical in appearance and exact in colour.
  *
- *    The consequence is a real constraint: this derivative is composited for a
- *    cream surface. It must not be placed over another colour without being
- *    regenerated.
+ *    The consequence is a real constraint: each derivative is composited for
+ *    its paper target. It must not be placed over another colour without being
+ *    regenerated for it; `npm run check:hero` fails if the published set does
+ *    not match `--color-background`.
  *
  * A decoder that ignores WebM alpha still renders the correct picture, because
- * the colour plane alone is already the artwork flattened over the page cream.
+ * the colour plane alone is already the artwork flattened over the page colour.
  * The MP4 fallback is that same flattened picture, opaque.
  *
  * Requires ffmpeg/ffprobe on PATH, or FFMPEG_PATH pointing at the bin folder.
@@ -79,6 +88,21 @@ const CROP = { width: 2880, height: 2160, x: 588, y: 0 };
 const PAPER = 250;
 /** Must stay identical to `--color-brand-cream` in `src/styles/tokens.css`. */
 const CREAM = [0xfc, 0xee, 0xda];
+/** Must stay identical to `--color-white` in `src/styles/tokens.css`. */
+const WHITE = [0xff, 0xff, 0xff];
+
+/** Page colours the sheet can be composited for, and their file suffixes. */
+const PAPER_TARGETS = {
+  white: { rgb: WHITE, suffix: '-white' },
+  cream: { rgb: CREAM, suffix: '' },
+};
+const paperName =
+  process.argv.find((argument) => argument.startsWith('--paper='))?.slice(8) ??
+  'white';
+const paper = PAPER_TARGETS[paperName];
+if (!paper) {
+  throw new Error(`Unknown --paper=${paperName}. Use "white" or "cream".`);
+}
 /**
  * A pixel at or above this luminance is sheet. The measured sheet floor is 247,
  * so this clears the paper and its noise while staying far above the ink and
@@ -120,11 +144,11 @@ function run(command, args, options = {}) {
   });
 }
 
-/** Maps one decoded RGB frame to cream-flattened RGBA with the sheet cut out. */
+/** Maps one decoded RGB frame to paper-flattened RGBA with the sheet cut out. */
 function createTransformer(width, height) {
   const pixels = width * height;
-  // Lookup from source channel value to the cream-flattened channel value.
-  const map = CREAM.map((channel) => {
+  // Lookup from source channel value to the paper-flattened channel value.
+  const map = paper.rgb.map((channel) => {
     const table = new Uint8Array(256);
     for (let value = 0; value < 256; value += 1) {
       table[value] = Math.round(channel * Math.min(1, value / PAPER));
@@ -253,14 +277,14 @@ await mkdir(outputDirectory, { recursive: true });
 
 for (const target of targets) {
   process.stdout.write(`\n${target.name} (${target.width}x${target.height})\n`);
-  const master = join(workDirectory, `master-${target.name}.mkv`);
+  const master = join(workDirectory, `master-${target.name}-${paperName}.mkv`);
   if (keepWork && existsSync(master)) {
     process.stdout.write('  reusing existing lossless master\n');
   } else {
     await buildMaster(target, master);
   }
 
-  const webm = join(outputDirectory, `hero-${target.name}.webm`);
+  const webm = join(outputDirectory, `hero-${target.name}${paper.suffix}.webm`);
   await run(
     ffmpeg,
     flags([
@@ -285,8 +309,8 @@ for (const target of targets) {
   await report(webm);
 
   // No portable MP4 carries alpha, so the fallback is the same picture already
-  // flattened over the page cream. It is visually identical over the hero.
-  const mp4 = join(outputDirectory, `hero-${target.name}.mp4`);
+  // flattened over the page colour. It is visually identical over the hero.
+  const mp4 = join(outputDirectory, `hero-${target.name}${paper.suffix}.mp4`);
   await run(
     ffmpeg,
     flags([
@@ -305,7 +329,7 @@ for (const target of targets) {
   await report(mp4);
 
   if (target.name === 'desktop') {
-    const poster = join(outputDirectory, 'hero-poster.webp');
+    const poster = join(outputDirectory, `hero-poster${paper.suffix}.webp`);
     await run(
       ffmpeg,
       flags([
@@ -324,4 +348,4 @@ for (const target of targets) {
 
 if (!keepWork) await rm(workDirectory, { recursive: true, force: true });
 
-process.stdout.write('\nHero media prepared.\n');
+process.stdout.write(`\nHero media prepared for the ${paperName} paper.\n`);

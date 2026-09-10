@@ -1,4 +1,13 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import { homeIntro } from '../../src/config/intro';
+
+// The home entry intro plays once per tab and locks scrolling while it runs.
+// These specs measure the page behind it, so they start as a returning visit.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript((key) => {
+    sessionStorage.setItem(key, 'true');
+  }, homeIntro.storageKey);
+});
 
 const demoNames = [
   'Fauce Elástica',
@@ -536,6 +545,11 @@ test('the services block keeps every entry readable in all modes', async ({
     'color',
     'rgb(205, 87, 48)',
   );
+  // Capital initial only, never forced into capitals.
+  await expect(section.locator('.service-entry__title').first()).toHaveCSS(
+    'text-transform',
+    'none',
+  );
 });
 
 test('the services block is an even 2x2 beside the heading on desktop', async ({
@@ -563,7 +577,7 @@ test('the services block is an even 2x2 beside the heading on desktop', async ({
     ),
     section.locator('.services-section__illustration').evaluate((node) => {
       const rect = node.getBoundingClientRect();
-      return { top: rect.top, width: rect.width };
+      return { top: rect.top, right: rect.right, width: rect.width };
     }),
   ]);
 
@@ -596,6 +610,17 @@ test('the services block is an even 2x2 beside the heading on desktop', async ({
   // down: the first row starts above the art, not after it.
   expect(art.width).toBeGreaterThan(360);
   expect(estrategia.y).toBeLessThan(art.top);
+
+  // A full screen, and a wide channel of ink between the art and the 2x2.
+  const viewportHeight = page.viewportSize()?.height ?? 0;
+  const sectionHeight = await section.evaluate(
+    (node) => node.getBoundingClientRect().height,
+  );
+  expect(sectionHeight).toBeGreaterThanOrEqual(viewportHeight - 1);
+  expect(estrategia.x - art.right).toBeGreaterThanOrEqual(80);
+  // It holds the screen like every stack layer instead of scrolling away and
+  // exposing the project rail under it.
+  await expect(section).toHaveCSS('position', 'sticky');
 });
 
 test('the route into the archive closes the project rail', async ({ page }) => {
@@ -997,7 +1022,13 @@ test('the home manifesto builds its composition without scaling the type', async
   expect(final.romper!.left).toBeGreaterThan(final.presionar!.right);
   expect(final.romper!.right).toBeLessThanOrEqual(final.band!.right);
   expect(final.marca!.top).toBeGreaterThan(final.morder!.bottom);
-  expect(final.marca!.right).toBeLessThan(final.figure!.left);
+  // The file carries wide transparent margins, so the box may reach under
+  // "Dejar marca."; the drawn ink, which starts 310/1600 into the image, must
+  // keep clear air from it.
+  const inkLeft =
+    final.figure!.left +
+    (final.figure!.right - final.figure!.left) * (310 / 1600);
+  expect(final.marca!.right + 48).toBeLessThan(inkLeft);
   expect(final.overflow).toBeLessThanOrEqual(1);
 
   for (const selector of [
@@ -1060,4 +1091,363 @@ test('the home manifesto is a finished poster under reduced motion', async ({
     expect(entry!.height).toBeGreaterThan(0);
   }
   expect(state.overflow).toBeLessThanOrEqual(1);
+});
+
+/** Walks the home down until `#studio` sits at the top of the viewport. */
+async function scrollStudioToTop(page: Page) {
+  const section = page.locator('#studio');
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    await section.evaluate((element) => {
+      window.scrollTo({
+        top: element.getBoundingClientRect().top + window.scrollY,
+        behavior: 'auto',
+      });
+    });
+    await page.waitForTimeout(350);
+    const offset = await section.evaluate(
+      (element) => element.getBoundingClientRect().top,
+    );
+    if (Math.abs(offset) < 2) break;
+  }
+  await page.waitForTimeout(1400);
+}
+
+async function measureStudio(page: Page) {
+  return page.locator('#studio').evaluate((section) => {
+    const box = (selector: string) => {
+      const element = section.querySelector(selector);
+      if (!element) return null;
+      const rect = element.getBoundingClientRect();
+      return {
+        left: rect.left,
+        right: rect.right,
+        top: rect.top,
+        bottom: rect.bottom,
+        width: rect.width,
+      };
+    };
+    const shell = section.querySelector('.content-shell')!;
+    return {
+      viewport: { width: window.innerWidth, height: window.innerHeight },
+      overflow:
+        document.documentElement.scrollWidth -
+        document.documentElement.clientWidth,
+      shellOpacity: Number(getComputedStyle(shell).opacity),
+      title: box('.studio-section__title')!,
+      lede: box('.studio-section__lede')!,
+      cta: box('.studio-section__button')!,
+      media: box('.studio-section__video')!,
+    };
+  });
+}
+
+test('the studio spread pairs an editorial headline with the loop', async ({
+  page,
+}, testInfo) => {
+  await page.goto('/');
+  const section = page.locator('#studio');
+
+  // The copy is still a demonstration placeholder, kept machine-detectable so
+  // `check:production` can keep it out of `dist/`.
+  await expect(section).toHaveAttribute('data-dev-placeholder');
+  await expect(section.getByRole('heading', { level: 2 })).toHaveText(
+    'Tensamos cada idea hasta que muerde.',
+  );
+  await expect(section).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+
+  // The retired orange composition must stay retired: no seal, no underlined
+  // route, no visible development note.
+  await expect(
+    section.locator('.studio-section__seal, [data-deformable], .section-route'),
+  ).toHaveCount(0);
+  await expect(section.locator('.dev-note')).toHaveCount(0);
+  await expect(section.getByText(/se incorporará cuando/)).toHaveCount(0);
+  // No section label: the headline opens the section.
+  await expect(section.locator('.studio-section__eyebrow')).toHaveCount(0);
+  await expect(section.getByText(/Colmillo \/ Studio/i)).toHaveCount(0);
+
+  // The headline never sets in more than two lines.
+  const titleLines = await section
+    .locator('.studio-section__title')
+    .evaluate((title) => {
+      const style = getComputedStyle(title);
+      const lineHeight =
+        Number.parseFloat(style.lineHeight) ||
+        Number.parseFloat(style.fontSize);
+      return Math.round(title.getBoundingClientRect().height / lineHeight);
+    });
+  expect(titleLines).toBeLessThanOrEqual(2);
+
+  // The route is the shared bite button.
+  const cta = section.getByRole('link', { name: 'Abrir Studio' });
+  await expect(cta).toHaveAttribute('href', '/studio/');
+  await expect(cta).toHaveClass(/bite-button/);
+
+  // The loop is decorative, silent and fetched only when it is needed.
+  const video = section.locator('video');
+  await expect(video).toHaveAttribute('aria-hidden', 'true');
+  expect(
+    await video.evaluate((element: HTMLVideoElement) => ({
+      muted: element.muted,
+      loop: element.loop,
+      playsInline: element.playsInline,
+      controls: element.controls,
+      autoplay: element.autoplay,
+      preload: element.preload,
+    })),
+  ).toEqual({
+    muted: true,
+    loop: true,
+    playsInline: true,
+    controls: false,
+    autoplay: false,
+    preload: 'none',
+  });
+
+  await scrollStudioToTop(page);
+  const state = await measureStudio(page);
+  expect(state.overflow).toBeLessThanOrEqual(1);
+  // The section is not yet covered, so it must not be compressed. This is the
+  // regression guard for stack triggers measured before the rail's pin existed.
+  expect(state.shellOpacity).toBeGreaterThan(0.95);
+
+  const { viewport, title, lede, cta: button, media } = state;
+  // Nothing touches or crosses the viewport's sides.
+  expect(media.left).toBeGreaterThanOrEqual(8);
+  expect(media.right).toBeLessThanOrEqual(viewport.width - 8);
+
+  if (testInfo.project.name === 'fine-1440') {
+    // Two columns: the text well off the left edge, the loop to its right and
+    // wider than it, wholly inside one screen with air above and below.
+    expect(title.left).toBeGreaterThan(80);
+    expect(media.left).toBeGreaterThan(title.right + 32);
+    expect(media.left).toBeGreaterThan(lede.right);
+    expect(media.width).toBeGreaterThan(viewport.width * 0.4);
+    expect(media.width).toBeGreaterThan(title.width);
+    expect(media.top).toBeGreaterThan(viewport.height * 0.15);
+    expect(media.bottom).toBeLessThan(viewport.height * 0.85);
+    expect(button.bottom).toBeLessThan(viewport.height);
+  } else {
+    // Stacked: headline and supporting line above a near full-width loop.
+    expect(media.top).toBeGreaterThan(lede.bottom);
+    expect(media.width).toBeGreaterThan(viewport.width * 0.8);
+    if (testInfo.project.name === 'touch-390') {
+      expect(button.top).toBeGreaterThan(media.bottom);
+    } else {
+      expect(button.bottom).toBeLessThan(media.top);
+    }
+  }
+
+  // With motion allowed the loop plays once it is on screen.
+  await expect
+    .poll(() =>
+      video.evaluate(
+        (element: HTMLVideoElement) =>
+          !element.paused && element.currentTime > 0,
+      ),
+    )
+    .toBe(true);
+});
+
+test('the studio loop rests on its poster under reduced motion', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  await scrollStudioToTop(page);
+
+  const state = await page.locator('#studio').evaluate((section) => {
+    const video = section.querySelector('video')!;
+    const hidden = [
+      ...section.querySelectorAll(
+        '[data-studio-line], .studio-section__lede, .studio-section__cta, .studio-section__media',
+      ),
+    ].filter((element) => {
+      const style = getComputedStyle(element);
+      return (
+        Number(style.opacity) < 1 ||
+        style.visibility !== 'visible' ||
+        style.display === 'none'
+      );
+    }).length;
+    return {
+      motion: document.documentElement.dataset.motion,
+      paused: video.paused,
+      time: video.currentTime,
+      poster: video.getAttribute('poster'),
+      hidden,
+    };
+  });
+
+  expect(state.motion).toBe('reduced');
+  expect(state.paused).toBe(true);
+  expect(state.time).toBe(0);
+  expect(state.poster).toMatch(/studio-poster-white\.webp$/);
+  expect(state.hidden).toBe(0);
+});
+
+async function scrollGoodbyeToTop(page: Page) {
+  const section = page.locator('[data-goodbye]');
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    await section.evaluate((element) => {
+      window.scrollTo({
+        top: element.getBoundingClientRect().top + window.scrollY,
+        behavior: 'auto',
+      });
+    });
+    await page.waitForTimeout(350);
+    const offset = await section.evaluate(
+      (element) => element.getBoundingClientRect().top,
+    );
+    if (Math.abs(offset) < 2) break;
+  }
+  await page.waitForTimeout(600);
+}
+
+/** Boxes of the stage and the indices of the slides a reader can see. */
+async function measureGoodbye(page: Page) {
+  return page.locator('[data-goodbye]').evaluate((section) => {
+    const box = (element: Element | null) => {
+      const rect = element!.getBoundingClientRect();
+      return {
+        top: Math.round(rect.top),
+        left: Math.round(rect.left),
+        width: Math.round(rect.width),
+        height: Math.round(rect.height),
+      };
+    };
+    const slides = [...section.querySelectorAll('[data-goodbye-slide]')];
+    return {
+      viewportHeight: window.innerHeight,
+      index: (section as HTMLElement).dataset.goodbyeIndex ?? '0',
+      section: box(section),
+      composition: box(section.querySelector('.goodbye-section__composition')),
+      visual: box(section.querySelector('.goodbye-section__visual')),
+      visible: slides.flatMap((slide, position) => {
+        const style = getComputedStyle(slide);
+        return style.visibility === 'visible' && Number(style.opacity) > 0.5
+          ? [position]
+          : [];
+      }),
+      inert: slides.map((slide) => (slide as HTMLElement).inert),
+    };
+  });
+}
+
+test('the goodbye stage changes its copy over a visual that never moves', async ({
+  page,
+}, testInfo) => {
+  await page.goto('/');
+  const section = page.locator('[data-goodbye]');
+
+  // Structural placeholders only, kept machine-detectable so
+  // `check:production` keeps them out of `dist/`.
+  await expect(section).toHaveAttribute('data-dev-placeholder');
+  await expect(section).toHaveAttribute('data-goodbye-enhanced', 'true');
+  await expect(section.locator('[data-goodbye-slide]')).toHaveCount(3);
+
+  // Not a traditional carousel: one arrow button and nothing else to press,
+  // no visible counter, no autoplay.
+  const next = section.getByRole('button', { name: 'Siguiente' });
+  await expect(section.getByRole('button')).toHaveCount(1);
+  await expect(next).toHaveAttribute('aria-controls', 'goodbye-slides');
+  await expect(section.getByText(/\b\d+\s*\/\s*\d+\b/)).toHaveCount(0);
+
+  await scrollGoodbyeToTop(page);
+  const start = await measureGoodbye(page);
+  expect(start.visible).toEqual([0]);
+  expect(start.inert).toEqual([false, true, true]);
+  if (testInfo.project.name === 'fine-1440') {
+    // Exactly one screen on a desktop.
+    expect(start.section.height).toBe(start.viewportHeight);
+  } else {
+    expect(start.section.height).toBeGreaterThanOrEqual(start.viewportHeight);
+  }
+
+  // Nothing moves on its own.
+  await page.waitForTimeout(1500);
+  expect((await measureGoodbye(page)).index).toBe('0');
+
+  const advance = async (expected: string) => {
+    await expect
+      .poll(async () => {
+        const state = await measureGoodbye(page);
+        return `${state.index}:${state.visible.join(',')}`;
+      })
+      .toBe(`${expected}:${expected}`);
+    const state = await measureGoodbye(page);
+    // The copy changed; the layout, the section and the visual did not.
+    expect(state.composition).toEqual(start.composition);
+    expect(state.section).toEqual(start.section);
+    expect(state.visual).toEqual(start.visual);
+    return state;
+  };
+
+  await next.click();
+  const second = await advance('1');
+  expect(second.inert).toEqual([true, false, true]);
+
+  if (testInfo.project.name.startsWith('touch')) {
+    // A horizontal swipe to the left is the same request as the button.
+    await section.evaluate((element) => {
+      const at = (clientX: number) => ({
+        pointerType: 'touch',
+        isPrimary: true,
+        clientX,
+        clientY: 300,
+        bubbles: true,
+      });
+      element.dispatchEvent(new PointerEvent('pointerdown', at(260)));
+      element.dispatchEvent(new PointerEvent('pointerup', at(120)));
+    });
+  } else {
+    await next.click();
+  }
+  await advance('2');
+
+  // The last slide wraps to the first, still entering from the right, and the
+  // keyboard stays on the one control.
+  await next.focus();
+  await page.keyboard.press('Enter');
+  await advance('0');
+  await expect(next).toBeFocused();
+});
+
+test('the goodbye stage swaps its copy in place under reduced motion', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  await scrollGoodbyeToTop(page);
+  const start = await measureGoodbye(page);
+
+  await page.locator('[data-goodbye-next]').click();
+  const state = await measureGoodbye(page);
+  expect(state.index).toBe('1');
+  expect(state.visible, JSON.stringify(state)).toEqual([1]);
+  expect(state.composition).toEqual(start.composition);
+  // No travel: the new slide is already home.
+  const transform = await page
+    .locator('[data-goodbye-slide]')
+    .nth(1)
+    .evaluate((slide) => getComputedStyle(slide).transform);
+  expect(['none', 'matrix(1, 0, 0, 1, 0, 0)']).toContain(transform);
+});
+
+test.describe('without JavaScript', () => {
+  test.use({ javaScriptEnabled: false });
+
+  test('the goodbye stage lists every slide and hides its button', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    const section = page.locator('[data-goodbye]');
+    await expect(section.locator('[data-goodbye-next]')).toBeHidden();
+    const titles = section.locator('.goodbye-slide__title');
+    await expect(titles).toHaveCount(3);
+    for (let position = 0; position < 3; position += 1) {
+      await titles.nth(position).scrollIntoViewIfNeeded();
+      await expect(titles.nth(position)).toBeVisible();
+    }
+  });
 });

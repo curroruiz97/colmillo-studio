@@ -1,6 +1,6 @@
 /* COLMILLO HERO
  *
- * A single cream canvas. The client loop is the only thing that is allowed to
+ * A single white canvas. The client loop is the only thing that is allowed to
  * be loud; the wordmark, the CTA and the scroll hint are placed around a large
  * field of empty paper and never compete with it.
  *
@@ -12,7 +12,7 @@
  *   right edge    reserved for the fixed edge menu
  *
  * Two shapes carry the visual language and nothing more: a solid ink disc
- * entering from the bottom-left and an open ink ring bleeding off the
+ * entering from the bottom-left and an open orange ring bleeding off the
  * top-right. Both sit behind the loop, whose box is filled with the page colour
  * so nothing shows through the drawing's transparent paper.
  *
@@ -70,7 +70,7 @@
   isolation: isolate;
   min-block-size: 100svh;
   overflow: clip;
-  background: var(--color-brand-cream);
+  background: var(--color-background);
   color: var(--color-brand-ink);
 }
 
@@ -108,7 +108,7 @@
   aspect-ratio: 1;
   inset-block-start: clamp(-10rem, -11vw, -4.5rem);
   inset-inline-end: clamp(-9rem, -10vw, -4rem);
-  border: clamp(0.9rem, 2vw, 2.4rem) solid var(--color-brand-ink);
+  border: clamp(0.9rem, 2vw, 2.4rem) solid var(--color-brand-orange);
   border-radius: 52% 46% 50% 44% / 45% 54% 43% 56%;
 }
 
@@ -180,10 +180,9 @@
    * The loop has a real alpha channel, so without this the decor behind it -
    * the thin orange trace in particular - shows straight through the drawing's
    * empty paper. Filling the box with the page colour is invisible against the
-   * cream surface and makes the trace pass behind the loop instead of across
-   * it.
+   * surface and keeps the decor behind the loop instead of across it.
    */
-  background: var(--color-brand-cream);
+  background: var(--color-background);
   /* Height first: the smaller of the height budget and the height implied by
      the width cap. Width always follows from the ratio, so the frame is exactly
      the drawing and never letterboxes. */
@@ -238,7 +237,7 @@
 /* --------------------------------------------------------- scroll hint --- */
 
 /*
- * A single ink dot that drifts down and fades out. It is ornament, not an
+ * A single orange dot that drifts down and fades out. It is ornament, not an
  * affordance: the CTA and the edge menu are the ways out of the first screen,
  * so the hint stays out of the accessibility tree and out of the hit area.
  *
@@ -265,7 +264,7 @@
   aspect-ratio: 1;
   margin-inline-start: -0.2rem;
   border-radius: 50%;
-  background: var(--color-brand-ink);
+  background: var(--color-brand-orange);
   animation: hero-scroll-hint 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 

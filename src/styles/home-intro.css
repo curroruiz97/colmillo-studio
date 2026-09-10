@@ -1,0 +1,87 @@
+/* COLMILLO HOME INTRO
+ *
+ * Everything here is keyed on `html[data-intro]`, which only the head script
+ * of the home writes (`HomeIntroBoot.astro`). Without it - no JavaScript, a
+ * repeat visit in the same session, a deep link or a history traversal - the
+ * overlay does not exist visually and the page scrolls normally.
+ */
+
+.home-intro {
+  --intro-ground: var(--color-brand-ink);
+  --intro-mark: var(--color-brand-cream);
+
+  display: none;
+}
+
+/* Ink letters on the page's own light ground, so the O opens onto the same colour. */
+.home-intro[data-intro-theme='cream'] {
+  --intro-ground: var(--color-background);
+  --intro-mark: var(--color-brand-ink);
+}
+
+html[data-intro] {
+  /* The scroll lock. The indicator is hidden site-wide, so nothing shifts. */
+  overflow: hidden;
+}
+
+html[data-intro] .home-intro {
+  --intro-word: min(clamp(16rem, 60vw, 56rem), 125svh);
+
+  position: fixed;
+  z-index: var(--z-intro);
+  inset: 0;
+  display: grid;
+  place-items: center;
+  /*
+   * Belt and braces under the SVG ground, until the counter opens. The ground
+   * already covers the screen by itself; this only guarantees the first frame
+   * if an engine ever clipped the SVG to its box.
+   */
+  background: var(--intro-ground);
+  pointer-events: auto;
+  touch-action: none;
+  /* A script that never finishes must not keep the page behind ink. */
+  animation: home-intro-failsafe 0.4s linear 7s forwards;
+}
+
+html[data-intro-state='portal'] .home-intro {
+  background: transparent;
+}
+
+.home-intro__stage {
+  display: block;
+  inline-size: var(--intro-word);
+  block-size: auto;
+  overflow: visible;
+}
+
+.home-intro__ground,
+.home-intro__plug {
+  fill: var(--intro-ground);
+}
+
+.home-intro__letter {
+  fill: var(--intro-mark);
+}
+
+.home-intro__seed {
+  fill: var(--color-brand-orange);
+  opacity: 0;
+}
+
+/* The full sequence sets the word itself; the reduced one shows it at once. */
+html[data-intro='full'] .home-intro__letter {
+  opacity: 0;
+}
+
+/* The custom cursor waits for the page; the native pointer is untouched. */
+html[data-intro] .custom-cursor {
+  visibility: hidden;
+}
+
+@keyframes home-intro-failsafe {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}

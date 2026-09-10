@@ -1,56 +1,145 @@
 ---
-import { goodbyeMedia } from '@/config/assets';
-import { demoMode } from '@/data/projects';
+/**
+ * COLMILLO STUDIO — home goodbye stage (the pre-footer)
+ *
+ * Phase 1 of the redesign: architecture only. One full screen holding a
+ * permanent visual layer that never changes and, over it, an editorial block
+ * on the left — the slides' copy and one round arrow button hanging off the
+ * headline. The button moves the copy to the next slide horizontally; the
+ * visual stays put. No dots, counter, cards, thumbnails or autoplay.
+ *
+ * Every slide shares one grid cell and, through subgrid, the same title and
+ * body rows, so the block is as tall as its tallest slide and changing slides
+ * never moves the layout. Without JavaScript the slides are listed one after
+ * another and the button stays hidden; `GoodbyeSlides.ts` enhances.
+ *
+ * The final visual, copy, transition and CTA are still to be decided: see
+ * `docs/CONTENT_NEEDED.md`. While the slides are placeholders the section
+ * carries `data-dev-placeholder`, which `check:production` forbids in `dist/`.
+ */
+import { goodbyeVisual } from '@/config/assets';
+import type { GoodbyeContent } from '@/data/goodbye';
+
+interface Props {
+  content: GoodbyeContent;
+}
+
+const { label, slides, placeholder } = Astro.props.content;
+const slidesId = 'goodbye-slides';
 ---
 
 <section
   class="goodbye-section"
   aria-labelledby="goodbye-title"
+  aria-roledescription="carrusel"
   data-stack-section
-  data-surface-tone="accent"
+  data-surface-tone="dark"
+  data-goodbye
+  data-dev-placeholder={placeholder ? '' : undefined}
 >
-  {
-    goodbyeMedia ? (
-      <video
-        class="goodbye-section__media"
-        muted
-        loop
-        playsinline
-        preload="none"
-        poster={goodbyeMedia.poster}
-        width={goodbyeMedia.width}
-        height={goodbyeMedia.height}
-        data-motion-video
-        aria-hidden="true"
-      >
-        <source src={goodbyeMedia.mobile.webm} type="video/webm" />
-        <source src={goodbyeMedia.mobile.mp4} type="video/mp4" />
-        <source src={goodbyeMedia.desktop.webm} type="video/webm" />
-        <source src={goodbyeMedia.desktop.mp4} type="video/mp4" />
-      </video>
-    ) : (
-      <div class="goodbye-section__bite" aria-hidden="true" data-goodbye-bite>
-        <span class="goodbye-section__jaw goodbye-section__jaw--top" />
-        <p class="goodbye-section__word" data-goodbye-word>
-          <>
-            <span>AD</span>
-            <span>IÓS</span>
-          </>
-        </p>
-        <span class="goodbye-section__jaw goodbye-section__jaw--bottom" />
-      </div>
-    )
-  }
-  <div class="content-shell goodbye-section__content">
-    <p class="section-kicker">Hasta pronto</p>
-    <h2 id="goodbye-title">Nos vemos en la próxima mordida.</h2>
+  <div class="goodbye-section__visual" aria-hidden="true">
     {
-      demoMode && (
-        <p class="dev-note dev-note--dark" data-dev-placeholder>
-          La despedida utiliza una composición estática hasta recibir la
-          animación oficial.
-        </p>
+      goodbyeVisual?.kind === 'video' && (
+        <video
+          muted
+          loop
+          playsinline
+          preload="none"
+          poster={goodbyeVisual.poster}
+          width={goodbyeVisual.width}
+          height={goodbyeVisual.height}
+          tabindex="-1"
+          data-goodbye-video
+        >
+          <source
+            src={goodbyeVisual.mobile.webm}
+            type="video/webm"
+            media="(max-width: 48rem)"
+          />
+          <source
+            src={goodbyeVisual.mobile.mp4}
+            type="video/mp4"
+            media="(max-width: 48rem)"
+          />
+          <source
+            src={goodbyeVisual.desktop.webm}
+            type="video/webm"
+            media="(min-width: 48.01rem)"
+          />
+          <source
+            src={goodbyeVisual.desktop.mp4}
+            type="video/mp4"
+            media="(min-width: 48.01rem)"
+          />
+        </video>
       )
     }
+    {
+      goodbyeVisual?.kind === 'image' && (
+        <img
+          src={goodbyeVisual.src}
+          alt=""
+          width={goodbyeVisual.width}
+          height={goodbyeVisual.height}
+          loading="lazy"
+          decoding="async"
+        />
+      )
+    }
+  </div>
+
+  <div class="content-shell goodbye-section__inner">
+    <h2 id="goodbye-title" class="visually-hidden">{label}</h2>
+
+    <div class="goodbye-section__composition">
+      {/* A polite live region: pressing the button announces the new copy. */}
+      <div
+        class="goodbye-section__viewport"
+        id={slidesId}
+        aria-live="polite"
+        data-goodbye-viewport
+      >
+        {
+          slides.map((slide, index) => (
+            <div
+              class="goodbye-slide"
+              role="group"
+              aria-roledescription="diapositiva"
+              aria-label={`${index + 1} de ${slides.length}`}
+              data-goodbye-slide
+            >
+              <h3 class="goodbye-slide__title">{slide.title}</h3>
+              {slide.body && <p class="goodbye-slide__body">{slide.body}</p>}
+            </div>
+          ))
+        }
+      </div>
+
+      {
+        slides.length > 1 && (
+          <button
+            class="goodbye-section__next"
+            type="button"
+            aria-controls={slidesId}
+            aria-label="Siguiente"
+            data-goodbye-next
+            hidden
+          >
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              focusable="false"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.25"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M4 12h15M13 6l6 6-6 6" />
+            </svg>
+          </button>
+        )
+      }
+    </div>
   </div>
 </section>

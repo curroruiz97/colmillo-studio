@@ -177,7 +177,11 @@ Colors from `src/styles/tokens.css`:
 - red `#9d2d22`;
 - white `#ffffff`.
 
-Cream, ink and orange surfaces create editorial contrast. Rounded stacked
+Since 2026-09-10 (client direction) every light surface is white through
+`--color-background`; cream stays for type, borders and details on the ink
+surfaces. The hero and Studio loops are baked for the background colour
+(`-white` files, enforced by `check:hero`). White, ink and orange surfaces
+create editorial contrast. Rounded stacked
 layers, pressure edges, cutouts and restrained deformation carry the visual
 language. Do not add unrelated palettes/effects. Maintain sufficient contrast.
 
@@ -312,7 +316,10 @@ licenses and publication approval before enabling client material.
 - Surface-aware cursor; the system reduced-motion preference is the only motion
   source (the sticky header and the manual motion toggle were both removed on
   2026-09-10 at the user's request).
-- Responsive official hero contract and CSS hero/goodbye fallbacks.
+- Responsive official hero contract and CSS hero fallback.
+- Goodbye stage architecture (2026-09-10, phase 1): one permanent visual
+  layer, left editorial slides and a single round arrow button
+  (`GoodbyeSlides.ts`); visual, copy, final motion and CTA still open.
 - Validated black/cream wordmark PNGs.
 - Production/demo Playwright matrices and integrity/link/asset/brand/hero/release
   checks.

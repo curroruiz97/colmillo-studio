@@ -8,8 +8,26 @@
  * comes from an explicit rule, never from randomness.
  */
 
+/*
+ * A full screen at every width: never shorter than the viewport, but never a
+ * fixed height either, so a low window or 200% text grows the section instead
+ * of cutting it. This sections-layer rule outranks the 62svh floor and the
+ * mobile `auto` reset in layout.css; on phones the content is taller than one
+ * screen anyway, so there it changes nothing.
+ */
+.services-section,
+.services-section > .services-section__inner {
+  min-block-size: 100svh;
+}
+
+/*
+ * No `position` here: this layer outranks layout.css, and a `relative` in this
+ * rule used to cancel the shared stack `sticky`, so the section scrolled away
+ * and the project rail showed under it the moment it left the top. Now it holds
+ * the whole screen until the rail slides over it, like every stack layer;
+ * reduced motion still resets it to `relative`.
+ */
 .services-section {
-  position: relative;
   isolation: isolate;
   overflow: clip;
 }
@@ -21,7 +39,7 @@
   gap: clamp(3rem, 8vw, 5rem);
   /* Deep top and bottom margins are most of what makes this block feel calm:
      the section is short, so the emptiness above and below it is the frame. */
-  padding-block: clamp(6rem, 13vw, 10rem);
+  padding-block: clamp(6rem, 13vw, 10rem) clamp(8rem, 20vw, 14rem);
 }
 
 /* ---------- heading column ---------- */
@@ -87,7 +105,7 @@
   font-size: clamp(1.35rem, 2.1vw, 1.9rem);
   letter-spacing: -0.02em;
   line-height: 1;
-  text-transform: uppercase;
+  /* Set as written in `src/data/services.ts`: capital initial only. */
   transition: transform var(--duration-medium) var(--ease-bite);
 }
 
@@ -167,52 +185,100 @@
 
 @media (min-width: 64.01rem) {
   /*
-   * Two zones: the heading holds the left third, the services the right two
-   * thirds. The list spans every row so the third, flexible row absorbs its
-   * extra height and the CTA stays docked directly under the title instead of
-   * drifting to the middle.
+   * Two zones: the heading and the illustration on the left, the 2x2 on the
+   * right, both ending on one line — the foot of the illustration and the foot
+   * of the second row of services.
    *
-   * The extra inline padding is the section's own editorial indent. Every other
-   * home section buys the same air with a leading spacer column carrying the
-   * index; this one puts the index inside the eyebrow, so it pays for the
+   * The extra inline-start padding is the section's own editorial indent. Every
+   * other home section buys the same air with a leading spacer column carrying
+   * the index; this one puts the index inside the eyebrow, so it pays for the
    * indent directly.
    */
   .services-section__inner {
     /*
-     * The heading and the illustration take a little over a third, the 2x2 the
-     * rest. The split is what gives the art 380-470px of drawn width from 1366
-     * up — it is sized by its column, not by a fixed width — and it is what
-     * carries the services clear of it. The right column still has room for two
-     * ~300px entry columns, so nothing is crowded to buy this.
+     * How far the 2x2 may reach past the shell's right edge into the air the
+     * shell leaves there. Zero by default: on touch the shell is right-aligned
+     * against the edge tab and has none to give (see the fine-pointer rule).
      */
-    grid-template-columns: minmax(0, 0.62fr) minmax(0, 1fr);
-    align-items: start;
-    column-gap: clamp(2.5rem, 5vw, 6rem);
+    --services-overhang: 0px;
+
+    /*
+     * The right column is exactly as wide as the 2x2 wants (two entries at
+     * their own measure plus the gap), so the quadrant sits against the right
+     * edge; the left column takes everything else, which is what sizes the
+     * illustration. The 40% floor keeps the art from being squeezed on
+     * narrow desktops, where the quadrant yields instead.
+     */
+    grid-template-columns: minmax(40%, 1fr) auto;
+    /* The single row stretches to fill the screen: the title holds the top,
+       the illustration and the 2x2 hold the foot, and the spare height becomes
+       the margin between them. The foot padding is deeper than the head so the
+       composition does not sit on the next section's edge. */
+    align-items: end;
+    /* A wide channel of ink between the art and the 2x2, so the illustration
+       and the services read as two pieces instead of one crowded block. */
+    column-gap: clamp(4.5rem, 8vw, 9rem);
     row-gap: 0;
-    padding-block: clamp(7rem, 14vw, 13rem);
-    padding-inline: clamp(1.5rem, 4.5vw, 5.5rem) clamp(0.5rem, 1.5vw, 2rem);
+    padding-block: clamp(4.5rem, 11svh, 8rem) clamp(6rem, 22svh, 16rem);
+    padding-inline: clamp(1.5rem, 4.5vw, 5.5rem) 0;
   }
 
-  .services-section__illustration {
-    max-inline-size: none;
+  /* Title pinned to the top of the row, illustration to its foot. */
+  .services-section__lede {
+    align-self: stretch;
+    align-content: space-between;
   }
 
   /*
-   * A plain, even 2x2, dropped below the heading's baseline so the title reads
-   * first and the quadrant answers it. Both columns are the same width and both
-   * rows start their entries on one line, so the block stays a calm quadrant
-   * rather than a staircase; the air between them does the composing.
+   * Sized by its column, capped near 1.5x the previous drawn width. Width
+   * only, so the aspect ratio is the file's own and nothing is cropped.
+   */
+  .services-section__illustration {
+    /* Also held to ~40% of the screen's height (69svh of width at the art's
+       1202:696 ratio), so a short laptop screen keeps real air under the
+       title instead of spending it all on the art. */
+    max-inline-size: min(40rem, 69svh);
+    /* The least the title keeps above the art when the screen is too short
+       to give it more. */
+    margin-block-start: clamp(2.5rem, 6svh, 4.5rem);
+  }
+
+  /*
+   * A plain, even 2x2. Both columns are the same width and both rows start
+   * their entries on one line, so the block stays a calm quadrant rather than
+   * a staircase; the air between them does the composing. It hangs from the
+   * foot of the row so its last line lands with the foot of the illustration.
    */
   .services-section__list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: start;
-    /* The heading column is now title plus illustration, so the quadrant
-       centres against it rather than hanging from the top of the row. The
-       illustration therefore never pushes the services down. */
-    align-self: center;
+    align-self: end;
     column-gap: clamp(2rem, 4vw, 4.5rem);
     row-gap: clamp(4.5rem, 9vw, 8rem);
+    margin-inline-end: calc(-1 * var(--services-overhang));
     padding-block-start: 0;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    /*
+     * The left-anchored shell stops 4.75rem short of the edge rail's
+     * clearance; the quadrant takes part of that reserve, never the tab's own
+     * strip, plus half of any air the capped shell leaves on very wide
+     * screens.
+     */
+    .services-section__inner {
+      --services-overhang: calc(
+        clamp(1.5rem, 3vw, 3rem) +
+          max(
+            0px,
+            (
+                100vw - (2 * var(--page-gutter)) - 4.75rem -
+                  var(--content-width)
+              ) /
+              2
+          )
+      );
+    }
   }
 
   .service-entry {
@@ -249,11 +315,15 @@
  * Short desktop screens keep the 2x2 and only lose vertical air, so the whole
  * quadrant still lands on one screen at 1366x768.
  */
-@media (min-width: 64.01rem) and (max-height: 58rem) {
+/* Only the lowest desktop windows (under ~670px) trim the deep foot, so the
+   section still measures one screen there. */
+@media (min-width: 64.01rem) and (max-height: 42rem) {
   .services-section__inner {
-    padding-block: clamp(5rem, 15vh, 11rem);
+    padding-block-end: clamp(6rem, 18svh, 16rem);
   }
+}
 
+@media (min-width: 64.01rem) and (max-height: 58rem) {
   .services-section__list {
     row-gap: clamp(3.5rem, 11vh, 7rem);
   }
@@ -266,7 +336,14 @@
   .services-section__inner {
     grid-template-columns: minmax(0, 1fr);
     justify-items: start;
-    gap: clamp(2.5rem, 8vw, 4rem);
+    /* Heading and art on top, services at the foot: any height the full-screen
+       floor adds lands between the illustration and the services. */
+    align-content: space-between;
+    gap: clamp(3.5rem, 10vw, 6rem);
+  }
+
+  .services-section__illustration {
+    max-inline-size: 26rem;
   }
 
   .services-section__title {

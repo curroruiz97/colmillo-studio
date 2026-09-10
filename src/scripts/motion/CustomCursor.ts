@@ -75,7 +75,7 @@ export function initCustomCursor(): () => void {
   };
   const describeTarget = (target: Element | null) => {
     const interactive = target?.closest<HTMLElement>(
-      '[data-cursor-label], a, button, summary, [data-deformable]',
+      '[data-cursor-label], a, button, summary',
     );
     const text = interactive?.dataset.cursorLabel?.trim() ?? '';
     cursor.dataset.active = String(Boolean(interactive));

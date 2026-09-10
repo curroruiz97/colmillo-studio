@@ -1703,3 +1703,515 @@ Replace the demo projects with approved entries in `src/content/projects/`
 (cover, title, slug, `order`, `draft: false`) and enable
 `contentAvailability.projects`; the home rail picks up the first five. Nothing
 was committed, pushed or deployed.
+
+## 2026-09-10 Session: Services Section Full-Screen Layout
+
+Layout-only pass on "Nuestros servicios", at the user's request. No copy,
+colour, glyph, image, type or behaviour changed; only the desktop
+(`min-width: 64.01rem`) rules in `src/styles/services-section.css` moved.
+Tablet and mobile render exactly as before (measured at 1024, 834 and 390).
+
+### What changed
+
+- The section and its inner are `min-block-size: 100svh` on desktop (it was
+  62svh from `layout.css`). Minimum, not fixed: a low window grows the section.
+- Top padding is `clamp(4.5rem, 11svh, 8rem)`; the old short-screen
+  `padding-block` override was removed so one rule covers every height.
+- The grid is `minmax(40%, 1fr) auto`: the right column is exactly the 2x2's
+  own width (entries keep their 32ch measure and the original gaps), the left
+  column takes the rest and sizes the illustration, capped at 44rem.
+- `align-items: end` on the row plus a stretched lede (`space-between`) puts
+  the foot of the illustration and the foot of the DIGITAL/CONTENIDO row on
+  one line. `align-content: start` keeps the row at its natural height so
+  the art sits directly under the title and the spare height is left below.
+- On fine pointers only, the 2x2 overhangs the shell's right edge by
+  `clamp(1.5rem, 3vw, 3rem)` plus half of any air the capped 90rem shell
+  leaves on very wide screens (`--services-overhang`). It stays 76px clear of
+  the viewport edge at 1366 and 1440. Touch keeps zero overhang because its
+  shell is right-aligned against the fully visible edge tab.
+
+### Measured (before -> after)
+
+| Viewport | Section height | Title top | Image width | Image/grid bottom | Grid x |
+| --- | --- | --- | --- | --- | --- |
+| 1920x1080 | 930 -> 1080 | 208 -> 119 | 470 -> 704 (1.50x) | 642/722 -> 688/688 | 709 -> 956 |
+| 1440x900 | 745 -> 900 | 135 -> 99 | 428 -> 596 (1.39x) | 545/610 -> 606/606 | 608 -> 754 |
+| 1366x768 | 683 -> 768 | 115 -> 84 | 405 -> 533 (1.32x) | 509/568 -> 553/553 | 576 -> 683 |
+
+No horizontal overflow at any measured width (1920, 1440, 1366, 1280, 1100,
+1024, 834, 390), reduced and full motion, and no console errors.
+
+### Follow-up: fill the screen, air under the title
+
+The user reported the block still did not fill their screen and asked for the
+illustration and services to sit lower, with a margin under the title.
+
+- `align-content: start` was removed, so the single row stretches to the
+  full `100svh`: the title holds the top, the illustration and the 2x2 hold
+  the foot, and the spare height is the margin between them.
+- Foot padding is `clamp(4.5rem, 16svh, 12rem)` (head stays
+  `clamp(4.5rem, 11svh, 8rem)`).
+- The illustration keeps a minimum `margin-block-start: clamp(2.5rem, 6svh,
+  4.5rem)` and is also capped at `77.7svh` of width (~45% of the screen's
+  height at its ratio), so short laptop screens keep air under the title.
+
+| Viewport | Title | Illustration (w) | Grid | Title -> art gap | Air below |
+| --- | --- | --- | --- | --- | --- |
+| 1920x1080 | 119-240 | 500-907 (704) | 394-907 | 260 | 173 |
+| 1920x953 | 105-226 | 393-801 (704) | 287-801 | 167 | 152 |
+| 1536x730 | 80-202 | 285-613 (567) | 139-613 | 83 | 117 |
+| 1440x900 | 99-221 | 411-756 (596) | 281-756 | 190 | 144 |
+| 1366x768 | 84-204 | 336-645 (533) | 193-645 | 132 | 123 |
+
+The section equals the viewport height at every one of these sizes. Demo
+rebuilt in the scratchpad; the services specs passed again (4 passed, 2
+intentional skips). Prettier clean.
+
+### Verification
+
+- Rendered and inspected 1920x1080, 1440x900 and 1366x768 in the dev server.
+- Demo built into the session scratchpad (shared `dist-demo/` untouched); the
+  two services specs in `demo.spec.ts` passed on fine-1440, touch-834 and
+  touch-390 (4 passed, 2 intentional desktop-only skips).
+- Prettier clean on `services-section.css`.
+
+### Next action
+
+Nothing was committed, pushed or deployed. If the user approves the layout,
+commit `src/styles/services-section.css` and this file together.
+
+## 2026-09-10 Session: Home Studio Rebuilt Around The Character Loop
+
+Claude Code session at the user's request. Only the home `#studio` section and
+what it strictly needs were touched. Hero, Manifesto, Services, Projects, the
+edge menu, the Instagram control and the footer were not modified. Structure
+takes its hierarchy from beans.agency (big text left, big visual right, air);
+no code, copy, asset, colour, typeface or motion was copied. See
+`docs/DECISIONS.md` (three entries dated 2026-09-10: the cream spread, the
+normalised loop, stack triggers in page order).
+
+### What changed
+
+- `src/components/sections/StudioSection.astro` rewritten: `03 Colmillo /
+  Studio` label, headline from `homeStudio`, one lede, the shared bite button
+  `Abrir Studio` -> `/studio/`, and the decorative loop (`muted loop
+  playsinline preload="none"`, `aria-hidden`, poster). Orange surface, split
+  `COLMILLO / STUDIO` title, the `Presion / Materia / Movimiento` seal, the
+  underlined `.section-route` and the visible dev note are gone.
+- `src/data/studio.ts` (new): `approvedStudio` (null), the flagged demo copy
+  "Tensamos / cada idea / hasta que / muerde." plus one lede, and a structural
+  fallback. Demo copy sets `data-dev-placeholder`; the section stays gated out
+  of `dist/` by `contentAvailability.studio` (verified: 0 Studio markers).
+- `src/styles/studio-section.css` (new, `sections` layer) and its import in
+  `index.css`. Two columns `0.7fr / 1.3fr` from 64rem or 56rem landscape; the
+  loop runs past the content measure to the right gutter, clear of the edge
+  rail. Portrait tablet stacks text then loop; phones stack headline, lede,
+  loop, CTA. Edge feather mask inside the paper the ink never reaches.
+- `src/scripts/motion/StudioMotion.ts` (new) and its registration in
+  `MotionController.ts`: plays the loop only near the viewport and in a
+  visible tab, starts the first pass on the poster frame, one once-only entry
+  timeline (no pin, scrub, blur or scale). Reduced motion: no playback.
+- `MotionController.ts`: `ScrollTrigger.sort()` before refresh on mount and
+  restart. Pre-existing bug: every stack layer after the pinned rail measured
+  its compression one pin length early, so Studio (and Goodbye/Contacto) sat
+  at `opacity: 0.84` while still entering. Now `1` until the next layer comes.
+- `src/config/assets.ts`: `studioMedia` (`LoopMedia`, 1280x512,
+  `posterTime: 8 / 24`).
+- `scripts/prepare-studio-media.mjs` (new, `npm run media:studio`): crop,
+  paper normalisation onto the cream, 8-frame rise/sink at the ends, no audio.
+  Outputs `public/assets/motion/studio/studio-loop.webm` (551,497 B),
+  `studio-loop.mp4` (499,878 B), `studio-poster.webp` (93,324 B). The master
+  `public/assets/video estudio.mp4` is byte-identical (hash checked).
+- Dead code removed: `.studio-section__grid/__seal/__title` and every
+  `.section-route` rule in `layout.css`; `[data-deformable]` in `motion.css`
+  and in the cursor's target selector (`CustomCursor.ts`), which nothing else
+  used. `.stack-section--orange` kept as a generic modifier.
+- `tests/e2e/demo.spec.ts`: two Studio specs (composition, retired furniture,
+  CTA, loop attributes, geometry per project, no premature compression,
+  playback; reduced-motion poster) and, at the intro session's request, a
+  top-level `beforeEach` that opts out of the home intro via
+  `homeIntro.storageKey`.
+- Docs: `DECISIONS.md`, `MOTION_SPEC.md` (new Studio section),
+  `CONTENT_NEEDED.md` (Studio copy, loop-treatment and master-placement
+  questions).
+
+### Measured
+
+Master: H.264 High 1280x720, 24 fps, 6.000 s, 144 frames, 1.85 Mb/s, AAC
+stereo, 1,495,208 B. Paper mode RGB 250/236/216 (BT.709), +-2 noise; ink rows
+169-583, columns 107-1225. No scene cut; last vs first frame SSIM 0.77 against
+0.997 for neighbours, so it does not loop by itself. Derivative: ink margins
+9.8/9.4/8.3/4.2% (top/bottom/left/right), outside every feather; wrap is paper
+to paper; poster equals frame 8 (SSIM 0.994) and its paper is exactly
+252/238/218. In Chrome the playing paper renders 252/238/219 over a
+252/238/218 page. MP4 fallback plays and loops in real Chrome.
+
+| Viewport | Title box | Loop box | Section |
+| --- | --- | --- | --- |
+| 1920x1080 | 56,243 569x325 | 753,323 1087x435 | 1080 |
+| 1440x900 | 43,207 427x244 | 565,288 808x323 | 900 |
+| 1366x768 | 41,159 369x211 | 535,231 766x306 | 768 |
+| 1024x768 land. | 32,185 296x173 | 390,272 551x220 | 768 |
+| 834x1112 | 25,247 274x156 | 25,633 732x293 | 1112 |
+| 390x844 | 17,142 273x156 | 17,405 357x143 | 741 |
+
+Overflow 0 and console clean everywhere, including reduced motion (1440, 390),
+320x720 and 200% text (1440, 390). Keyboard: one Tab from the rail's `Ver
+proyectos` lands on `Abrir Studio`, in view, topmost, `:focus-visible`.
+
+### Verification
+
+- `astro check`: 83 files, 0 errors, 0 warnings, 0 hints. ESLint clean and
+  Prettier clean (`--end-of-line auto`) on every touched file.
+- Both artifacts built into the session scratchpad (shared `dist/` and
+  `dist-demo/` untouched, concurrent sessions active): standard 9 pages,
+  `check:production` passed (28 files, 138,760 JS bytes incl. the concurrent
+  intro), `check:links` passed; demo 14 pages.
+- Demo suite: 54 passed, 21 intentional skips. Production suite: 56 passed,
+  10 skips (includes the concurrent intro specs).
+
+### Open items for the user
+
+- Approved Studio headline and lede (placeholder in `src/data/studio.ts`).
+- Confirmation of the loop treatment (rise/sink to paper instead of the hard
+  jump), the crop and the paper lift. All in `docs/CONTENT_NEEDED.md`.
+- `public/assets/video estudio.mp4` (1.5 MB) and `public/assets/frame
+  video.png` (1 MB) are published in `dist/` unreferenced; `media-src/` is the
+  recommended home (then run `media:studio` with `STUDIO_SOURCE`). Not moved,
+  per the brief.
+- ffmpeg is not vendored; this session used a build left in an earlier
+  session's scratchpad via `FFMPEG_PATH`.
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-10 Session: Home Entry Intro (COLMILLO Loader)
+
+Run concurrently with the Studio session above, in the same working tree.
+Ownership was coordinated between the two sessions; neither reverted the
+other's edits.
+
+### Completed
+
+- Home-only entry intro: COLMILLO is set letter by letter, the final O's
+  counter opens onto the already-rendered home and the O grows (translating and
+  scaling at once) until its counter contains the viewport. ~2.3 s at
+  1440x900. Full behaviour in `docs/MOTION_SPEC.md` ("Home Entry Intro");
+  choices in `docs/DECISIONS.md` (2026-09-10, "Home Entry Intro: A Verified
+  Trace, And Ink On Cream").
+- Letters are a verified trace of the official black PNG
+  (`scripts/trace-wordmark.mjs` -> generated
+  `src/components/intro/wordmarkGlyphs.ts`): 0.33 px worst deviation from the
+  50% alpha iso-line, no pixel flips inside/out. Replace with the vector master
+  when it arrives (CONTENT_NEEDED, Brand).
+- Theme: ink letters on cream. The brief preferred cream on ink; filmed side by
+  side, a cream O over the cream home read as a filled disc and lost the hole.
+  `theme: 'ink'` in `src/config/intro.ts` restores it.
+- Once per tab session (`repeat: 'session'`, sessionStorage
+  `colmilloIntroPlayed`); `repeat: 'always'` replays it on every full load.
+  Deep links (`#...`) and back/forward never play it. At the user's request
+  ("al recargar inicio sí que muestre el loader") a reload of the home plays
+  it again (`replayOnReload: true`) and opens onto the hero even when reloaded
+  mid-page: Chrome restores the old position despite `scrollRestoration =
+  'manual'`, so `HomeIntro.ts` pins the page to the top while it is covered;
+  restoration is handed back (`'auto'`) at the end. Returning to the home
+  through a link still does not replay it.
+- Reduced motion: still wordmark 0.35 s, 0.3 s fade, no expansion. No
+  JavaScript: no overlay. Failsafes: 4 s head timer, 9 s module guard, 7 s CSS.
+- Hero loop held on its first frame while covered and released by
+  `colmillo:introreveal`; hero settles from 1.02 around `50% 20%` (centred, it
+  pushed the corner wordmark off a phone's top edge).
+
+### Files
+
+- New: `src/config/intro.ts`, `src/components/intro/HomeIntro.astro`,
+  `src/components/intro/HomeIntroBoot.astro`,
+  `src/components/intro/wordmarkGlyphs.ts` (generated),
+  `src/scripts/motion/HomeIntro.ts`, `src/styles/home-intro.css`,
+  `scripts/trace-wordmark.mjs`, `tests/e2e/intro.spec.ts`.
+- Edited: `BaseLayout.astro` (`head` and `overlay` slots), `index.astro`
+  (mounts the intro), `MotionController.ts` (`initHomeIntro` once per document;
+  the Studio session's `ScrollTrigger.sort()` lines are theirs and must stay),
+  `HeroMotion.ts` (hold/release), `tokens.css` (`--z-intro: 200`, under the
+  skip link), `index.css` (import), `foundations.spec.ts` (intro opt-out).
+  `demo.spec.ts` received the same opt-out from the Studio session.
+
+### Validation (actually run)
+
+- `eslint` on every touched file: 0 problems. `astro check`: 0 errors.
+  Prettier: clean on every intro file.
+- Frame-by-frame films with a paused Playwright clock at 1440x900, 834x1112,
+  390x844, 2560x1080 and 320x720: coverage complete, no cut letters, no
+  console errors; the overlay closes, scroll unlocks, the hero plays, no
+  transform is left behind.
+- Isolated build (outside `dist/`): intro + foundations + performance specs on
+  Desktop Chrome and Pixel 7, 55 passed then intro spec 15/15 after fixing a
+  settle race in the test itself. The Studio session later reported the
+  production suite at 56 passed / 10 skipped and the demo suite at 54 / 21,
+  both including the intro.
+- Bundle: one 138,672 B script (budget 150,000 B largest / 220,000 B total);
+  about 11 KB of headroom remains on the largest-asset budget. The overlay is
+  only in `index.html`; no demo markers. `check:brand` passes.
+- Not run against `dist/` by this session: `check:production`,
+  `check:links` (both read `dist/`, which was left to the parallel session).
+  Run them before any release.
+
+### Next
+
+- User review of the theme decision (comparison frames were sent in-session).
+- Replace the traced glyphs once the vector master arrives.
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-10 Follow-up: Studio Label Removed, Inset, Two-Line Headline
+
+User adjustments to the Studio section above. Only Studio files, its demo spec
+and docs were touched. See `docs/DECISIONS.md` ("Studio: No Label, More Inset,
+Two-Line Headline").
+
+- `03 Colmillo / Studio` removed from `StudioSection.astro`,
+  `studio-section.css` and the `StudioMotion.ts` timeline.
+- Two-column text inset `--page-gutter + clamp(1.5rem, 4.5vw, 5.5rem)`, aligned
+  with the services heading; stacked tablets gain `clamp(1rem, 4vw, 2.5rem)`;
+  phones keep the site gutter.
+- Headline in two lines: `StudioTitleLine.accent` is now the closing words
+  (string) set in orange; demo copy "Tensamos cada idea / hasta que muerde.".
+  Columns `0.95fr / 1.05fr`; loop 626px at 1440 (was 808), 841px at 1920.
+- Measured: two lines, zero overflow, clean console at 1920x1080, 1680x1050,
+  1440x900, 1366x768, 1280x720, 1024x768, 1024x1366, 834x1112, 768x1024,
+  390x844 and 320x720; 200% text at 1440 and 390 without overflow.
+- Spec: asserts no label, at most two lines, text inset > 80px, loop wider
+  than the text and than 40% of the viewport.
+- `astro check` 0/0/0, ESLint and Prettier clean; scratch demo build 14 pages,
+  demo suite 54 passed / 21 skipped.
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-10 Follow-up: Larger Manifesto Illustration
+
+User request: make the manifesto illustration clearly larger, growing down and
+to the right into the empty lower-right corner, without moving its top edge,
+the texts, the CTA or the scroll animation. Only `src/styles/manifesto-home.css`
+(desktop figure rules), one assertion in `tests/e2e/demo.spec.ts` and this log
+were touched. `ManifestoMotion.ts` is unchanged.
+
+- The figure is now anchored by its top-left corner instead of `right: -6%`:
+  tall desktops `inset-inline-start: 55.5%`, width `max(59%, 48vw)` (the `vw`
+  term keeps wide screens filling the corner once the canvas is capped); short
+  desktops (<= 50rem tall) `57%` / `57%`. `inset-block-start` stays 37% / 35%.
+- Drawn-ink width before -> after: 1920x1080 429 -> 597 px, 1440x900 381 -> 489,
+  1366x768 329 -> 446, 1280x800 307 -> 416, 1040x768 245 -> 333. The ink top
+  moves 13-20 px down (more air under "Romper."). Final air: ink to "Dejar
+  marca." 95-116 px (78 at 1040), ink to viewport right 53-62 px (289 at 1920),
+  ink bottom 143-272 px above the stage floor. Overflow 0, console clean.
+- A 21-step scroll sweep at 1920x1080, 1440x900 and 1366x768 found no ink past
+  the stage at any progress. The oversized "Romper." rising at centre crosses
+  the drawing's top as it did before (slightly less than before).
+- The spec compared "Dejar marca." with the figure box, which includes the
+  PNG's transparent margin; it now requires 48 px between the text and the
+  drawn ink (310/1600 into the image). Demo manifesto specs: 5 passed, 4
+  skipped. ESLint clean; Prettier clean on both touched source files.
+- The white light surfaces in the verification captures come from the
+  concurrent `tokens.css` change, not from this work.
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-10 Follow-up: Services Full Screen, Wider Art-to-Services Gap
+
+User request: the home services section fills the screen height and leaves
+more room between the illustration and the services, shrinking the art if
+needed. Only `src/styles/services-section.css`, its demo spec and this file
+were touched.
+
+- `min-block-size: 100svh` on the section and its shell now applies at every
+  width (sections layer, so it outranks the 62svh floor and the mobile `auto`
+  reset in `layout.css`). Still a floor, not a fixed height, so 200% text and
+  short windows grow the section instead of clipping it.
+- Desktop: column gap `clamp(2.5rem, 3.5vw, 4.5rem)` ->
+  `clamp(4.5rem, 8vw, 9rem)`; illustration cap `min(44rem, 77.7svh)` ->
+  `min(40rem, 69svh)`.
+- Tablet/mobile (<=64rem): shell gap `clamp(2.5rem, 8vw, 4rem)` ->
+  `clamp(3.5rem, 10vw, 6rem)`, `align-content: space-between` (extra height
+  lands between the art and the services), illustration capped at 26rem.
+- Measured (section height / art width / art-to-services gap): 1440x1000
+  1000 / 531 / 115 (was 596 / 50); 1366x768 768 / 472 / 109 (was 533 / 48);
+  1280x720 720 / 428 / 102 (was 460 / 45); 1536x695 695 / 480 / 221;
+  1920x1080 1080 / 640 / 173. Tablet 834x1112 now 1112 (was 1038). Phones
+  are taller than one screen by content (390x844 1298). No horizontal
+  overflow at any size including 1024x640 and 320x720.
+- Spec: the desktop services test also asserts section height >= viewport
+  and an art-to-2x2 gap >= 80px.
+- `astro check` 0/0/0, ESLint and Prettier clean. Demo suite 53 passed / 21
+  skipped / 1 failed: `[touch-390] the studio spread pairs an editorial
+  headline with the loop` read `shellOpacity` 0.9487 vs a 0.95 floor under
+  six parallel workers; it passed 5/5 run alone. Timing-sensitive assertion
+  in the Studio spec, not a services regression. `dist/` was not rebuilt.
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-10 Session: Light Surfaces Move From Cream To White
+
+Client direction relayed by the user: every light/cream background becomes pure
+white `#ffffff`; the intentionally dark sections stay as designed; the hero's
+large ring and its scroll dot turn orange `#cd5730`. No layout, type, copy,
+size, animation, edge menu, Instagram control or scroll architecture changed.
+Full rationale in `docs/DECISIONS.md` ("Light Surfaces Are White; The Loops Are
+Re-Baked, Not Re-Tinted").
+
+### What changed
+
+- `tokens.css`: `--color-background` now resolves to `--color-white`. Light
+  surfaces read the token instead of `--color-brand-cream`: `hero-section.css`
+  (surface and loop frame), `layout.css` (`.stack-section--cream`,
+  `.manifesto-statement--cream`, `.contact-section`, `.site-footer`),
+  `projects-section.css` (section, title cut-out and its fillets),
+  `studio-section.css` (video box), `home-intro.css` (light intro ground).
+  `SeoHead.astro` `theme-color` is `#ffffff`. `--color-brand-cream` is kept for
+  cream type/borders/details on dark surfaces, which were not touched.
+- `hero-section.css`: `.hero__shape--ring` border and `.hero__scroll-dot` fill
+  are `--color-brand-orange`; nothing else about them changed.
+- Media, from the untouched masters, originals kept (not overwritten):
+  `public/assets/motion/hero/hero-desktop-white.webm` (2,132,957 B, VP9+alpha),
+  `hero-desktop-white.mp4` (1,398,420), `hero-mobile-white.webm` (745,694),
+  `hero-mobile-white.mp4` (594,671), `hero-poster-white.webp` (13,870);
+  `public/assets/motion/studio/studio-loop-white.webm` (588,570),
+  `studio-loop-white.mp4` (520,993), `studio-poster-white.webp` (106,288).
+  `src/config/assets.ts` points `heroMedia` and `studioMedia` at them.
+- `scripts/prepare-hero-media.mjs` and `scripts/prepare-studio-media.mjs` gained
+  `--paper=white|cream` (default white, `-white` suffix; `cream` reproduces the
+  original unsuffixed set). Studio's white mode unmixes paper/ink/orange so
+  only the paper is lifted. ffmpeg is still not vendored; this session used
+  the build in an earlier session's scratchpad through `FFMPEG_PATH`.
+- `scripts/check-hero-contract.mjs` now checks both scripts' `CREAM`/`WHITE`
+  constants against the tokens and that the referenced loop files match
+  `--color-background`.
+- Tests: `foundations.spec.ts` expects the `-white` hero sources and poster and
+  asserts a white hero/frame, orange ring and orange dot; `demo.spec.ts`
+  expects a white Studio surface and `studio-poster-white.webp`.
+- Comments and docs: `HeroSection.astro`, `StudioSection.astro`,
+  `src/config/intro.ts`, `MOTION_SPEC.md`, `CONTENT_NEEDED.md`, `DECISIONS.md`.
+- Not needing a white version (measured 0% opaque cream, real alpha):
+  `manifesto.png`, `servicios-trimmed.png`, both wordmarks.
+
+### Verification
+
+- `npm.cmd run check`: 83 files, 0 errors, 0 warnings, 0 hints.
+- ESLint and Prettier (`--end-of-line auto`) clean on every touched file.
+  Repository-wide `npm run lint` fails only on `.measure-tmp.mjs`, a temporary
+  root script belonging to a concurrent session, not on this work.
+- Both artifacts built into the session scratchpad (shared `dist/` and
+  `dist-demo/` untouched, concurrent sessions active): standard 9 pages,
+  `check:production` passed (36 files, 138,899 JS bytes), `check:links`
+  passed; demo 14 pages. Both reference only the `-white` loop files.
+  `check:hero`, `check:brand` passed; `check:assets` prelaunch as before.
+- Production suite 58 passed / 10 skipped; demo suite 54 passed / 21 skipped
+  (temporary configs against the scratch builds, deleted afterwards).
+- Media measured: hero white WebM opaque light-pixel warmth 0.4 (was 27), 0%
+  near-cream; MP4 fallback 83% white (was 83% cream); 388 frames, 30 fps,
+  12.933 s as before. Studio paper averages 255 against the master's 250/236/216;
+  ink and orange within 1-2 levels; 144 frames, 24 fps.
+- Screenshots at 1440x1000, 390x844 and 1440x1000 reduced motion of hero,
+  manifesto, services, projects, Studio and contact, plus `/manifiesto/`,
+  `/studio/`, `/proyectos/`, a project detail and `/contacto/` (all `body`
+  white): no beige rectangle around any image or video (near-cream pixels 0%
+  on hero, manifesto, Studio and contact; the remaining cream is the services
+  section's cream type/illustration on ink and the demo covers' CSS art),
+  horizontal overflow 0.
+
+### Open items for the user
+
+- Approve the white loops. The Studio loop's paper-coloured interior details
+  (sneakers, highlights on the band) are now white with the paper.
+- The superseded cream loop files (~5.9 MB) are still under `public/` and
+  therefore copied into `dist/` unreferenced; move them to `media-src/` once
+  the white set is approved (CONTENT_NEEDED).
+
+Nothing was committed, pushed or deployed.
+
+### 2026-09-10 follow-up: services now holds the screen (sticky)
+
+User screenshot (`public/Captura de pantalla 2026-09-10 151522.png`, left by
+the user; it sits in `public/`, so it would ship with any build until it is
+moved) showed the project rail's cream edge under the services section.
+
+- Cause: `.services-section { position: relative }` in the sections layer
+  outranked the shared `.stack-section { position: sticky }` in layout.css
+  (pre-existing since the committed version). The section was exactly 100svh
+  but scrolled away normally, so any wheel position past its exact top
+  exposed the rail below it.
+- Fix: the `position` declaration was removed from `.services-section`; the
+  stack rules now apply (sticky at >=64.01rem and min-height 40rem, relative
+  otherwise and under reduced motion). The rail (z-index 8, cream) slides
+  over it; nothing else stacks under it.
+- Measured with wheel scrolling at 1906x916: section top 0 / height 916 for
+  the whole cover while the rail rises from 900 to 300. Content fits one
+  screen at 1100x650, 1280x640, 1366x768, 1440x900 and 1906x916, so the
+  sticky layer never hides its own foot. No horizontal overflow.
+- Spec: the desktop services test asserts `position: sticky`.
+- Demo suite (3 workers) 54 passed / 21 skipped / 0 failed.
+
+Nothing was committed, pushed or deployed.
+
+### 2026-09-10 follow-up: service titles in sentence case
+
+User request: service titles with a capital initial only. The data in
+`src/data/services.ts` was already sentence case ("Estrategia", ...); the
+capitals came from `text-transform: uppercase` on `.service-entry__title`,
+now removed. The demo spec asserts `text-transform: none`. Services demo
+tests 4 passed / 2 skipped; Prettier clean.
+
+Nothing was committed, pushed or deployed.
+
+### 2026-09-10 follow-up: deeper foot on the services section
+
+User request: more padding at the bottom of the services section.
+
+- Desktop shell foot `clamp(4.5rem, 16svh, 12rem)` ->
+  `clamp(6rem, 22svh, 16rem)`; tablet/mobile shell padding gains a separate
+  foot `clamp(8rem, 20vw, 14rem)` (head unchanged at `clamp(6rem, 13vw,
+  10rem)`).
+- Desktop windows at or under 42rem high trim the foot to
+  `clamp(6rem, 18svh, 16rem)` so the sticky section still measures exactly
+  one screen (it grew 2-5px at 1280x640 and 1100x650 without the trim).
+- Air under the lowest content (section height): 1906x916 180px (was 125);
+  1440x900 176; 1366x768 147; 1920x1080 216; 1280x640 93; 1100x650 95;
+  834x1112 145; 390x844 106. Every desktop size measures one screen, no
+  horizontal overflow.
+- Services demo tests 4 passed / 2 skipped; Prettier clean.
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-10 Follow-up: Edge Tab Turns Ink Over Orange, Sentence-Case Routes
+
+User request: the orange edge tab vanished on orange backgrounds; it must turn
+black there. The menu's route labels must show only a capital initial. See
+`docs/DECISIONS.md` ("The Edge Tab Turns Ink Over Orange; Routes In Sentence
+Case"). Only `EdgeMenu.ts`, `edge-menu.css`, `foundations.spec.ts` and docs were
+touched; panel, close control, tracking, Instagram control and scroll are
+unchanged.
+
+- `EdgeMenu.ts` samples the colour painted under the tab (first opaque,
+  non-faded background at its resting point, menu excluded) on scroll (plus a
+  180 ms settle sample), resize, vertical move and `animationend`, at most once
+  per frame, never while open, and sets `data-tab-tone="accent"` on orange.
+- `edge-menu.css`: `[data-tab-tone='accent']` paints the tab ink with cream
+  rules, with a 160 ms colour transition; `.edge-menu__list strong` lost
+  `text-transform: uppercase`.
+- `foundations.spec.ts`: new specs "the edge tab turns ink over an orange
+  surface and back" (`/contacto/` hero, then the ink channels, then the home)
+  and "menu routes are written in sentence case".
+
+Verification: `astro check` 0/0/0; ESLint and Prettier clean on touched files;
+scratch builds 9 and 14 pages; production suite 62 passed / 10 skipped. A
+tab-versus-pixel sweep (the pixel beside the tab compared with the published
+tone) over `/`, `/manifiesto/`, `/studio/`, `/contacto/` and `/proyectos/` at
+1440x1000 and 390x844, 267 settled positions: 0 mismatches except one boundary
+position on mobile `/contacto/`, where the ink section's rounded top corner
+sits exactly at the tab's height and the tab straddles both colours. Labels
+measured one line at both sizes; no console errors.
+
+Failures seen in the demo suite that belong to concurrent work, not this
+change: the services title `text-transform` assertion (an earlier build, since
+fixed by that session) and "the goodbye stage swaps its copy in place under
+reduced motion" (goodbye rebuild in progress).
+
+Nothing was committed, pushed or deployed.
