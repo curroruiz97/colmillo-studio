@@ -139,8 +139,8 @@ test('essential routes render', async ({ page }) => {
   });
 
   const routes = [
-    ['/manifiesto/', 'Manifiesto'],
     ['/studio/', 'Studio'],
+    ['/servicios/', 'Servicios'],
     ['/proyectos/', 'Proyectos'],
     ['/contacto/', 'Haz que tu marca muerda'],
     ['/aviso-legal/', 'Aviso legal'],
@@ -388,11 +388,47 @@ test('menu routes are written in sentence case', async ({ page }) => {
   await expect(labels.first()).toHaveCSS('text-transform', 'none');
   expect(await labels.allTextContents()).toEqual([
     'Inicio',
-    'Manifiesto',
     'Studio',
+    'Servicios',
     'Proyectos',
     'Contacto',
   ]);
+});
+
+test('the active route follows the URL, never the home scroll', async ({
+  page,
+}) => {
+  const current = page.locator('.edge-menu__list a[aria-current="page"]');
+
+  await page.goto('/');
+  await expect(current).toHaveCount(1);
+  await expect(current).toHaveAttribute('href', '/');
+  // Scrolling through the home sections that share a route's name leaves
+  // "Inicio" active.
+  // Sections withheld from the standard build are skipped.
+  for (const id of ['studio', 'servicios', 'proyectos', 'contacto']) {
+    const section = page.locator(`main #${id}`).first();
+    if ((await section.count()) === 0) continue;
+    await section.evaluate((section) =>
+      section.scrollIntoView({ block: 'center', behavior: 'instant' }),
+    );
+    await page.waitForTimeout(250);
+    await expect(current).toHaveAttribute('href', '/');
+    await expect(page.locator('[data-edge-position]')).toHaveText('01');
+  }
+  await expect(page.locator('.edge-menu__list a[aria-current]')).toHaveCount(1);
+
+  for (const [route, number] of [
+    ['/studio/', '02'],
+    ['/servicios/', '03'],
+    ['/proyectos/', '04'],
+    ['/contacto/', '05'],
+  ] as const) {
+    await page.goto(route);
+    await expect(current).toHaveCount(1);
+    await expect(current).toHaveAttribute('href', route);
+    await expect(page.locator('[data-edge-position]')).toHaveText(number);
+  }
 });
 
 test('the closed edge menu keeps the panel out of reach', async ({ page }) => {

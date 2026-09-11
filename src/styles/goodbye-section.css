@@ -1,40 +1,58 @@
 /*
- * GOODBYE — the pre-footer stage (phase 1: architecture)
+ * GOODBYE — the pre-footer stage
  *
- * A fixed viewport over one panoramic scene, wider than the screen. The stage
- * opens on the scene's left side with the first editorial block; the arrow
- * pans the whole scene sideways, like a camera, until its right side fills the
- * screen and the second block appears. The back arrow pans it home. One
- * visual, never swapped, faded or cut.
+ * A fixed viewport over one panoramic scene, wider than the screen: a
+ * photograph with a black field at each end and an orange piece, squeezed
+ * between two blocks, in the middle. The stage opens on the scene's left side
+ * with the first block of copy in the left black field; the arrow pans the
+ * whole scene sideways, like a camera, until its right side fills the screen
+ * and the CTA arrives in the right black field. The orange piece is on screen
+ * in both positions and no copy ever sits on it. One visual, never swapped,
+ * faded or cut: photograph, type and one horizontal move.
  *
  * The travel is exact by construction: the viewport is a size container, so
  * `100cqw - 100%` is always the scene's overhang, whatever the screen or the
- * asset, and nothing is measured or hard-coded. `GoodbyePanorama.ts` only
- * eases one number, `--goodbye-progress`, from 0 (left side) to 1 (right).
+ * asset, and nothing is measured. `GoodbyePanorama.ts` only eases
+ * `--goodbye-progress` from 0 (left) to 1 (right).
  *
- * Until the final visual is chosen the scene is a development placeholder: a
- * continuous ink panorama with an orange horizon, hairline marks and two
- * shapes, so the travel reads. Copy, visual, final motion and CTA are the next
- * phase's decisions; the sizes below are a neutral baseline.
+ * Two layouts:
+ *
+ * - Wide (aspect 5:4 and wider, enhanced): the photograph fills the whole
+ *   100svh stage. The copy boxes are cut from the scene's own width with the
+ *   fractions measured on the photograph (`scripts/prepare-goodbye-media.mjs`):
+ *   black from 0 to 29% of its width, and from 66% on above 70% of its height.
+ * - Band (portrait, square, and no JavaScript): the photograph runs across the
+ *   top and fades into the ink; the copy lives below it, the two blocks
+ *   alternating in one place.
  */
 
 .goodbye-section {
+  /* The visual's width / height; the component writes the real one. */
+  --goodbye-ratio: 2;
+  --goodbye-w-min: 135cqw;
+  --goodbye-w-max: 230cqw;
+  /*
+   * The scene's width: the visual at full height, kept inside a band so the
+   * pan always has somewhere to go. Custom properties resolve container units
+   * where they are used, so this is measured against the viewport for the
+   * scene and against the copy layer for the copy - the same box on the wide
+   * layout.
+   */
+  --goodbye-w: clamp(
+    var(--goodbye-w-min),
+    calc(100cqh * var(--goodbye-ratio)),
+    var(--goodbye-w-max)
+  );
+  --goodbye-edge: calc(var(--page-gutter) + var(--edge-rail-clearance));
+
   position: relative;
   z-index: 15;
   display: grid;
-  block-size: 100svh;
+  grid-template-rows: auto 1fr;
   min-block-size: 100svh;
   overflow: hidden;
   background: var(--color-brand-ink);
   color: var(--color-white);
-}
-
-/* Phones and very short windows keep one screen as a minimum but grow with
-   their content rather than cut it. */
-@media (max-width: 47.99rem), (max-height: 32rem) {
-  .goodbye-section {
-    block-size: auto;
-  }
 }
 
 /* Vertical pans stay native scroll; a horizontal swipe travels the scene. */
@@ -44,22 +62,27 @@
 
 /* ----------------------------------------------------------- scene --- */
 
+/* The band layout: the photograph across the top, fading into the ink so
+   its black and the section's never meet at a line. */
 .goodbye-section__viewport {
-  position: absolute;
-  inset: 0;
+  position: relative;
+  block-size: clamp(15rem, 54svh, 44rem);
   overflow: hidden;
   container-type: size;
   pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, #000 78%, transparent);
+  mask-image: linear-gradient(to bottom, #000 78%, transparent);
 }
 
 .goodbye-section__scene {
   position: absolute;
   inset-block: 0;
   inset-inline-start: 0;
-  inline-size: var(--goodbye-scene-width, 200cqw);
+  inline-size: var(--goodbye-w);
   transform: translateX(calc((100cqw - 100%) * var(--goodbye-progress, 0)));
 }
 
+/* A photograph, not a card: no frame, no radius, cover at full height. */
 .goodbye-section__scene > :is(video, img) {
   display: block;
   inline-size: 100%;
@@ -68,9 +91,9 @@
 }
 
 /*
- * Development placeholder: one continuous panorama, no text. A horizon and a
- * mark every 5% of the scene make the travel legible; the disc belongs to the
- * left side and the ring to the right side, both beside the copy, not under it.
+ * Structural placeholder, only while `goodbyeVisual` is null: one continuous
+ * panorama with a horizon and a mark every 5% of the scene, so the travel
+ * stays legible.
  */
 .goodbye-section__placeholder {
   position: absolute;
@@ -105,60 +128,63 @@
 
 .goodbye-section__mark--ring {
   inset-block-start: 40%;
-  inset-inline-start: 64%;
+  inset-inline-start: 80%;
   inline-size: min(46cqh, 23cqw);
   border: var(--border-width) solid var(--color-white);
 }
 
 /* ------------------------------------------------------------ copy --- */
 
-.goodbye-section__inner {
-  position: relative;
-  display: grid;
-  align-content: center;
-  padding-block: clamp(5rem, 12svh, 8rem);
-}
-
-/* Without JavaScript both blocks are read in turn. */
+/* Band layout: the copy below the photograph. Without JavaScript both
+   blocks are read in turn; enhanced, they share one cell. */
 .goodbye-section__stops {
   display: grid;
+  align-content: center;
   row-gap: clamp(3rem, 8vw, 5rem);
+  padding-block: clamp(1.5rem, 5svh, 3rem) clamp(2.5rem, 8svh, 4.5rem);
+  padding-inline: var(--page-gutter) var(--goodbye-edge);
 }
 
-/* Enhanced: both blocks share one cell, so the stage never changes height. */
 [data-goodbye-enhanced] .goodbye-section__stops {
-  grid-template-areas: 'stop';
+  grid-template-areas: 'stage';
   row-gap: 0;
 }
 
-[data-goodbye-enhanced] .goodbye-stop {
-  grid-area: stop;
+[data-goodbye-enhanced] :is(.goodbye-start, .goodbye-end) {
+  grid-area: stage;
   align-self: center;
 }
 
-/* On a wide screen the second block sits over the side the scene reveals. */
-@media (min-width: 64.01rem) {
-  [data-goodbye-enhanced] .goodbye-stop--end {
-    justify-self: end;
-  }
+/* Whatever is not on screen is `inert`; this keeps the idle block from
+   covering the other's controls in the shared cell. */
+.goodbye-end {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(1.25rem, 3svh, 2rem);
+  pointer-events: none;
 }
 
-.goodbye-stop {
-  max-inline-size: min(100%, 46rem);
+.goodbye-end > * {
+  pointer-events: auto;
+}
+
+.goodbye-start {
+  max-inline-size: 46rem;
 }
 
 /* The arrow and the headline are one composition, sitting on its last line. */
-.goodbye-stop__head {
+.goodbye-start__head {
   display: flex;
   align-items: flex-end;
   gap: clamp(1rem, 2.2vw, 2.25rem);
 }
 
-.goodbye-stop__title {
+.goodbye-start__title {
   min-inline-size: 0;
   max-inline-size: 14ch;
   margin: 0;
-  font-size: clamp(2.6rem, 5.8vw, 6.5rem);
+  font-size: clamp(2rem, 10vw, 3.4rem);
   font-weight: 850;
   letter-spacing: -0.045em;
   line-height: 0.98;
@@ -167,24 +193,141 @@
   hyphens: auto;
 }
 
-.goodbye-stop__body {
+.goodbye-start__body {
   max-inline-size: 36ch;
   margin: clamp(1.25rem, 2.2vw, 2rem) 0 0;
   font-size: clamp(1.02rem, 1.25vw, 1.3rem);
   line-height: 1.45;
 }
 
-.goodbye-stop__cta {
-  margin-block-start: clamp(1.75rem, 3vw, 2.75rem);
+/* The CTA: white type on the photograph's black, one orange accent. */
+.goodbye-end__copy {
+  container-type: inline-size;
+  inline-size: min(100%, 46rem);
+}
+
+.goodbye-end__kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  margin: 0 0 clamp(1rem, 2.4svh, 1.75rem);
+  font-size: var(--font-label);
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+/* The orange accent: a small bitten mark before the invitation. */
+.goodbye-end__kicker::before {
+  content: '';
+  flex: none;
+  inline-size: 0.7em;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 105% 50%,
+    transparent 38%,
+    var(--color-brand-orange) 39%
+  );
+}
+
+.goodbye-end__title {
+  margin: 0;
+  font-size: clamp(2rem, 11.5cqi, 5.75rem);
+  font-weight: 850;
+  letter-spacing: -0.045em;
+  line-height: 0.96;
+  text-wrap: balance;
+  overflow-wrap: break-word;
+}
+
+/* A discreet line under the headline: small, sentence case, softened white. */
+.goodbye-end__note {
+  margin: clamp(1rem, 2.4svh, 1.6rem) 0 0;
+  font-size: var(--font-label);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  color: rgb(255 255 255 / 72%);
+}
+
+/*
+ * The CTA is the headline. A heavy underline carries it; hovering presses the
+ * line forward, thickens the underline and pushes the arrow on. No glow, no
+ * bounce, no zoom.
+ */
+.goodbye-end__cta {
+  display: inline-block;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 0.08em;
+  touch-action: manipulation;
+}
+
+.goodbye-end__cta-text {
+  display: inline-block;
+  text-decoration-line: underline;
+  text-decoration-thickness: 0.055em;
+  text-underline-offset: 0.13em;
+  transition:
+    translate var(--duration-medium) var(--ease-bite),
+    text-decoration-thickness var(--duration-medium) var(--ease-bite);
+}
+
+.goodbye-end__cta-tail {
+  white-space: nowrap;
+}
+
+.goodbye-end__cta-arrow {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 0.8em;
+  aspect-ratio: 1;
+  margin-inline-start: 0.2em;
+  vertical-align: -0.08em;
+  border-radius: 50%;
+  background: var(--color-brand-orange);
+  color: var(--color-brand-ink);
+  transition:
+    translate var(--duration-medium) var(--ease-bite),
+    scale var(--duration-fast) var(--ease-bite);
+}
+
+.goodbye-end__cta-arrow svg {
+  inline-size: 50%;
+  block-size: auto;
+}
+
+.goodbye-end__cta:is(:hover, :focus-visible) .goodbye-end__cta-text {
+  translate: 0.2rem 0;
+  text-decoration-thickness: 0.1em;
+}
+
+.goodbye-end__cta:is(:hover, :focus-visible) .goodbye-end__cta-arrow {
+  translate: 0.3rem 0;
+}
+
+.goodbye-end__cta:active .goodbye-end__cta-text {
+  translate: 0.3rem 0;
+}
+
+.goodbye-end__cta:active .goodbye-end__cta-arrow {
+  scale: 0.9;
+}
+
+.goodbye-end__cta:focus-visible {
+  outline: 3px solid var(--color-white);
+  outline-offset: 0.18em;
 }
 
 /* ---------------------------------------------------------- arrows --- */
 
-.goodbye-stop__travel {
+.goodbye-travel {
   flex: none;
   display: grid;
   place-items: center;
-  inline-size: clamp(3.5rem, 5.4vw, 6rem);
+  inline-size: 3.25rem;
   aspect-ratio: 1;
   padding: 0;
   border: 0;
@@ -193,24 +336,26 @@
   color: var(--color-brand-ink);
   cursor: pointer;
   touch-action: manipulation;
-  transition: scale var(--duration-fast) var(--ease-bite);
+  transition:
+    scale var(--duration-fast) var(--ease-bite),
+    border-radius var(--duration-medium) var(--ease-bite);
 }
 
-.goodbye-stop__travel[hidden] {
+.goodbye-travel[hidden] {
   display: none;
 }
 
-.goodbye-stop__travel svg {
+.goodbye-travel svg {
   inline-size: 42%;
   block-size: auto;
   transition: translate var(--duration-medium) var(--ease-bite);
 }
 
-.goodbye-stop__travel:active {
+.goodbye-travel:active {
   scale: 0.94;
 }
 
-.goodbye-stop__travel:focus-visible {
+.goodbye-travel:focus-visible {
   outline: 3px solid var(--color-white);
   outline-offset: 4px;
 }
@@ -223,22 +368,114 @@
   [data-goodbye-travel='back']:hover svg {
     translate: -12% 0;
   }
+
+  /* Pressed from the right, the side it is about to travel away from. */
+  [data-goodbye-travel='back']:hover {
+    border-radius: 50% 44% 44% 50% / 50% 50% 50% 50%;
+  }
 }
 
-/* ----------------------------------------------------------- phone --- */
+/* ------------------------------------------------ band, larger screens --- */
 
-@media (max-width: 47.99rem) {
-  .goodbye-stop__title {
-    font-size: clamp(2rem, 10vw, 3.4rem);
+@media (min-width: 48rem) {
+  .goodbye-start__title {
+    font-size: clamp(2.6rem, 6.5vw, 4.5rem);
   }
 
-  /* Still well above the 44px touch-target minimum. */
-  .goodbye-stop__travel {
-    inline-size: 3.25rem;
+  .goodbye-travel {
+    inline-size: clamp(3.5rem, 6vw, 4.5rem);
+  }
+}
+
+/* ------------------------------------------------------------- wide --- */
+
+/*
+ * The photograph fills the whole stage; the copy lives in its black fields.
+ * On aspects of 5:4 and wider the scene is never cropped sideways (its width
+ * stays under 200% of the stage), so a fraction of the scene's width is a
+ * fraction of the photograph.
+ */
+@media (aspect-ratio >= 5/4) {
+  .goodbye-section[data-goodbye-enhanced] {
+    --goodbye-w-max: 200cqw;
+
+    grid-template-rows: none;
+    block-size: 100svh;
   }
 
-  /* The copy spans the screen here, so the placeholder ring rises above it. */
-  .goodbye-section__mark--ring {
-    inset-block-start: 22%;
+  [data-goodbye-enhanced] .goodbye-section__viewport {
+    position: absolute;
+    inset: 0;
+    block-size: auto;
+    -webkit-mask-image: none;
+    mask-image: none;
   }
+
+  /* The copy layer is the same box as the viewport, and a container too, so
+     the copy can read the scene's width in the same units. */
+  [data-goodbye-enhanced] .goodbye-section__stops {
+    position: absolute;
+    inset: 0;
+    container-type: size;
+    grid-template-rows: 1fr;
+    align-content: stretch;
+    padding: 0;
+  }
+
+  /* Side A: inside the left black field (0-29% of the photograph). */
+  [data-goodbye-enhanced] .goodbye-start {
+    margin-inline-start: var(--page-gutter);
+    inline-size: calc(var(--goodbye-w) * 0.26 - var(--page-gutter));
+    max-inline-size: none;
+  }
+
+  [data-goodbye-enhanced] .goodbye-start__title {
+    font-size: clamp(2.2rem, min(5.6cqw, 10cqh), 6.5rem);
+  }
+
+  [data-goodbye-enhanced] .goodbye-travel {
+    inline-size: clamp(3.5rem, min(5.4cqw, 11cqh), 6rem);
+  }
+
+  /* Side B fills the stage; its pieces are placed on the photograph. */
+  [data-goodbye-enhanced] .goodbye-end {
+    align-self: stretch;
+    position: relative;
+  }
+
+  /*
+   * The CTA: side B shows the scene's last 100cqw, so the photograph's
+   * fraction f sits at `100cqw - (1 - f) * width`. From 69% on it is black
+   * down to 73% of the height; the copy keeps above 68%.
+   */
+  [data-goodbye-enhanced] .goodbye-end__copy {
+    position: absolute;
+    inset-inline: calc(100cqw - var(--goodbye-w) * 0.31) var(--goodbye-edge);
+    inset-block: clamp(4.5rem, 12cqh, 8rem) 32cqh;
+    inline-size: auto;
+    max-inline-size: 46rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  /* Back: bottom right, in the corner that is black past 76%. */
+  [data-goodbye-enhanced] .goodbye-end__back {
+    position: absolute;
+    inset-inline-end: var(--goodbye-edge);
+    inset-block-end: clamp(1.5rem, 6cqh, 4rem);
+    inline-size: clamp(4.25rem, min(6.2cqw, 12cqh), 7rem);
+  }
+}
+
+/*
+ * Reduced motion jumps between the sides. The site-wide rule gives every
+ * element a 0.01ms transition of `all`, which lands a jump one or two frames
+ * late - on each descendant too, since `visibility` is inherited and every
+ * element in between transitions its own copy. The arriving control was
+ * still hidden when focus moved to it. Nothing inside the stage transitions
+ * at all here.
+ */
+html[data-motion='reduced'] [data-goodbye] * {
+  transition-property: none;
 }

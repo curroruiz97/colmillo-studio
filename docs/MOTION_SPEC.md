@@ -56,6 +56,60 @@ reveal, overlap, tension and release.
   moving track, never a row under it.
 - The pinned rail never cuts a tile off at the bottom of the viewport.
 
+## Services
+
+Rebuilt on 2026-09-11 as a sticky editorial sequence (see `DECISIONS.md`).
+
+- Wide screens with motion allowed (`>= 64.01rem` wide, `>= 40rem` tall): a
+  track of `100svh + count x 45svh` (280svh) with one sticky 100svh stage.
+  Nothing is pinned, and the section itself is never a sticky stack layer.
+- Composition (2026-09-11 follow-up): the heading, with the `Abrir servicios
+  ↗` CTA beside it (a wide gap, centred on the heading's two lines), holds the
+  top-left corner and the `01 / 04` readout (with its 2px orange line) the
+  bottom-left; both are anchors and never move. The illustration and the
+  service on stage form one pair centred on the viewport, art on the left,
+  close to the copy without touching it, and centred vertically on the name
+  and description. The service on stage changes, every name on the same line.
+- The illustration frame holds stacked layers: the shared illustration
+  (Estrategia) plus the client's own art for Identidad, Digital and Contenido
+  (2026-09-11, WebP derivatives from `npm run media:services`). The shared art
+  sets the frame's size; every service layer fills it with `object-fit:
+  contain` anchored at the foot, so each drawing is whole, the same size and
+  on the same ground line. At each handover the frame cross-fades from the
+  leaving service's art to the arriving one's: both over the same 0.4 of a
+  step centred on the boundary, `sine.inOut`, so their opacities always sum to
+  one and the frame never dims; the leaving art settles to `scale 0.99, y -4px`
+  and the arriving one lands from `scale 1.015, y 6px`, both from the foot.
+  It runs inside the copy's own handover, so art and text change together.
+- The service layers are `loading="lazy"`; once the track is within 150% of
+  a viewport an `IntersectionObserver` switches them to eager and decodes them,
+  so no handover waits on the network. The list layout (phones, portrait
+  tablets, reduced motion, no JavaScript) keeps only the shared illustration
+  and never fetches them.
+- `ServicesSequence.ts`: one timeline scrubbed (0.8) by the track, one unit
+  per service, every handover centred on a step boundary. The outgoing service
+  rises 14% and is transparent just before the boundary; the incoming rises
+  from 26% below and fades in right after it, its name, copy and glyph
+  16px apart on a 0.035 stagger, and its hairline rule draws in from the left.
+  The two are never on stage together. Names only translate (`force3D: false`),
+  never scale.
+- The illustration presses 6px down (`scaleY 0.988`) at each handover and
+  settles into a per-service pose within +-7px. It is one flat PNG, so nothing
+  inside it moves on its own.
+- The readout and the orange line follow the same playhead. The readout is
+  `aria-hidden`; every service stays in the DOM in reading order, and focus
+  inside a service that is not on stage scrolls the page to its step.
+- Release: when the track ends the stage leaves with ordinary scroll and the
+  project rail follows directly under it. The rail pins only once the services
+  are off screen, so the two scroll ranges never overlap.
+- `ServicesMotion.ts` switches the layout synchronously and mounts the
+  timeline from its lazy chunk; a chunk that fails to load returns the section
+  to its list.
+- Linear everywhere else (no JavaScript, reduced motion, tablets, phones,
+  short windows): a vertical list with every service painted. Wide screens
+  hold the heading column with CSS `sticky`; phones and tablets reveal each
+  entry once (22px, 0.62s).
+
 ## Studio
 
 - A pause, not a sequence: no pin, no scrub, no travelling letters, no blur and
@@ -73,27 +127,55 @@ reveal, overlap, tension and release.
 
 ## Goodbye
 
-Rebuilt on 2026-09-10 as a viewport over one panoramic scene. Phase 1
-(architecture) only; the visual, the copy, the final transition and the CTA are
-still open.
+Rebuilt on 2026-09-10 as a viewport over one panoramic scene. Since
+2026-09-11 the scene is a photograph (on trial, `goodbyeVisual`) and side B is
+type on the photograph's own black, not a panel. Its copy lives in
+`src/data/goodbye.ts`.
 
-- One scene element (`[data-goodbye-scene]`: the `goodbyeVisual` loop or still,
-  or a structural placeholder panorama until one is approved), wider than the
-  screen: 200% of the viewport by default, `clamp(180cqw, height × ratio,
-  220cqw)` with a real asset. The section is `100svh` with `overflow: hidden`.
-- Two positions. Side A shows the scene's left side under the first editorial
-  block; its round orange arrow pans the whole scene left until its right side
-  fills the screen (side B) and the second block appears; B's back arrow pans
-  it home. The visual is never swapped, faded, zoomed or cut.
+- One scene element (`[data-goodbye-scene]`): the `goodbyeVisual` still, a
+  2048x768 photograph (`public/assets/goodbye/goodbye-panorama.webp`), or a
+  structural placeholder panorama while the slot is `null`. `object-fit:
+  cover` at full height, no frame or radius. Its width is the visual at full
+  height, `clamp(135cqw, 100cqh × ratio, 200cqw)` (230cqw on the band layout),
+  with the ratio written by the component as `--goodbye-ratio`.
+- Two positions. Side A shows the photograph's left end with the first block
+  in its left black field; the arrow pans the whole scene left until its right
+  end is flush with the screen and the CTA arrives in the right black field.
+  The orange piece in the middle is on screen in both positions and is the
+  link between them. The visual is never swapped, faded, zoomed or cut.
 - The distance is exact by construction: the viewport is a size container and
   the scene is `translateX(calc((100cqw - 100%) * var(--goodbye-progress)))`.
-  `GoodbyePanorama.ts` only eases `--goodbye-progress` between 0 and 1 (1.1 s,
-  `power3.inOut`), so a resize can never leave the scene short of or past a
-  side.
-- During the travel the leaving block drifts 40px and fades early, the arriving
-  block drifts in after 55% of the travel, and keyboard focus moves from the
-  pressed arrow to the arriving block's arrow. Requests during a travel are
-  ignored. Both blocks share one grid cell, so the stage never changes height.
+  `GoodbyePanorama.ts` only eases `--goodbye-progress` between 0 and 1.
+- Wide layout (aspect 5:4 and wider): the photograph fills the 100svh stage.
+  The copy layer is the same box and a size container, so the copy is cut from
+  the scene's width with fractions measured on the photograph: side A inside
+  its first 26% (black to 29%), the CTA from 69% (black above 70% of the
+  height from 66%) and above 68% of the height, the back button in the
+  bottom-right corner (black at every height past 76%). On these aspects the
+  scene is never cropped sideways, so a fraction of the scene is a fraction of
+  the photograph.
+- Band layout (narrower than 5:4, and without JavaScript): the photograph runs
+  across the top (`clamp(15rem, 54svh, 44rem)`) and fades into the ink through
+  a mask; the two blocks alternate below it in one cell, the back button
+  leading the CTA. The section keeps `100svh` as a minimum.
+- The CTA is the headline ("Nosotros sabemos dónde apretar.", with a discreet
+  note of the four services under it; both arrive as one line of the reveal)
+  linked to `/contacto/`, white,
+  a heavy white underline and an orange disc with an ink arrow set into the
+  last word; the kicker carries a small orange bitten mark. Hover and focus
+  press the line 0.2rem forward, thicken the underline and push the arrow a
+  further 0.3rem; pressing scales the disc to 0.9. No glow, bounce, blur or
+  zoom.
+- One GSAP timeline, played forward to arrive and reversed to go back, so the
+  return is the exact inverse: scene 0-1.1 s `power3.inOut`; side A's block
+  drifts out by 0.31 s; the CTA lines drift in from 0.84 s (0.06 s stagger);
+  the back button scales in from 0.95 s; about 1.3 s in all. The copy is fixed
+  to the screen while the photograph moves under it, so those times are the
+  measured window in which it only ever overlaps black (checked every frame,
+  both ways, from 320 to 2560px).
+- Keyboard focus moves from the pressed control to the arriving side's control
+  once the travel settles; the side not on screen is `inert`. Requests during a
+  travel are ignored.
 - No dots, counter, cards, thumbnails or autoplay. Input: the arrows (click,
   Enter, Space; ArrowLeft/ArrowRight while one has focus) and, on touch, a
   horizontal swipe (drag left reveals the right side). Vertical gestures stay
@@ -101,8 +183,117 @@ still open.
 - Phones and windows under 32rem tall keep `100svh` as a minimum and grow with
   their content instead of cutting it.
 - Reduced motion jumps between the sides with no travel and parks a video scene
-  on its poster. No JavaScript: the scene rests on its left side, both blocks
-  are listed and the arrows stay hidden.
+  on its poster; transitions inside the stage are switched off so the jump (and
+  the focus hand-over) lands in the same frame. No JavaScript: the band layout,
+  the scene resting on its left side, both blocks listed and the arrows hidden.
+
+## Contact Close ("la última mordida")
+
+Reworked on 2026-09-11 (second pass): a soft sculpture replaces the disc, and
+the section is in sentence case. See `DECISIONS.md`.
+
+- The section's own script registers a loader on the section; `ContactBite.ts`
+  (run by `MotionController`) mounts `ContactBiteMotion.ts` from it and hands
+  it GSAP, so neither the chunk nor Vite's import helper enters the shared
+  motion bundle. A chunk that fails to load leaves the still composition,
+  which is complete.
+- The sculpture is SVG whose geometry comes from `ContactSculpture.ts` (pure,
+  no DOM): a body path, light and shade gradients, the scoop's inner wall, a
+  light lip and a contact shadow. The still pose is rendered on the server;
+  the motion only redraws the same parts from an eased state
+  (`px/py/presence` of the pointer, `sx/sy` squash, `bite` depth). The SVG
+  is `aria-hidden`; the piece is a link to `/contacto/` (see below).
+- Entrance, once, from `top 70%` with `end: 'max'` and an in-view check:
+  lines at 0.1 and 0.2, "muerda" revealed from its left edge
+  while it lets go of `scaleX .9 / scaleY 1.08` at 0.34, the sculpture rising
+  from `sx 1.1 / sy .86` and a deeper scoop back into its shape
+  (`back.out(1.5)`, 1.15 s) from 0.3–0.34, the channel buttons at 0.82.
+  About 1.8 s end to end, no cartoon bounce. Every tween is a `fromTo`.
+- Fine pointer only: one passive `pointermove` feeds `gsap.quickTo`s
+  (0.95 s follow; 1.2 s drift). The piece turns towards the pointer (light,
+  shade and scoop move; the scoop's parallax changes the silhouette), dents
+  where the pressure comes from and swells on the far side, opens its bite a
+  few units when approached, and drifts at most 18px. It fades out 0.9 radii
+  beyond the body. One `gsap.ticker` callback, registered only while the
+  section is on screen, redraws (about 0.8 ms) only when the state changed.
+  Leaving returns it to exactly its resting outline.
+- Pressure couples to "muerda": `translateX(-3px * press)` plus a 0.4%
+  squeeze, so the word gives way 1-3px.
+- Bite: the pointer entering the body, or touching "muerda": squash to
+  0.95 / 1.045 with a deeper scoop in 0.15 s, release at 0.18 s with
+  `back.out(1.7)`; about 0.65 s. "muerda" is squeezed through `--bite`. The
+  existing cursor shows its `data-pressed` pose; "muerda" carries an empty
+  `data-cursor-label` (active ring, no text).
+- The channels are two of the hero's `bite-button`s side by side under the
+  headline ("Correo ↗", "Instagram ↗"): the same shape, orange, ink border,
+  `0 0.4rem 0` ink shadow, magnetic pull and hover squeeze, nothing of their
+  own except narrower side padding on phones.
+- The sculpture is a link to `/contacto/`. Only its painted form takes the
+  pointer (`pointer-events: visiblePainted`; the link box and the white around
+  it do not), so the empty corners are never a hit area, and the link's box
+  ends at the stage edge, clear of the fixed rail. CSS only, 160 ms: on hover
+  and keyboard focus the form presses down 6px (`scale .985/.975` from its
+  foot) onto a hard ink shadow in its own silhouette. A pointer gets the
+  cursor's "Contacto" disc (`data-cursor-label="Contacto"`, exactly as on the
+  hero CTA); keyboard focus and touch get "Contacto ↗" set into the piece
+  instead. `:active` presses it 14px, all the way onto the shadow.
+  Keyboard focus also draws an ink ring on the real silhouette. Without hover
+  the note and the shadow stay visible, since they are the only affordance.
+- The headline is centred on the stage (the buttons' height mirrored above
+  it) and the sculpture's centre sits on the same line. It uses the
+  manifesto's word sizes (desktop `clamp(3.06rem, 5.58vw, 5.58rem)`, portrait
+  tablets `clamp(4rem, 11vw, 7rem)`, phones `clamp(2.2rem, 12.4vw, 4.6rem)`;
+  "muerda" 1.3x), is set in from the gutter like the services and Studio
+  headings (phones keep the gutter), and the buttons start where "muerda"
+  starts.
+- Touch: the entrance only; the still sculpture. Reduced motion: a 0.45 s
+  fade with 10 px of travel and the still sculpture; the hover and focus
+  states still change in place.
+
+## Studio Page (/studio/)
+
+Rebuilt on 2026-09-11 (see `DECISIONS.md`). There is no pin, scrub, parallax
+or permanent loop. Movement follows an interaction or an arrival.
+
+- Loading: `StudioPage.ts` (shared bundle, a few lines) mounts
+  `StudioPageMotion.ts`, a route-only chunk whose dynamic import lives in
+  `src/pages/studio.astro`, and hands it GSAP and `PressSurface`, exactly as
+  the home contact close does. The shared bundle stays under its 150 KB
+  budget. A chunk that fails leaves the complete static page.
+- Hero, once from the first paint, in CSS so it never waits for the chunk:
+  the title rises out of its clip (`translateY(108%)` to rest, 1.05 s, GSAP's
+  `power3.out` curve, at 0.1 s), then the disc arrives from `opacity 0,
+  translateY(18px) scale(.94)` (1.3 s, `power2.out` curve, at 0.42 s). When
+  `studioHeroMedia` is supplied the loop plays only on screen in a visible
+  tab. Reduced motion: no entrance; the loop rests on its poster.
+- Reveals: every `[data-reveal-group]` (intro, section headers, close) lifts
+  its `[data-reveal-line]` lines out of their `.studio-line` clips (0.95 s,
+  0.09 stagger) and settles its `[data-reveal-fade]` blocks (`y 18`, opacity,
+  0.75 s, from 0.3 s), once, at `top 78%`. Reduced motion: a 0.45 s opacity
+  fade.
+- Principles (CSS transitions on the states `StudioPage.ts` writes): the
+  active row's rule draws in orange from the left (`scaleX`, 520 ms), its name
+  steps forward 0.4-1 rem (420 ms), its index turns orange and a small bitten
+  mark scales in (360 ms); the other names recede to 44% ink. On the stage the
+  arriving picture is clipped in from its foot (`inset(100% 0 0 0)` to
+  `inset(0)`, 640 ms `--ease-bite`) while its media settles from `scale 1.07,
+  translate 0 4%` (900 ms); its caption fades up after 140 ms. The covered
+  picture is held whole underneath until the next change, so the stage never
+  shows a gap; its caption goes at once. No bounce, no elastic, no 3D tilt.
+- Drift: under a fine pointer the stage's pictures translate at most 12 px by
+  9 px towards the pointer, through two `gsap.quickTo`s on a proxy that write
+  `--drift-x/--drift-y` (0.9 s `power3.out`, on the shared ticker). The
+  section's box is read on the first move and after a scroll or resize.
+- Team: each portrait arrives once (`autoAlpha`, `y 56`, 1 s, `top 90%`);
+  nothing moves afterwards. Under a fine pointer with motion allowed each
+  portrait's surface takes the home rail's dent (`PressSurface.ts`, same
+  values). Touch, coarse pointers, keyboard and reduced motion: still
+  pictures; reduced motion reveals with opacity only.
+- Close: the shared bite button, cream offset slab on ink, `:active` sinks it
+  0.28 rem; the arrow nudges on hover and focus; magnetic pull as elsewhere.
+- Cleanup: every listener, observer, tween and ScrollTrigger is released; the
+  tab roles and ARIA state are removed and rebuilt on a motion-preference
+  restart, which keeps the principle that was on stage.
 
 ## Page Transitions
 
@@ -187,7 +378,10 @@ still open.
   from rendering the moment it closes. It supports Escape, the close control, a
   link and the backdrop as close paths, traps and restores focus, makes outside
   content (and the Instagram control) inert, locks scrolling without shifting
-  the layout and exposes the current numbered scene in the panel. The backdrop
+  the layout and shows the current route's number in the panel. The active
+  route (orange, `aria-current="page"`) comes from the URL alone and never
+  follows scroll: on `/` "Inicio" stays active while any home section is in
+  view. The backdrop
   is an ink veil at 34% with a 6 px blur, applied only while open. Under
   reduced motion tracking is disabled, the tab stays at rest and the panel,
   routes and close control change state without travel.
@@ -199,8 +393,8 @@ still open.
   excluded - at most once per frame after a scroll, a resize, a vertical move
   or an entry animation, plus once more 180 ms after scrolling settles. It
   publishes `data-tab-tone="accent"`; it does not read `data-surface-tone`.
-  Route labels are sentence case ("Inicio", "Manifiesto"), as written in
-  `primaryNavigation`.
+  Route labels are sentence case, as written in `primaryNavigation`, in this
+  order: Inicio, Studio, Servicios, Proyectos, Contacto.
 - `InstagramBadge.ts` folds the single global Instagram control, in place in
   the top-right corner, from its hero pose - `INSTAGRAM ↗`, scaled 1.3 from
   1024 px and 1.15 from 768 px around its own top-right corner - into a round

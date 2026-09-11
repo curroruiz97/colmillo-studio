@@ -472,7 +472,7 @@ body {
   font-weight: 850;
   letter-spacing: -0.06em;
   line-height: 0.88;
-  /* Sentence case, as written in `primaryNavigation`: "Inicio", "Manifiesto". */
+  /* Sentence case, as written in `primaryNavigation`: "Inicio", "Servicios". */
   /*
    * The global rule allows breaking anywhere, which would split a route name
    * mid-word. A label is a single word: it must stay whole.

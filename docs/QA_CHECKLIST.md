@@ -66,7 +66,7 @@
 - Goodbye section works or is documented as awaiting asset.
 - Verified at 1440×1000, 834×1112 and 390×844 with Chromium screenshots from
   the static demo artifact.
-- Manifiesto, Studio and Contacto top/interior states verified at the three
+- Servicios, Studio and Contacto top/interior states verified at the three
   reference viewports plus 320×720.
 - Black-on-light and cream-on-dark header logo variants render without
   stretching, clipping, background mattes or collisions at all target widths.

@@ -3,10 +3,7 @@ import { demoMode } from '@/data/projects';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 ---
 
-<BaseLayout
-  title="Manifiesto"
-  description="Manifiesto creativo de Colmillo Studio."
->
+<BaseLayout title="Servicios" description="Servicios de Colmillo Studio.">
   <article
     class="editorial-page manifesto-page"
     aria-labelledby="manifesto-page-title"
@@ -15,13 +12,13 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
       class="editorial-page__hero content-shell"
       data-surface-tone="light"
     >
-      <p class="section-index" aria-hidden="true">01 / Manifiesto</p>
+      <p class="section-index" aria-hidden="true">03 / Servicios</p>
       <div class="editorial-page__title-block">
         <p class="section-kicker">Colmillo Studio</p>
-        <h1 id="manifesto-page-title">Manifiesto</h1>
+        <h1 id="manifesto-page-title">Servicios</h1>
       </div>
       <div class="editorial-page__mark" data-editorial-mark aria-hidden="true">
-        <span>M</span><span>01</span>
+        <span>S</span><span>03</span>
       </div>
       {
         demoMode && (
@@ -93,8 +90,8 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
                 Soltar solo cuando queda <em>marca.</em>
               </h2>
               <p>
-                DEMO FICTICIA — NO PUBLICAR. Sustituir todo este bloque por el
-                manifiesto validado por el cliente.
+                DEMO FICTICIA — NO PUBLICAR. Sustituir todo este bloque por los
+                servicios validados por el cliente.
               </p>
             </div>
           </section>
@@ -106,9 +103,9 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
       class="editorial-page__next content-shell"
       aria-label="Continuar el recorrido"
     >
-      <a href="/studio/" data-cursor-label="Seguir">
+      <a href="/proyectos/" data-cursor-label="Ver">
         <span>Siguiente</span>
-        <strong>Studio</strong>
+        <strong>Proyectos</strong>
         <span aria-hidden="true">↘</span>
       </a>
       <a href="/contacto/" data-cursor-label="Hablar">

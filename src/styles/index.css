@@ -12,6 +12,8 @@
 @import './projects-section.css' layer(sections);
 @import './studio-section.css' layer(sections);
 @import './goodbye-section.css' layer(sections);
+@import './contact-section.css' layer(sections);
+@import './studio-page.css' layer(sections);
 @import './edge-menu.css' layer(components);
 @import './instagram-badge.css' layer(components);
 @import './utilities.css' layer(utilities);

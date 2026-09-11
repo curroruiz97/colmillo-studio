@@ -1,0 +1,94 @@
+---
+/**
+ * /studio/ — 04 "Los que muerden"
+ *
+ * An editorial grid of large portraits: three columns with stepped tops on
+ * wide screens, two on tablets, one alternating column on phones. No cards:
+ * a picture, then a name and a role under it.
+ *
+ * Under a fine pointer each portrait gives where it is pressed, with the same
+ * dent as the home project rail (`PressSurface.ts`, bound in `StudioPage.ts`).
+ * Only the surface is clipped; the name and the role sit outside it and never
+ * deform. Touch, keyboard and reduced motion keep the still picture.
+ *
+ * Members come from `studioTeam`. Until real people are supplied every entry
+ * is an explicit "Nombre" / "Rol" placeholder with a flat portrait.
+ */
+import type { StudioTeamCopy } from '@/data/studioPage';
+
+interface Props {
+  team: StudioTeamCopy;
+}
+
+const { team } = Astro.props;
+const tones = ['sand', 'ink', 'orange'] as const;
+---
+
+<section
+  class="studio-team"
+  aria-labelledby="studio-team-title"
+  data-surface-tone="light"
+  data-dev-placeholder={team.placeholder ? '' : undefined}
+>
+  <div class="content-shell">
+    <header class="studio-team__header" data-reveal-group>
+      <h2 id="studio-team-title" class="studio-team__title">
+        <span class="studio-line">
+          <span data-reveal-line>{team.title}</span>
+        </span>
+      </h2>
+      <p class="studio-team__lede" data-reveal-fade>{team.lede}</p>
+    </header>
+
+    <ul class="studio-team__grid" role="list">
+      {
+        team.members.map((member, index) => {
+          const Body = member.href ? 'a' : 'div';
+          return (
+            <li class="studio-member" data-team-member>
+              <Body
+                class="studio-member__body"
+                href={member.href}
+                data-cursor-label={member.href ? 'Ver' : undefined}
+              >
+                <div class="studio-member__frame" data-press-frame>
+                  <div
+                    class="studio-member__surface"
+                    data-press-surface
+                    data-tone={tones[index % tones.length]}
+                  >
+                    {member.photo ? (
+                      <img
+                        class="studio-member__photo"
+                        src={member.photo.src}
+                        alt={member.photo.alt}
+                        width={member.photo.width}
+                        height={member.photo.height}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    ) : (
+                      <div
+                        class="studio-member__placeholder"
+                        aria-hidden="true"
+                      >
+                        <span class="studio-member__ph-label">
+                          Retrato pendiente
+                        </span>
+                        <span class="studio-member__ph-number">
+                          {String(index + 1).padStart(2, '0')}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <h3 class="studio-member__name">{member.name}</h3>
+                <p class="studio-member__role">{member.role}</p>
+              </Body>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </div>
+</section>

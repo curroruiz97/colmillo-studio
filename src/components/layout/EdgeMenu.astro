@@ -33,11 +33,11 @@ const routeNumber =
   routeIndex >= 0 ? String(routeIndex + 1).padStart(2, '0') : '—';
 const total = String(primaryNavigation.length).padStart(2, '0');
 
-/**
- * Home sections that mirror the permanent routes. The observer in `EdgeMenu.ts`
- * reports the visible one; every entry is a real section id on `/`.
+/*
+ * The active route is decided here, from the URL, and never changes while the
+ * page scrolls: on `/` "Inicio" stays current even when a home section that
+ * shares a route's name is in view.
  */
-const sectionIds = ['inicio', 'manifiesto', 'studio', 'proyectos', 'contacto'];
 ---
 
 <div class="edge-menu" data-edge-menu data-state="closed">
@@ -86,7 +86,6 @@ const sectionIds = ['inicio', 'manifiesto', 'studio', 'proyectos', 'contacto'];
                   <li style={`--edge-item: ${index}`}>
                     <a
                       href={item.href}
-                      data-section-link={sectionIds[index]}
                       data-edge-initial-focus={index === 0 ? '' : undefined}
                       data-cursor-label="Ir"
                       aria-current={

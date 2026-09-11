@@ -100,14 +100,21 @@ export const studioMedia: LoopMedia = {
  * that stays in place while the slides change over it. It is decorative — the
  * slides carry the meaning — so it is hidden from assistive technology.
  *
- * Whether it is a video or an image is still open (`docs/CONTENT_NEEDED.md`).
- * Activate the slot only once the file and its derivatives are approved; until
- * then the stage shows its bare ink surface.
+ * On trial since 2026-09-11 at the user's request: the still supplied as
+ * `public/assets/bg panoramica.png` (2048x768), published as a WebP derivative
+ * by `scripts/prepare-goodbye-media.mjs`. Final approval is still open
+ * (`docs/CONTENT_NEEDED.md`); the section stays demo-only while its copy is a
+ * placeholder. `null` restores the structural placeholder panorama.
  */
 export type GoodbyeVisual =
   ({ kind: 'video' } & MotionMedia) | ({ kind: 'image' } & BrandImage);
 
-export const goodbyeVisual: GoodbyeVisual | null = null;
+export const goodbyeVisual: GoodbyeVisual | null = {
+  kind: 'image',
+  src: '/assets/goodbye/goodbye-panorama.webp',
+  width: 2048,
+  height: 768,
+};
 
 /**
  * Home manifesto illustration supplied by the client.
@@ -145,3 +152,50 @@ export const servicesIllustration: BrandImage = {
   width: 1202,
   height: 696,
 };
+
+/*
+ * Per-service illustrations supplied by the client on 2026-09-11 for
+ * Identidad, Digital and Contenido (Estrategia keeps the shared illustration
+ * above). The 1600x900 RGBA PNGs (`public/assets/servicio *.png`) are left
+ * untouched; `npm run media:services` crops their transparent margin on the
+ * alpha channel, scales them to 1200px wide and writes these WebP derivatives
+ * with the alpha intact. No colour is changed: unlike the shared art, their
+ * clothing is opaque near-black (about RGB 11-16), a shade under the ink.
+ */
+export const servicesIdentityIllustration: BrandImage = {
+  src: '/assets/services/servicio-identidad.webp',
+  width: 1200,
+  height: 658,
+};
+
+export const servicesDigitalIllustration: BrandImage = {
+  src: '/assets/services/servicio-digital.webp',
+  width: 1200,
+  height: 574,
+};
+
+export const servicesContentIllustration: BrandImage = {
+  src: '/assets/services/servicio-contenido.webp',
+  width: 1200,
+  height: 610,
+};
+
+/**
+ * `/studio/` hero loop. NOT SUPPLIED YET (`docs/CONTENT_NEEDED.md`).
+ *
+ * The container is final: a disc with one round bite out of its top-right
+ * shoulder, playing `autoplay muted loop playsinline` with no controls, paused
+ * off screen, in a background tab and under reduced motion. While this slot
+ * is `null` the disc shows a plain geometric placeholder instead.
+ *
+ * To publish the loop, add a square-ish WebM + MP4 pair (subject centred: the
+ * mask is a circle, filled with `object-fit: cover`) and a WebP poster of its
+ * first frame under `public/assets/motion/studio-page/`, then fill this in.
+ */
+export interface StudioHeroMedia extends MotionMediaSource {
+  poster: string;
+  width: number;
+  height: number;
+}
+
+export const studioHeroMedia: StudioHeroMedia | null = null;

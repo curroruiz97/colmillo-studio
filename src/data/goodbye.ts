@@ -1,22 +1,33 @@
+import { primaryNavigation } from '@/config/navigation';
 import { demoMode } from './projects';
 
-export interface GoodbyeStop {
+export interface GoodbyeStart {
   /** The large editorial line; its arrow button sits beside it. */
   title: string;
   /** One optional supporting sentence under the title. */
   body: string | null;
-  /** Optional route out of the stage. Undecided: null everywhere for now. */
-  cta: { label: string; href: string } | null;
+}
+
+export interface GoodbyePanel {
+  /** Small line over the CTA. Optional. */
+  kicker: string | null;
+  /**
+   * The large headline, which is itself the link out of the stage. The arrow
+   * is drawn into its last word; `destination` completes the accessible name.
+   */
+  cta: { label: string; href: string; destination: string };
+  /** One discreet line under the headline. Optional. */
+  note: string | null;
 }
 
 export interface GoodbyeContent {
   /** Accessible name of the section. It is announced, never shown. */
   label: string;
   /** Copy over the left side of the panorama, where the stage opens. */
-  start: GoodbyeStop;
-  /** Copy over the right side, reached with the arrow. */
-  end: GoodbyeStop;
-  /** True while the copy is a development placeholder. */
+  start: GoodbyeStart;
+  /** The CTA that arrives over the scene's right side. */
+  end: GoodbyePanel;
+  /** True while any of the copy is a development placeholder. */
   placeholder: boolean;
 }
 
@@ -26,22 +37,28 @@ export interface GoodbyeContent {
  */
 const approvedGoodbye: GoodbyeContent | null = null;
 
+const contact = primaryNavigation.find((item) => item.label === 'Contacto');
+
 /**
- * Structural placeholders — NOT COPY, NEVER PUBLISH.
+ * Demo record — still flagged, so it stays out of `dist/`.
  *
- * They exist only to exercise the pan: one block per side of the scene, of
- * different lengths (the second also carries a body) so a test can prove the
- * stage never changes height between them. The record is flagged, so the
- * section carries `data-dev-placeholder` and `check:production` keeps it out
- * of `dist/`.
+ * The two headlines and the note were supplied by the user on 2026-09-11; the
+ * CTA leads to the real contact route. The kicker is still provisional and the
+ * photograph is on trial, so the record keeps `placeholder`: the section
+ * carries `data-dev-placeholder` and `check:production` keeps it out of
+ * `dist/` until the whole stage is approved.
  */
 const demoGoodbye: GoodbyeContent = {
   label: 'Despedida',
-  start: { title: 'Titular A', body: null, cta: null },
+  start: { title: 'Las buenas ideas necesitan presión.', body: null },
   end: {
-    title: 'Titular B, más largo, para medir dos líneas',
-    body: 'Texto de apoyo B.',
-    cta: null,
+    kicker: '¿Hablamos?',
+    cta: {
+      label: 'Nosotros sabemos dónde apretar.',
+      href: contact?.href ?? '/contacto/',
+      destination: 'ir a Contacto',
+    },
+    note: 'Estrategia · Identidad · Digital · Contenido',
   },
   placeholder: true,
 };

@@ -1454,6 +1454,87 @@ Reason: user brief and correction (phase 1: architecture only; copy, visual,
 final motion and CTA are the next phase's decisions). Every choice above is
 reversible.
 
+## 2026-09-11 - Goodbye Side B Is The Scene Beside A Solid CTA Panel
+
+Decision: the goodbye's side B no longer sets copy over the scene. A solid
+Colmillo-orange panel slides in from the right edge with the pan and holds the
+CTA; the scene's right side fills the rest; a large round back button sits on
+the scene at the panel's edge. The pan, the single scene, `100svh` and side A
+are unchanged. Structure after the "How we do this?" end state on
+beans.agency (visual + solid side strip + CTA + back disc); no colour,
+typography, copy or motion was taken.
+
+- The scene now stops at the panel's edge, not the screen's
+  (`--goodbye-scene-end`, the same property as the panel width), so what is
+  visible is the scene's real right side rather than a part hidden under the
+  panel. Along-the-bottom layouts set it to 0.
+- CTA copy: the approved claim "Haz que tu marca muerda" (build spec §10),
+  linked to the real `/contacto/` route read from `primaryNavigation`. The
+  kicker "¿Hablamos?" is provisional and lives in `src/data/goodbye.ts` with
+  the rest of the flagged demo record.
+- One timeline played and reversed, instead of one timeline per direction, so
+  the return is by construction the inverse of the arrival.
+- The back button is a child of the panel positioned outside it, so its
+  distance from the boundary is one CSS length at every width and it travels
+  out with the panel.
+- The edge menu's tab only re-samples its tone after scroll, resize, pointer
+  moves or a document `animationend`. The panel changes the colour at the
+  right edge without any of those, so the stage dispatches an `animationend`
+  (`goodbye-settle`) when it settles instead of editing the edge menu.
+- Reduced motion: `reduced-motion.css` gives every element a 0.01ms `all`
+  transition. Because `visibility` is inherited, each intermediate element
+  (`.goodbye-stop__head`, the SVG) transitioned its own copy and the arriving
+  arrow stayed hidden for one or two frames, so focus silently failed to move
+  (measured). Transitions inside `[data-goodbye]` are off under reduced motion.
+- Phones and portrait tablets get the panel along the bottom (44%, growing
+  with its copy); a 50% panel put its edge exactly where the touch tab rests.
+
+Reason: explicit user brief (second iteration of the goodbye, right state
+only).
+
+## 2026-09-11 - The Goodbye Pans Across A Photograph; The Orange Panel Goes
+
+Decision: the goodbye's scene is the photograph the user supplied
+(`public/assets/bg panoramica.png`, 2048x768), on trial through
+`goodbyeVisual`. Side B's solid orange panel is removed: the CTA is white type
+on the photograph's right black field, the back button sits in its black
+bottom-right corner. Pan, `100svh`, the single scene, one reversible timeline
+and side A's structure are unchanged. This supersedes the panel decision above.
+
+- Why the panel goes: the brief asks for "fotografía + tipografía +
+  movimiento", texts in the photograph's black fields and no large graphic
+  elements; a 31% orange strip would have covered exactly the right black field
+  the CTA is meant to use.
+- The copy boxes come from the photograph, not from eyeballing: black below
+  luma 38 from 0 to 29% of its width and from 76% on, and from 66% on above 70%
+  of its height; the orange piece and the blocks live in 30-74%. The copy layer
+  is a size container of the same box as the viewport, so it reads the scene's
+  width in the same units and the boxes hold at every size.
+- The scene width became `clamp(135cqw, height × ratio, 200cqw)`: 1.35x is
+  enough travel to read as a camera move, and at 16:9 it keeps the whole
+  orange piece in frame on both sides. The wide layout starts at 5:4, where the
+  scene is never cropped sideways, so a fraction of the scene is a fraction of
+  the photograph.
+- Narrower screens get a band layout (photograph on top, fading into the ink,
+  copy alternating below) instead of squeezing the desktop logic; it is also
+  the no-JavaScript layout.
+- Timing: the copy is fixed while the photograph moves, and the first cut drew
+  "¿HABLAMOS?" over the orange piece mid-travel. The copy now leaves by 28% and
+  arrives from 76% of the pan, the window measured at 1024-2560px, verified on
+  every frame of both directions at twelve sizes.
+- Delivered as one lossy WebP (quality 92, 105 KB) at the master's own size by
+  `scripts/prepare-goodbye-media.mjs`; the PNG is untouched. The master is
+  upscaled on screen (1.17x at 1440x900, 1.41x at 1920x1080, 1.69x at
+  2560x1080, double that on 2x displays), so a larger master is needed for full
+  sharpness.
+- Known limitation, not fixed here because the edge menu is out of scope: the
+  edge menu's tab turns ink only over CSS orange backgrounds, not photograph
+  pixels. On side A at 1280-1440px wide its resting point falls on the orange
+  leather.
+
+Reason: explicit user brief (test the supplied photograph as the goodbye's
+scene, keep the pan and 100vh, text in the black fields).
+
 ## 2026-09-10 - Project Tiles Bend Under The Pointer Instead Of Zooming
 
 Decision: The home rail tile hover no longer scales anything. The frame's
@@ -1524,3 +1605,305 @@ hit the right layers at +-0.5px and match before and after); `pinSpacing` or
 and relative take the same room, the layer is fully covered at that moment, and
 if a frame lags on the way back the layer is at its own flow position right
 above the covering section, never a foreign surface.
+
+## 2026-09-11 - The Contact Close Is A Poster: Type, One Disc, Pressure
+
+Decision: the home `#contacto` becomes "la última mordida": the approved claim
+set as a poster ("HAZ QUE / TU MARCA" in black caps, "muerda" larger, orange,
+italic, stepped right), one large orange disc bleeding off the right edge that
+has already taken the end of "muerda", and the two approved channels as
+full-width editorial rows. Motion is described in `docs/MOTION_SPEC.md`
+("Contact Close").
+
+- Legibility comes from inversion, not from avoiding overlap: an inverted,
+  `aria-hidden` copy of the headline rides inside the disc, so wherever
+  orange lies under a letter the letter turns white (ink for "muerda"). The
+  copy is placed by the stage's container units (`100cqw`), not by
+  measurement, so it lines up without JavaScript and under reduced motion.
+- The pressure works per line, on the whole word, with the origin on the side
+  away from the disc, so the side nearest the mass gives way most.
+- Only what the disc gains on its resting position presses a line, so the
+  composed rest overlap does not read as permanent pressure.
+- The motion is a separate chunk loaded by `ContactBite.ts`: the shared motion
+  bundle was 146 KB against a 150 KB largest-asset budget.
+- Microdetails are limited to two: the kicker's orange pressure dot and a
+  small U-shaped dent in the channels' top rule, under the disc's centre.
+- Cursor labels reuse the existing system: "Escribir" on Correo, the existing
+  "Abrir" on Instagram, an empty label on "muerda" (active ring, no text), and
+  the existing pressed pose during a bite. No second cursor.
+
+Rejected: a mouth, teeth or jaw (the brief forbids a literal bite); another
+character illustration (already used in Studio, Services and the hero);
+`mix-blend-mode`, which turns ink over orange into an off-palette blue; splitting
+the headline into letters, which screen readers can read letter by letter; a
+measured (JavaScript) position for the inverted copy, which would fail without
+scripts; Canvas or WebGL.
+
+Found during QA and recorded because it is easy to repeat: a GSAP `from()` on a
+custom property read its end value back as 0 and collapsed the disc's clip to
+nothing, and a `from()` on the lines under reduced motion recorded a from-state
+already on the element as its end, so the fade ran 0 -> 0. Every entrance tween
+is now a `fromTo`.
+
+## 2026-09-11 - Services Becomes A Sticky Editorial Sequence
+
+Decision (explicit user request): on wide screens with motion allowed
+(`>= 64.01rem` wide, `>= 40rem` tall) the home services section is a track of
+`100svh + count x 45svh` (280svh for four) holding one sticky 100svh stage.
+The left zone (~42%: title, the client illustration, the CTA slot and a small
+`01 / 04` readout with a 2px orange line) is the anchor and never moves. The
+right zone (~58%) shows one service at a time: its number, its sentence-case
+orange name at `clamp(3.4rem, 6.4vw, 7rem)`, the description, a hairline rule
+and its glyph. No cards, no carousel, no pin.
+
+Reasons and consequences:
+
+- The section is `position: relative` at every width and its stage is sticky
+  inside its track, exactly as the manifesto does. This supersedes the
+  2026-09-10 follow-up in which services held the screen as a sticky stack
+  layer while the rail slid over it, so `SectionStack`'s release no longer
+  applies to it. The timeline's trigger is the non-sticky track, so its
+  measurements are clean; when the track ends ordinary scroll releases the
+  stage and the rail, which pins only once its own top reaches the screen's,
+  follows right under it. The two scroll ranges are one viewport apart by
+  construction: no competing triggers and no pin spacing to reconcile.
+- The two services never share the stage. A first version cross-faded them,
+  and at each boundary both names sat at 0.3-0.45 opacity over each other,
+  illegible. Now the outgoing service is transparent 0.04 of a step before
+  the boundary and the incoming one starts at it: a short empty beat, then the
+  arrival.
+- The layout switch is synchronous and the timeline is lazy. `ServicesMotion.ts`
+  (shared bundle) sets `data-services-enhanced` inside `gsap.matchMedia`, so
+  every later trigger measures the final height on the first refresh and a
+  deep link never lands short. The timeline is `ServicesSequence.ts`, a 1.9 KB
+  chunk loaded by the section's own script (the `ContactBite` pattern). In the
+  shared bundle it made the largest asset 150,731 bytes against the 150,000
+  budget; split, the largest is 147,735. A chunk that fails to load removes the
+  sequence layout and refreshes, so the section reads as a list again.
+- The per-service numbers return (the user asked for `01` above each name). They
+  are `aria-hidden`: the ordered list already counts.
+- The illustration is one flat PNG, so its microreaction is limited to the
+  whole image: a 6px press (`scaleY 0.988`) at each handover and a settled pose
+  within +-7px per service. Nothing of it is redrawn, deformed or swapped.
+- `Abrir servicios ↗` is the family's bite button with a cream slab on ink; the
+  arrow is CSS generated content with empty alternative text. No services page
+  exists, so the user chose (2026-09-11) to wire it to `servicesPage.href` in
+  `src/data/services.ts`, which is null: the CTA is not rendered at all until a
+  real route is set there.
+- The brief asked for 220-280vh overall and 55-65vh per service; four services
+  cannot have both. The section keeps to 280svh, so each service owns 45svh of
+  scroll while the stage holds (the first is also on screen while the section
+  enters, the last while it leaves). `--services-step` in
+  `services-section.css` is the single value to change.
+- Linear fallback everywhere else (no JavaScript, reduced motion, `<= 64rem`,
+  under 40rem tall): the same markup as a vertical list with every service
+  painted. Wide screens keep the two zones with the heading column held by CSS
+  `sticky`; phones and tablets reveal each entry once.
+
+Follow-up the same day (user request): the per-service numbers are removed
+again (the `01 / 04` readout stays); the heading grows to
+`clamp(2.9rem, 5.6vw, 5rem)`; the service names shrink to
+`clamp(2.9rem, 5vw, 5.5rem)` in the sequence (`clamp(2.8rem, 4.8vw, 5.2rem)`
+wide linear, `clamp(2.6rem, 6vw, 3.8rem)` tablet, `clamp(2.3rem, 9vw, 3.4rem)`
+phone); and on wide screens the illustration is held to 88% of its column and
+centred in it, horizontally and vertically, between the heading and the
+readout.
+
+Second follow-up the same day (user request), composition only; the scroll
+logic, timings and copy are unchanged. In the sequence layout the heading and
+the readout stay anchored left, while the illustration and the service on
+stage become one pair centred on the viewport. The heading block uses
+`display: contents` so its pieces join the stage grid: columns
+`1fr | art | minmax(0, 30rem) | 1fr` inside equal side padding (the shell's
+gutter plus the section's indent, so the heading keeps its exact line), rows
+`heading | 0.6fr | pair | 1fr | readout`. The art is never smaller than
+before (`min(clamp(24rem, 32vw, 36rem), 72svh)`), the gap is
+`clamp(2.5rem, 4.5vw, 5rem)`, and a bottom margin equal to the rule and glyph
+under each service's copy centres the art on the name and description.
+Measured: pair offset 0px from the viewport centre and art-to-copy centre
+13-16px at 1100x650 to 1920x1080. Per-service images are prepared:
+`ServiceRecord.image` (null for all four today) adds a layer to the art frame
+and the timeline cross-fades to it while that service is on stage.
+
+Third follow-up the same day (user request): the client's illustrations for
+Identidad, Digital and Contenido are live in the sequence; Estrategia keeps
+the shared one. The 1600x900 RGBA PNGs are untouched; `npm run media:services`
+(`scripts/prepare-services-media.mjs`, sharp) crops their transparent margin
+measured on the alpha channel (a colour trim would have eaten the opaque
+near-black clothing), scales them to 1200px wide and writes WebP with alpha
+(141, 125 and 113 KB against 770, 716 and 827 KB). Each layer is contained in
+the shared art's frame and anchored at its foot, so no drawing is cropped, all
+four read at the same size and the figures share one ground line. The
+cross-fade adds a hair of scale and travel (0.99 / 1.015, -4 / +6px) to the
+complementary opacity. Kept as supplied, and flagged: unlike the shared art,
+whose clothing is transparent, these three paint their clothing in opaque
+near-black (about RGB 11-16 against the ink's 18,16,15); on screen it reads as
+the ink. The list layout still shows only the shared illustration, as before.
+
+Fourth follow-up (user request): more air between the heading and the pair.
+The upper spacer row is now `minmax(clamp(3rem, 9svh, 6rem), 0.85fr)` (was
+`minmax(0, 0.6fr)`): heading-to-art 81px at 1440x900 (was 64), 108px at
+1920x1080, 59px at 1100x650 (was 23). Centring and art-to-copy alignment are
+unchanged.
+
+Fifth follow-up (user request): `Abrir servicios ↗` now sits beside the
+heading. `/servicios/` exists (created by another session and listed in
+`primaryNavigation`), so `servicesPage.href` is `/servicios/` and the CTA
+renders. It is the same bite button as before (orange, ink outline, cream slab
+on ink, CSS arrow with empty alt text, press into the slab, shared magnetic
+pull and "Abrir" cursor label), moved out of the foot into
+`.services-section__head` with the `h2`: a flex line, centred on the
+heading's two lines, gap `clamp(2.5rem, 5vw, 5rem)`, wrapping under the
+heading when the line is too narrow. In the sequence the head takes the
+heading's grid cell, so nothing else moves; the foot now holds only the
+readout. Measured gap 55-80px from 1100 to 1920; on phones and in the narrower
+reduced-motion column it wraps under the heading.
+
+## 2026-09-11 - The Contact Close: A Soft Sculpture, Sentence Case, More Air
+
+Decision (user direction, second pass on "la última mordida"): the flat
+orange disc and the inverted copy of the headline inside it are replaced by
+one soft orange sculpture, and the whole section moves to sentence case.
+
+- The sculpture is procedural SVG (`src/scripts/motion/ContactSculpture.ts`):
+  an inflated cushion (a superellipse, n = 2.8, with low harmonics) minus a
+  sphere, joined by a smooth SDF subtraction, so a large scoop with rounded,
+  clay-like shoulders is missing from the side facing "muerda". Volume comes
+  from matte light and shade overlays, the scoop's inner wall, a light lip
+  along it, a faint bounce light and a contact shadow; no glossy highlight.
+  The same pure module renders the still pose on the server and the live
+  pose in `ContactBiteMotion.ts`, so every device sees the same object.
+- The interaction redraws the geometry rather than rotating a picture: the
+  piece turns towards the pointer (the light, the shade and the scoop move;
+  the scoop's parallax changes the silhouette), dents where the pressure comes
+  from and swells on the far side, opens its bite a few units when approached,
+  drifts at most 18px, and follows with about one second of inertia. Pressure
+  moves "muerda" 1-3px. The bite is a squash plus a deeper scoop (~0.65 s).
+  One redraw costs about 0.8 ms and runs only when something changed.
+- Composition: eyebrow, headline and "muerda" on the left; the sculpture on
+  the right, bleeding off the edge; the channels bottom-left in a 36rem
+  column with a floor of 9svh of air plus whatever the screen leaves. Desktop
+  is exactly one screen. Phones and portrait tablets stack headline,
+  sculpture, channels.
+- Type: headline, eyebrow and labels in sentence case; no `text-transform`.
+  The rows are lighter: a small label, the address as the main line, 20% ink
+  hairlines, an orange stroke on hover and focus, and the arrow nudging
+  diagonally. The Instagram tape and the stroke runner of the first pass were
+  removed as part of that refinement.
+
+Rejected: WebGL or a 3D library (a dependency, and `CLAUDE.md` rules out
+WebGL); a CSS `rotateX/rotateY` of a flat image, which the brief explicitly
+does not want and which reads as a tilting card; a generated raster, which
+cannot deform live and would need rights review; the line-art fallback, not
+needed because the SVG sculpture held up in review.
+
+## 2026-09-11 - Contact Close: Bite Buttons, And The Sculpture Is The CTA
+
+Decision (user direction, third pass, adjustments only): the eyebrow
+"Contacto" and its dot are removed; the channel rows become two of the hero's
+`bite-button`s side by side under the headline ("Correo ↗", "Instagram ↗");
+the headline is centred vertically on the sculpture's centre; and the whole
+sculpture becomes a link to `/contacto/`.
+
+- The buttons reuse `.bite-button` and the hero CTA's own `0 0.4rem 0` ink
+  shadow and `data-magnetic`, verified equal in computed style to
+  `.hero__cta` (radius, shadow, fill, border). Only their side padding narrows
+  on phones so both fit on one line.
+- The sculpture stays the sculpture: only its painted form is the hit area,
+  and its button language is borrowed, not a frame around it: on hover it
+  presses onto a hard ink shadow in its own silhouette (the buttons' shadow),
+  and a small "Contacto ↗" appears set into it. Touch shows both at rest.
+- The link's box is cut at the stage edge while the drawing overflows it, so
+  the fixed edge rail never covers link content.
+- The cursor keeps its active ring but no text on these three controls: its
+  shared label is set in capitals, which the sentence-case rule for this
+  section excludes. The global cursor was not changed.
+
+Rejected: a new button style for the channels (the brief asks for the hero's
+exactly); an ink outline around the sculpture on hover, which would turn it
+into a conventional button; a rectangular hit area, which made the white
+around the piece clickable.
+
+## 2026-09-11 - Contact Close: Manifesto Type Scale, The Hero's Cursor Disc
+
+Decision (user direction, fourth pass): the headline drops to the manifesto's
+word sizes (80px at 1440, "muerda" 104px against the manifesto's ~107px
+orange mark); the text block is set in from the gutter like the services and
+Studio headings; the two buttons start exactly where "muerda" starts; and
+hovering the sculpture shows the cursor's "Contacto" disc, as the hero CTA
+does (`data-cursor-label="Contacto"`).
+
+This supersedes, for the sculpture only, the previous entry's choice of a
+cursor ring without text: the user asked for the hero's disc explicitly. The
+Correo and Instagram buttons keep the ring without text. The note
+"Contacto ↗" set into the piece no longer appears under a pointer (the disc
+says it); it stays for keyboard focus and touch, which have no cursor.
+
+## 2026-09-11 - Edge Menu: Servicios Replaces Manifiesto, Route-Only Active State
+
+Decision (user direction, navigation only): the primary navigation is exactly
+01 Inicio, 02 Studio, 03 Servicios, 04 Proyectos, 05 Contacto. "Manifiesto"
+leaves the menu. The existing `/manifiesto/` page is reused as `/servicios/`
+(`git mv` to `src/pages/servicios.astro`; heading, title, index `03 /
+Servicios` and the placeholder note changed, layout and classes unchanged). No
+duplicate page and no redirect page are created.
+
+The active item (orange, `aria-current="page"`, panel readout) is decided by
+the URL alone. On `/` "Inicio" stays active while the reader scrolls through
+the home Studio, services, projects or contact scenes; the scroll observer
+that used to report the home scene (`aria-current="location"`) was removed
+from `EdgeMenu.ts`. Design, animation, hover and open/close are unchanged.
+
+Internal links that pointed at `/manifiesto/` now point at `/servicios/`: the
+contact page's route cards (Studio 01, Servicios 02, Proyectos 03) and the home
+manifesto CTA, relabelled "Ver servicios" so its text matches its destination.
+The editorial "Siguiente" chain follows the menu: Studio -> Servicios ->
+Proyectos. The home `#manifiesto` section id is a home anchor, not a route,
+and is unchanged.
+
+Supersedes, for the route labels only, the 2026-09-10 entry listing
+"Inicio", "Manifiesto", "Studio", "Proyectos", "Contacto".
+
+## 2026-09-11 - /studio/ Is Rebuilt As Five Moments Around One Interaction
+
+Decision (user direction): the demonstration Studio page (the "S" mark,
+"02 / Studio", the "Colmillo Studio" kicker, the demo flag and the
+`studio-process` grid) is replaced by five components in
+`src/components/studio/`: a minimal hero ("Studio" and one audiovisual piece
+in a bitten disc), "Somos Colmillo", "Cómo hacemos las cosas" (four
+principles), "Los que muerden" (team) and one ink close ("¿Hacemos algo
+juntos?", "Hablemos" to `/contacto/`). Hello Monday's product and about pages
+informed the list-plus-stage interaction and the people grid; no code, copy,
+layout or sequence is taken from them.
+
+- Content lives in `src/data/studioPage.ts`; the hero loop slot is
+  `studioHeroMedia` in `src/config/assets.ts` (`null` shows a geometric
+  placeholder). The intro, principles and team copy is provisional (supplied
+  by the user on 2026-09-11) and the team entries are structural placeholders,
+  so those three blocks resolve to `null` in the standard build: `dist/`
+  renders the hero and the close only. The hero title and the close were
+  given as final wording and ship in both builds.
+- Principles title: "Cómo hacemos las cosas", the user's shorter alternative,
+  which sets in two balanced lines; "Nuestra forma de hacer las cosas" is a
+  one-line change in the data file.
+- The principles are progressively enhanced from a table of contents with four
+  complete panels into an ARIA vertical tab list (mouse or pen hover, focus,
+  click or tap, arrows, Home, End). Descriptions sit on the stage under the
+  picture rather than under each title, so the list never changes height
+  under the pointer: an accordion opening below the hovered row would move the
+  following rows under a stationary cursor and flicker between principles.
+- Colour journey: white, white, white, white, ink. Orange is only an accent.
+- The home rail's dent was extracted from `ProjectTilePress.ts` into
+  `PressSurface.ts` (`bindPressSurface(trigger, surface, frame)` and
+  `canPress()`) with its geometry, easing and eligibility unchanged. The rail
+  calls it exactly as before; the team portraits bind it on their frames, so
+  names and roles, outside the surface, never deform.
+- The editorial "Siguiente" cards (Servicios, Contacto) are removed from
+  Studio: the brief asks for one simple close, and navigation stays with the
+  edge menu. The Studio -> Servicios link of the previous entry therefore no
+  longer exists on this page.
+- Motion: the hero entrance is CSS; everything else lives in
+  `StudioPageMotion.ts`, a route-only chunk mounted by the small
+  `StudioPage.ts` in `MotionController` (the `ContactBite` pattern). Keeping
+  it in the shared bundle measured 152,176 bytes against the 150,000-byte
+  budget. No pin, scrub, parallax or permanent loop (see `MOTION_SPEC.md`).

@@ -2,24 +2,28 @@
 /**
  * COLMILLO STUDIO — home goodbye stage (the pre-footer)
  *
- * Phase 1 of the redesign: architecture only. A fixed viewport over ONE
- * panoramic scene, wider than the screen. The stage opens on the scene's left
- * side with the first editorial block; its arrow travels the whole scene
- * sideways, like a camera panning, until the right side fills the screen and
- * the second block appears. The back arrow travels it home. The visual is
- * never swapped, faded or cut: there is one scene element, and it only moves.
+ * A fixed viewport over ONE panoramic scene, wider than the screen: the
+ * photograph in `goodbyeVisual`. The stage opens on the scene's left side,
+ * with the first editorial block in the photograph's left black field; its
+ * arrow travels the whole scene sideways, like a camera panning, until the
+ * scene's right side fills the screen and the CTA to Contacto arrives in the
+ * right black field. A round back button travels everything home. The visual
+ * is never swapped, faded or cut: there is one scene element, and it only
+ * moves. The orange piece in the middle of the photograph is on screen in
+ * both positions, and no copy ever sits on it.
  *
- * `GoodbyePanorama.ts` drives the travel. Without JavaScript the scene rests
- * on its left side, both blocks are listed one after the other and the arrows
- * stay hidden.
+ * `GoodbyePanorama.ts` drives the travel. Portrait screens and no-JavaScript
+ * use a band layout: the photograph across the top, the copy below it.
+ * Without JavaScript the scene rests on its left side, both blocks are listed
+ * and the arrows stay hidden.
  *
- * The final visual, copy, transition and CTA are still to be decided: see
- * `docs/CONTENT_NEEDED.md`. Until there is an asset the scene is a clearly
- * structural placeholder, and while the copy is a placeholder the section
- * carries `data-dev-placeholder`, which `check:production` forbids in `dist/`.
+ * The copy lives in `src/data/goodbye.ts`. While the stage is not approved as
+ * a whole (photograph on trial, provisional kicker: `docs/CONTENT_NEEDED.md`),
+ * the section carries `data-dev-placeholder`, which `check:production` forbids
+ * in `dist/`.
  */
 import { goodbyeVisual } from '@/config/assets';
-import type { GoodbyeContent, GoodbyeStop } from '@/data/goodbye';
+import type { GoodbyeContent } from '@/data/goodbye';
 
 interface Props {
   content: GoodbyeContent;
@@ -27,27 +31,20 @@ interface Props {
 
 const { label, start, end, placeholder } = Astro.props.content;
 
-// A real asset sets the scene's width from its own ratio, kept inside the
-// 180-220 viewport-width band so the pan always has somewhere to go.
-const sceneStyle = goodbyeVisual
-  ? `--goodbye-scene-width: clamp(180cqw, calc(100cqh * ${
-      goodbyeVisual.width / goodbyeVisual.height
-    }), 220cqw)`
+// The scene's width follows the visual's own ratio (`goodbye-section.css`).
+const sectionStyle = goodbyeVisual
+  ? `--goodbye-ratio: ${goodbyeVisual.width / goodbyeVisual.height}`
   : undefined;
 
-const stops: {
-  key: 'start' | 'end';
-  stop: GoodbyeStop;
-  travel: 'next' | 'back';
-  travelLabel: string;
-}[] = [
-  { key: 'start', stop: start, travel: 'next', travelLabel: 'Siguiente' },
-  { key: 'end', stop: end, travel: 'back', travelLabel: 'Volver' },
-];
+// The arrow is set into the CTA's last word, so the two never wrap apart.
+const ctaWords = end.cta.label.trim().split(/\s+/);
+const ctaTail = ctaWords.pop() ?? '';
+const ctaLead = ctaWords.join(' ');
 ---
 
 <section
   class="goodbye-section"
+  style={sectionStyle}
   aria-labelledby="goodbye-title"
   data-stack-section
   data-surface-tone="dark"
@@ -56,7 +53,7 @@ const stops: {
   data-dev-placeholder={placeholder ? '' : undefined}
 >
   <div class="goodbye-section__viewport" aria-hidden="true">
-    <div class="goodbye-section__scene" style={sceneStyle} data-goodbye-scene>
+    <div class="goodbye-section__scene" data-goodbye-scene>
       {
         goodbyeVisual?.kind === 'video' && (
           <video
@@ -116,64 +113,97 @@ const stops: {
     </div>
   </div>
 
-  <div class="content-shell goodbye-section__inner">
+  {/* A polite live region: travelling announces the side that arrives. */}
+  <div class="goodbye-section__stops" aria-live="polite">
     <h2 id="goodbye-title" class="visually-hidden">{label}</h2>
 
-    {/* A polite live region: travelling announces the block that arrives. */}
-    <div class="goodbye-section__stops" aria-live="polite">
-      {
-        stops.map(({ key, stop, travel, travelLabel }) => {
-          const button = (
-            <button
-              class="goodbye-stop__travel"
-              type="button"
-              aria-label={travelLabel}
-              data-goodbye-travel={travel}
-              hidden
-            >
-              <svg
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-                focusable="false"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.25"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path
-                  d={
-                    travel === 'next'
-                      ? 'M4 12h15M13 6l6 6-6 6'
-                      : 'M20 12H5M11 6l-6 6 6 6'
-                  }
-                />
-              </svg>
-            </button>
-          );
-          return (
-            <div
-              class={`goodbye-stop goodbye-stop--${key}`}
-              data-goodbye-stop={key}
-            >
-              {/* The back arrow reads before its headline, the forward one after. */}
-              <div class="goodbye-stop__head">
-                {travel === 'back' && button}
-                <h3 class="goodbye-stop__title">{stop.title}</h3>
-                {travel === 'next' && button}
-              </div>
-              {stop.body && <p class="goodbye-stop__body">{stop.body}</p>}
-              {stop.cta && (
-                <div class="goodbye-stop__cta">
-                  <a class="bite-button" href={stop.cta.href} data-magnetic>
-                    <span>{stop.cta.label}</span>
-                  </a>
-                </div>
-              )}
-            </div>
-          );
-        })
-      }
+    <div class="goodbye-start" data-goodbye-stop="start">
+      {/* The arrow and the headline are one composition. */}
+      <div class="goodbye-start__head">
+        <h3 class="goodbye-start__title">{start.title}</h3>
+        <button
+          class="goodbye-travel"
+          type="button"
+          aria-label="Siguiente"
+          data-goodbye-travel="next"
+          hidden
+        >
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            focusable="false"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.25"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M4 12h15M13 6l6 6-6 6"></path>
+          </svg>
+        </button>
+      </div>
+      {start.body && <p class="goodbye-start__body">{start.body}</p>}
+    </div>
+
+    <div class="goodbye-end" data-goodbye-stop="end">
+      {/* First in the reading order, as it leads back to the first side. */}
+      <button
+        class="goodbye-travel goodbye-end__back"
+        type="button"
+        aria-label="Volver a la vista anterior"
+        data-goodbye-travel="back"
+        hidden
+      >
+        <svg
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+          focusable="false"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.25"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M20 12H5M11 6l-6 6 6 6"></path>
+        </svg>
+      </button>
+
+      <div class="goodbye-end__copy">
+        {
+          end.kicker && (
+            <p class="goodbye-end__kicker" data-goodbye-reveal>
+              {end.kicker}
+            </p>
+          )
+        }
+        {/* Headline and note arrive as one line of the reveal. */}
+        <div class="goodbye-end__headline" data-goodbye-reveal>
+          <h3 class="goodbye-end__title">
+            <a class="goodbye-end__cta" href={end.cta.href}>
+              <span class="goodbye-end__cta-text">
+                {ctaLead && `${ctaLead} `}<span class="goodbye-end__cta-tail"
+                  >{ctaTail}<span
+                    class="goodbye-end__cta-arrow"
+                    aria-hidden="true"
+                    ><svg
+                      viewBox="0 0 24 24"
+                      focusable="false"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      ><path d="M4 12h15M13 6l6 6-6 6"></path></svg
+                    ></span
+                  ></span
+                >
+              </span>
+              <span class="visually-hidden">, {end.cta.destination}</span>
+            </a>
+          </h3>
+          {end.note && <p class="goodbye-end__note">{end.note}</p>}
+        </div>
+      </div>
     </div>
   </div>
 </section>

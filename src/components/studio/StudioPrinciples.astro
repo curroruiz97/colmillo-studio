@@ -1,0 +1,117 @@
+---
+/**
+ * /studio/ — 03 "Cómo hacemos las cosas"
+ *
+ * A large list of the four principles on the left and a stage on the right
+ * that shows the picture and description of the active one.
+ *
+ * Markup without JavaScript: the list is a table of contents whose links jump
+ * to four stacked panels, each complete (picture, name, description), so
+ * nothing depends on the script. `StudioPage.ts` upgrades it to a vertical
+ * tab list: hover (fine pointer), focus, click/tap and the arrow keys select a
+ * principle; the panels share one cell and the arriving picture is revealed
+ * by a clip from its foot. "Mirar" is active by default, so the stage is
+ * never empty. On narrow screens the stage sits under the list.
+ *
+ * Each principle's `image` is its final picture slot; while it is `null` an
+ * abstract composition (`art`) stands in and says so.
+ */
+import type { StudioPrinciplesCopy } from '@/data/studioPage';
+
+interface Props {
+  principles: StudioPrinciplesCopy;
+}
+
+const { principles } = Astro.props;
+---
+
+<section
+  class="studio-principles"
+  aria-labelledby="studio-principles-title"
+  data-surface-tone="light"
+  data-dev-placeholder={principles.placeholder ? '' : undefined}
+>
+  <div class="content-shell">
+    <header class="studio-principles__header" data-reveal-group>
+      <h2 id="studio-principles-title" class="studio-principles__title">
+        <span class="studio-line">
+          <span data-reveal-line>{principles.title}</span>
+        </span>
+      </h2>
+    </header>
+
+    <div class="principles" data-principles>
+      <ol class="principles__list" data-principles-list>
+        {
+          principles.items.map((item, index) => (
+            <li
+              class="principles__item"
+              data-principle-item
+              data-active={index === 0 ? '' : undefined}
+            >
+              <a
+                class="principles__trigger"
+                id={`principio-${item.id}-tab`}
+                href={`#principio-${item.id}`}
+                data-principle-trigger
+              >
+                <span class="principles__index">{item.index}</span>{' '}
+                <span class="principles__name">{item.name}</span>
+                <span class="principles__mark" aria-hidden="true" />
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+
+      <div class="principles__stage" data-principles-stage>
+        {
+          principles.items.map((item, index) => (
+            <div
+              class="principles__panel"
+              id={`principio-${item.id}`}
+              data-principle-panel
+              data-state={index === 0 ? 'active' : 'idle'}
+            >
+              <div class="principles__visual">
+                <div class="principles__visual-media">
+                  {item.image ? (
+                    <img
+                      class="principles__image"
+                      src={item.image.src}
+                      alt={item.image.alt}
+                      width={item.image.width}
+                      height={item.image.height}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  ) : (
+                    <div
+                      class="principles__placeholder"
+                      data-art={item.art}
+                      aria-hidden="true"
+                    >
+                      <span class="principles__ph-shape" />
+                      <span class="principles__ph-shape" />
+                      <span class="principles__ph-number">{item.index}</span>
+                      <span class="principles__ph-label">
+                        Imagen pendiente · {item.name}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div class="principles__caption">
+                <h3 class="principles__panel-title">
+                  <span class="principles__panel-index">{item.index}</span>{' '}
+                  {item.name}
+                </h3>
+                <p class="principles__text">{item.description}</p>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>

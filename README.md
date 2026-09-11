@@ -11,7 +11,7 @@ galleries and previous/next navigation. The interaction layer now uses a
 centered full-surface menu, simplified route-aware header, surface-responsive
 fine-pointer cursor, pressure-based stacked sections, editorial reveals and a
 vertical-scroll horizontal project scene with native/reduced-motion fallbacks.
-The standard site includes dedicated Manifiesto, Studio and redesigned Contacto
+The standard site includes dedicated Studio, Servicios and redesigned Contacto
 routes; their unapproved narrative content remains confined to development/demo
 mode.
 The standard production build excludes every demo route, string and asset.

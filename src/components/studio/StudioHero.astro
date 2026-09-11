@@ -1,0 +1,70 @@
+---
+/**
+ * /studio/ — 01 Hero
+ *
+ * An editorial cover: the word "Studio" and one audiovisual piece, with a lot
+ * of white around both. The piece sits in a disc with one round bite out of
+ * its top-right shoulder, so it reads as a Colmillo form rather than a video
+ * in a box.
+ *
+ * `studioHeroMedia` (src/config/assets.ts) is the slot for the final loop.
+ * While it is `null` the disc holds a plain geometric placeholder; in
+ * development and `build:demo` a small note under it says so. The loop and
+ * the placeholder are decorative, so both are hidden from assistive
+ * technology.
+ */
+import { studioHeroMedia as media } from '@/config/assets';
+import { demoMode } from '@/data/projects';
+import { studioHero } from '@/data/studioPage';
+---
+
+<header class="studio-hero" data-studio-hero data-surface-tone="light">
+  <div class="content-shell studio-hero__inner">
+    <h1 id="studio-page-title" class="studio-hero__title">
+      <span class="studio-line">
+        <span data-studio-hero-title
+          >{studioHero.title}<span class="studio-hero__dot" aria-hidden="true"
+          ></span></span
+        >
+      </span>
+    </h1>
+
+    <div class="studio-hero__media" data-studio-hero-media>
+      <div class="studio-hero__shape">
+        {
+          media ? (
+            <video
+              class="studio-hero__video"
+              autoplay
+              muted
+              loop
+              playsinline
+              preload="metadata"
+              poster={media.poster}
+              width={media.width}
+              height={media.height}
+              aria-hidden="true"
+              tabindex="-1"
+              data-studio-hero-video
+            >
+              <source src={media.webm} type="video/webm" />
+              <source src={media.mp4} type="video/mp4" />
+            </video>
+          ) : (
+            <div class="studio-hero__placeholder" aria-hidden="true">
+              <span class="studio-hero__ph-ring" />
+              <span class="studio-hero__ph-core" />
+            </div>
+          )
+        }
+      </div>
+      {
+        !media && demoMode && (
+          <p class="studio-hero__pending" data-dev-placeholder>
+            Loop pendiente: aquí va el vídeo final del hero.
+          </p>
+        )
+      }
+    </div>
+  </div>
+</header>

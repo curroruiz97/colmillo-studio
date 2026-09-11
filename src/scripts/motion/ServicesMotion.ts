@@ -1,13 +1,30 @@
 import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import type { mountServicesSequence } from './ServicesSequence';
+
+type SequenceLoader = () => Promise<{
+  mountServicesSequence: typeof mountServicesSequence;
+}>;
+
+/** Where the section becomes a sequence; mirrors `services-section.css`. */
+const SEQUENCE_QUERY =
+  '(min-width: 64.01rem) and (min-height: 40rem) and (prefers-reduced-motion: no-preference)';
+const LINEAR_QUERY = '(max-width: 64rem), (max-height: 39.99rem)';
 
 /**
- * Services reveal.
+ * Home services motion. `MotionController` owns its lifecycle here.
  *
- * The calmest motion on the home page, by design: no pinning, no scrubbing, no
- * scroll-driven state and no dimming. Each entry simply arrives once, with a
- * short offset and a shared ease, and is then left alone. Every pointer
- * response lives in CSS, so keyboard and touch keep the full composition and
- * nothing here can hide content.
+ * On a wide screen with motion allowed the section switches to its sequence
+ * layout (`data-services-enhanced`: a tall track with one sticky stage)
+ * synchronously, so every trigger below it is measured against the final
+ * height on the first refresh and nothing shifts when the timeline arrives.
+ * The timeline itself (`ServicesSequence.ts`) is a separate chunk whose
+ * dynamic import lives in the section's own script, keeping it and Vite's
+ * import helper out of the shared motion bundle, which sits at its budget.
+ * If the chunk cannot load, the section falls back to its linear layout.
+ *
+ * Everywhere else the list is linear and each entry simply arrives once.
+ * Reduced motion gets the finished composition with no reveal at all.
  */
 export function initServicesMotion(): () => void {
   const section = document.querySelector<HTMLElement>(
@@ -20,15 +37,43 @@ export function initServicesMotion(): () => void {
   ];
   if (entries.length === 0) return () => undefined;
 
-  // Reduced motion gets the finished composition, immediately.
   if (document.documentElement.dataset.motion === 'reduced') {
     return () => undefined;
   }
 
-  const context = gsap.context(() => {
-    // One trigger per entry, the same shape the editorial reveals use: each
-    // vignette arrives as it comes into view instead of the whole block
-    // depending on a single measurement of a section taller than the screen.
+  const load: unknown = Reflect.get(section, 'loadServicesSequence');
+  const media = gsap.matchMedia();
+
+  if (typeof load === 'function') {
+    media.add(SEQUENCE_QUERY, () => {
+      section.dataset.servicesEnhanced = 'true';
+      let disposed = false;
+      let cleanup: (() => void) | undefined;
+      void (load as SequenceLoader)()
+        .then((sequence) => {
+          if (!disposed) {
+            cleanup = sequence.mountServicesSequence(section, entries, gsap);
+          }
+        })
+        .catch(() => {
+          // Without its timeline the stage would stack every service in one
+          // place, so the section goes back to reading as a list.
+          if (disposed) return;
+          delete section.dataset.servicesEnhanced;
+          ScrollTrigger.refresh();
+        });
+
+      return () => {
+        disposed = true;
+        cleanup?.();
+        delete section.dataset.servicesEnhanced;
+      };
+    });
+  }
+
+  // Linear layout: each entry arrives once, as it comes into view, and is then
+  // left alone. One trigger per entry, never a measurement of the whole list.
+  media.add(LINEAR_QUERY, () => {
     entries.forEach((entry) => {
       gsap.from(entry, {
         opacity: 0,
@@ -42,9 +87,9 @@ export function initServicesMotion(): () => void {
         },
       });
     });
-  }, section);
+  });
 
   return () => {
-    context.revert();
+    media.revert();
   };
 }

@@ -4,8 +4,9 @@ import gsap from 'gsap';
  * COLMILLO EDGE MENU
  *
  * Owns the navigation's state machine and everything that must be true while
- * the panel is open: focus containment, `inert` outside, a scroll lock that
- * does not shift the layout, and the reported home scene.
+ * the panel is open: focus containment, `inert` outside and a scroll lock that
+ * does not shift the layout. The active route is server-rendered from the URL
+ * and deliberately not updated on scroll.
  *
  * The native `<details>` disclosure remains the control, so with scripting
  * disabled the menu still opens, closes and navigates. This module upgrades it:
@@ -415,67 +416,6 @@ export function initEdgeMenu(): () => void {
     queueTone();
   };
 
-  /* ------------------------------------------------- reported home scene -- */
-
-  const links = [
-    ...menu.querySelectorAll<HTMLAnchorElement>('[data-section-link]'),
-  ];
-  const readouts = [
-    ...menu.querySelectorAll<HTMLElement>('[data-edge-position]'),
-  ];
-  const sections = links
-    .map((link) => document.getElementById(link.dataset.sectionLink ?? ''))
-    .filter((section): section is HTMLElement => section !== null);
-
-  const setCurrent = (id: string) => {
-    const index = links.findIndex((link) => link.dataset.sectionLink === id);
-    if (index < 0) return;
-    const label = String(index + 1).padStart(2, '0');
-    for (const readout of readouts) readout.textContent = label;
-    for (const link of links) {
-      if (link.dataset.sectionLink === id) {
-        link.setAttribute('aria-current', 'location');
-      } else if (link.getAttribute('aria-current') === 'location') {
-        link.removeAttribute('aria-current');
-      }
-    }
-  };
-
-  /*
-   * The reported scene is the one crossing the middle of the viewport, not the
-   * one showing the largest fraction of itself: a short section fully in view
-   * has a ratio of 1 while the tall section actually filling the screen has a
-   * much lower one. Narrowing the root to a band around the centre makes the
-   * comparison reflect what the reader is looking at, and normally leaves a
-   * single candidate. `SurfaceTone` narrows its root the same way.
-   */
-  const ratios = new Map<Element, number>();
-  const observer = new IntersectionObserver(
-    (entries) => {
-      for (const entry of entries) {
-        if (entry.isIntersecting) {
-          ratios.set(entry.target, entry.intersectionRatio);
-        } else {
-          ratios.delete(entry.target);
-        }
-      }
-      // Stacked sections are sticky, so an earlier one can sit fully under
-      // the band behind a later one with the very same ratio. On a tie the
-      // later section wins: it is the one painted on top.
-      const active = [...ratios.entries()].sort(
-        (a, b) =>
-          b[1] - a[1] ||
-          sections.indexOf(b[0] as HTMLElement) -
-            sections.indexOf(a[0] as HTMLElement),
-      )[0]?.[0];
-      if (active instanceof HTMLElement) setCurrent(active.id);
-    },
-    { rootMargin: '-45% 0px -45% 0px', threshold: [0, 1] },
-  );
-
-  sections.forEach((section) => observer.observe(section));
-  if (sections[0]) setCurrent(sections[0].id);
-
   /* ------------------------------------------------------------- wiring -- */
 
   measure();
@@ -508,8 +448,6 @@ export function initEdgeMenu(): () => void {
     window.removeEventListener('scroll', onScroll);
     document.removeEventListener('animationend', queueTone);
     delete menu.dataset.tabTone;
-    observer.disconnect();
-    ratios.clear();
     disclosure.removeEventListener('toggle', onToggle);
     menu.removeEventListener('click', onMenuClick);
     trigger.removeEventListener('focus', onTriggerFocus);

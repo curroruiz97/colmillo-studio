@@ -1,0 +1,304 @@
+/*
+ * CONTACT — "la última mordida", the home's closing moment
+ *
+ * Lots of white. On the left, the headline with the two channel buttons under
+ * it; on the right, one strange orange object that answers the reader and is
+ * itself the way into Contacto. The headline and the object share one
+ * vertical centre. All type is in sentence case.
+ *
+ * The stage is an inline-size container, so the sculpture is placed in the
+ * same coordinates as the headline (`100cqw` is the stage width) and bleeds
+ * off the right edge on wide screens. Phones and portrait tablets read it top
+ * to bottom: headline, buttons, sculpture.
+ *
+ * `ContactBiteMotion.ts` only writes custom properties on the section
+ * (--press, --bite, --lean-x/--lean-y) and redraws the SVG. Every one of them
+ * defaults to rest, so no JavaScript, touch and reduced motion render the
+ * same still composition.
+ */
+
+.contact-section {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  min-block-size: 100vh;
+  min-block-size: 100svh;
+  overflow: clip;
+  background: var(--color-background);
+  color: var(--color-brand-ink);
+}
+
+.contact-bite {
+  --pt: clamp(2.5rem, 7svh, 5.5rem);
+  /* About 15% over the manifesto's desktop word size (2026-09-11, client
+     direction); "tu marca" stays inside the stage at any text zoom. */
+  --f: min(clamp(3.5rem, 6.4vw, 6.4rem), 21cqw);
+  --indent-2: calc(var(--f) * 0.32);
+  --indent-3: calc(var(--f) * 1.05);
+  /* The sculpture's box; the piece itself fills about 72% of its width. */
+  --w: clamp(20rem, min(56vw, 104svh), 64rem);
+  /* The buttons: the shared 4rem bite button plus its 0.4rem ink shadow. */
+  --cta-h: 4.4rem;
+  --cta-gap: clamp(1.75rem, 4.5svh, 3rem);
+  --lead-inset: clamp(1.5rem, 4.5vw, 5.5rem);
+
+  position: relative;
+  container-type: inline-size;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-block: var(--pt);
+}
+
+/* --------------------------------------------------------------- lead --- */
+
+/*
+ * Centred in the stage. The top padding mirrors the buttons hanging under the
+ * headline, so it is the headline itself that sits on the stage's centre,
+ * level with the centre of the sculpture.
+ */
+.contact-bite__lead {
+  position: relative;
+  z-index: 2;
+  padding-block-start: calc(var(--cta-gap) + var(--cta-h));
+  /* Set in from the gutter like the services and Studio headings. */
+  padding-inline-start: var(--lead-inset);
+  /* The block spans the stage; only the type and the buttons take the
+     pointer, so the sculpture beside them stays reachable. */
+  pointer-events: none;
+}
+
+.contact-bite__title,
+.contact-bite__button {
+  pointer-events: auto;
+}
+
+.contact-bite__title {
+  inline-size: fit-content;
+  max-inline-size: none;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--f);
+  font-weight: 900;
+  letter-spacing: -0.055em;
+}
+
+.contact-bite__line {
+  display: block;
+  line-height: 0.94;
+  white-space: nowrap;
+}
+
+.contact-bite__line[data-bite-line='2'] {
+  padding-inline-start: var(--indent-2);
+}
+
+.contact-bite__line--bite {
+  padding-inline-start: var(--indent-3);
+  color: var(--color-brand-orange);
+  font-family: var(--font-handwritten);
+  font-size: calc(var(--f) * 1.3);
+  font-style: italic;
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  line-height: 0.98;
+}
+
+.contact-bite__word {
+  display: inline-block;
+  font-style: inherit;
+}
+
+/*
+ * "muerda" is physically tied to the sculpture: pressure on it pushes the word
+ * back 1-3px, and a bite squeezes it for a moment.
+ */
+.contact-bite__line--bite > .contact-bite__word {
+  transform-origin: 0% 60%;
+  transform: translateX(calc(var(--press, 0) * -3px))
+    scale(
+      calc(1 - var(--press, 0) * 0.004 - var(--bite, 0) * 0.04),
+      calc(1 + var(--press, 0) * 0.004 + var(--bite, 0) * 0.03)
+    );
+}
+
+/* ------------------------------------------------------------ buttons --- */
+
+/* The buttons start where "muerda" starts. */
+.contact-bite__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: var(--cta-gap) 0 0 var(--indent-3);
+  padding: 0;
+  list-style: none;
+}
+
+/* The hero CTA's own ink shadow; everything else is the shared bite button. */
+.contact-bite__button {
+  box-shadow: 0 0.4rem 0 var(--color-brand-ink);
+}
+
+/* ---------------------------------------------------------- sculpture --- */
+
+/*
+ * The link's own box ends at the stage's edge, clear of the fixed edge rail;
+ * the drawing inside it is wider and bleeds off the screen. Only the painted
+ * piece takes the pointer.
+ */
+.contact-bite__piece {
+  position: absolute;
+  z-index: 1;
+  inset-block-start: calc(50% - 0.44 * var(--w));
+  inset-inline-start: calc(100cqw - 0.6 * var(--w));
+  display: block;
+  inline-size: calc(0.6 * var(--w));
+  color: var(--color-brand-ink);
+  text-decoration: none;
+  pointer-events: none;
+  user-select: none;
+  translate: var(--lean-x, 0px) var(--lean-y, 0px);
+}
+
+.contact-bite__piece:focus-visible {
+  outline: none;
+}
+
+.contact-bite__sculpture {
+  display: block;
+  inline-size: var(--w);
+  max-inline-size: none;
+  block-size: auto;
+  overflow: visible;
+}
+
+.contact-bite__form {
+  cursor: pointer;
+  pointer-events: visiblePainted;
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transition: transform var(--duration-fast) var(--ease-bite);
+}
+
+.contact-bite__ground,
+.contact-bite__offset,
+.contact-bite__ring {
+  pointer-events: none;
+}
+
+.contact-bite__offset {
+  opacity: 0;
+  transform: translate(0, 16px);
+  transition: opacity var(--duration-fast) linear;
+}
+
+.contact-bite__ring {
+  fill: none;
+  stroke: var(--color-brand-ink);
+  stroke-width: 8;
+  opacity: 0;
+}
+
+/* A small note set into the piece while it is pressed. */
+.contact-bite__hint {
+  position: absolute;
+  inset-block-start: calc(0.86 * var(--w) * 0.5);
+  inset-inline-start: calc(0.52 * var(--w));
+  font-size: clamp(1rem, 1.25vw, 1.35rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  translate: -50% calc(-50% + 0.4rem);
+  transition:
+    opacity var(--duration-fast) linear,
+    translate var(--duration-fast) var(--ease-bite);
+}
+
+/* Hover and keyboard focus: pressed onto its own ink shadow, a clear button. */
+.contact-bite__piece:hover .contact-bite__form,
+.contact-bite__piece:focus-visible .contact-bite__form {
+  transform: translate(0, 6px) scale(0.985, 0.975);
+}
+
+.contact-bite__piece:hover .contact-bite__offset,
+.contact-bite__piece:focus-visible .contact-bite__offset {
+  opacity: 1;
+}
+
+/* A pointer gets the cursor's "Contacto" disc, like the hero CTA; the note
+   set into the piece is for keyboard focus and touch. */
+.contact-bite__piece:focus-visible .contact-bite__hint {
+  opacity: 1;
+  translate: -50% -50%;
+}
+
+.contact-bite__piece:focus-visible .contact-bite__ring {
+  opacity: 1;
+}
+
+/* The press itself: all the way down onto the shadow. */
+.contact-bite__piece:active .contact-bite__form {
+  transform: translate(0, 14px) scale(0.97, 0.955);
+  transition-duration: 90ms;
+}
+
+/* Without hover the note is the only affordance, so it stays. */
+@media (hover: none) {
+  .contact-bite__hint {
+    opacity: 1;
+    translate: -50% -50%;
+  }
+
+  .contact-bite__offset {
+    opacity: 1;
+  }
+}
+
+/* ------------------------------------------ stacked: phones, portrait --- */
+
+@media (max-width: 47.99rem), (max-aspect-ratio: 4/5) {
+  .contact-bite {
+    --pt: clamp(4rem, 14vw, 6.5rem);
+    /* About 15% over the manifesto's tablet word size. */
+    --f: min(clamp(4.6rem, 12.6vw, 8rem), 21cqw);
+    --indent-2: calc(var(--f) * 0.14);
+    --indent-3: calc(var(--f) * 0.5);
+    --w: clamp(18rem, min(118vw, 52svh), 46rem);
+    --cta-gap: clamp(1.5rem, 6vw, 2.25rem);
+    --lead-inset: clamp(1rem, 4vw, 2.5rem);
+
+    justify-content: flex-start;
+  }
+
+  .contact-bite__lead {
+    padding-block-start: 0;
+  }
+
+  /* In the flow under the buttons, bleeding off the right edge. */
+  .contact-bite__piece {
+    position: relative;
+    inset: auto;
+    align-self: flex-end;
+    inline-size: calc(0.8 * var(--w));
+    margin-block-start: calc(2.5rem - 0.1 * var(--w));
+  }
+}
+
+@media (max-width: 47.99rem) {
+  /* Phones keep the site gutter, like the Studio headline, and about 15%
+     over the manifesto's phone word size. */
+  .contact-bite {
+    --lead-inset: 0px;
+    --f: min(clamp(2.5rem, 14.2vw, 5.3rem), 21cqw);
+  }
+
+  /* Room for both buttons on one line, still the same bite button. */
+  .contact-bite__button {
+    padding-inline: 1.4rem;
+  }
+}

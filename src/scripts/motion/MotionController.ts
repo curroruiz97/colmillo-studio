@@ -1,5 +1,6 @@
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { initContactBite } from './ContactBite';
 import { initCustomCursor } from './CustomCursor';
 import { initEdgeMenu } from './EdgeMenu';
 import { initEditorialMotion } from './EditorialMotion';
@@ -15,6 +16,7 @@ import { initProjectTilePress } from './ProjectTilePress';
 import { initSectionStack } from './SectionStack';
 import { initServicesMotion } from './ServicesMotion';
 import { initStudioMotion } from './StudioMotion';
+import { initStudioPage } from './StudioPage';
 import { initSurfaceTone } from './SurfaceTone';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -42,7 +44,9 @@ export function initMotion(): void {
     initHorizontalProjects(),
     initProjectTilePress(),
     initStudioMotion(),
+    initStudioPage(),
     initGoodbyePanorama(),
+    initContactBite(),
     initMagneticElements(),
   ];
 

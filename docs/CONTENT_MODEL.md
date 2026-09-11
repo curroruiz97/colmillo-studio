@@ -58,7 +58,8 @@ a dummy `mailto:`, `tel:` or social URL.
 
 ## Editorial Pages
 
-`/manifiesto/` and `/studio/` are permanent semantic routes with unique
+`/servicios/` (formerly `/manifiesto/`, renamed on 2026-09-11) and `/studio/`
+are permanent semantic routes with unique
 metadata and real internal navigation. Their richer narrative blocks are
 enabled only in development and `demo` mode, repeat the fictional-demo marker
 and use `data-dev-placeholder`. The standard build retains the page structure
@@ -77,9 +78,11 @@ Hero and goodbye media are configured in `src/config/assets.ts`. Each approved
 video slot requires local WebM and MP4 sources, a poster, and intrinsic
 width/height. The goodbye slot, `goodbyeVisual`, may instead be a still image
 (`kind: 'image'`, with intrinsic width/height). Keep a slot `null` until all
-derivatives exist and have been visually checked. The goodbye stage's two
-blocks of copy (side A and side B, each a title, an optional body and an
-optional CTA) live in `src/data/goodbye.ts` (`approvedGoodbye`).
+derivatives exist and have been visually checked. The goodbye stage's copy
+lives in `src/data/goodbye.ts` (`approvedGoodbye`): side A is a title and an
+optional body; side B is the solid panel, an optional kicker and a CTA whose
+label is the headline itself (`label`, `href`, and a `destination` phrase that
+completes its accessible name).
 `npm run check:production` rejects raw GIFs in the generated site.
 `npm run check:assets` reports missing official files without blocking prelaunch;
 set `REQUIRE_CLIENT_ASSETS=true` in release CI to make the intake mandatory.

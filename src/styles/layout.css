@@ -69,8 +69,7 @@
   color: var(--color-brand-ink);
 }
 
-.intro-section__grid,
-.contact-section__grid {
+.intro-section__grid {
   display: grid;
   grid-template-columns: minmax(3rem, 0.25fr) minmax(0, 2fr) minmax(
       13rem,
@@ -87,8 +86,7 @@
   text-transform: uppercase;
 }
 
-.intro-section__title em,
-.contact-section h2 em {
+.intro-section__title em {
   color: var(--color-brand-orange-aa);
   font-family: var(--font-handwritten);
   font-weight: 500;
@@ -391,51 +389,6 @@
   }
 }
 
-.contact-section {
-  position: relative;
-  z-index: 20;
-  min-block-size: 100svh;
-  background: var(--color-background);
-}
-
-.contact-section__grid {
-  min-block-size: 100svh;
-  align-content: center;
-  padding-block: var(--section-space);
-}
-
-.contact-section h2 {
-  max-inline-size: 10ch;
-  font-size: var(--font-display-lg);
-  letter-spacing: -0.065em;
-  text-transform: uppercase;
-}
-
-.contact-section__links {
-  display: grid;
-  gap: 0.75rem;
-}
-
-.contact-section__links a {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem 2rem;
-  flex-wrap: wrap;
-  padding-block: 0.75rem;
-  border-block-end: var(--border-width) solid currentColor;
-  font-weight: 800;
-  text-decoration: none;
-}
-
-.contact-section__value {
-  margin-inline-start: auto;
-  font-size: var(--font-label);
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  overflow-wrap: anywhere;
-}
-
 .editorial-page,
 .contact-page {
   overflow: clip;
@@ -486,12 +439,6 @@
 .editorial-page__mark span:last-child {
   font-size: var(--font-label);
   font-weight: 900;
-}
-
-.editorial-page__mark--studio {
-  background: var(--color-brand-ink);
-  color: var(--color-brand-cream);
-  rotate: -6deg;
 }
 
 .editorial-page__flag {
@@ -553,81 +500,6 @@
 .manifesto-statement--ink {
   background: var(--color-brand-ink);
   color: var(--color-brand-cream);
-}
-
-.studio-process {
-  padding-block: var(--section-space);
-  border-radius: var(--section-radius) var(--section-radius) 0 0;
-  background: var(--color-brand-ink);
-  color: var(--color-brand-cream);
-}
-
-.studio-process__intro {
-  display: grid;
-  grid-template-columns: minmax(4rem, 0.22fr) minmax(0, 1.3fr) minmax(
-      15rem,
-      0.5fr
-    );
-  align-items: end;
-  gap: clamp(1.5rem, 4vw, 5rem);
-  margin-block-end: clamp(4rem, 10vw, 9rem);
-}
-
-.studio-process__intro h2 {
-  max-inline-size: 12ch;
-  color: var(--color-brand-orange);
-  font-size: clamp(3.25rem, 8vw, 8.5rem);
-  letter-spacing: -0.07em;
-  text-transform: uppercase;
-}
-
-.studio-process__steps {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin: 0;
-  padding-block: 0;
-  list-style: none;
-}
-
-.studio-process__steps li {
-  min-block-size: clamp(19rem, 32vw, 32rem);
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-content: space-between;
-  gap: 1.5rem;
-  padding: clamp(1.25rem, 4vw, 4rem);
-  border: var(--border-width) solid var(--color-brand-cream);
-  transition:
-    border-radius var(--duration-medium) var(--ease-bite),
-    transform var(--duration-medium) var(--ease-bite);
-}
-
-.studio-process__steps li:hover,
-.studio-process__steps li:focus-within {
-  border-radius: 3rem 0.75rem 3rem 0.75rem;
-  transform: scale(0.985);
-}
-
-.studio-process__steps li:nth-child(2),
-.studio-process__steps li:nth-child(3) {
-  background: var(--color-brand-orange);
-  color: var(--color-brand-ink);
-}
-
-.studio-process__steps strong {
-  align-self: end;
-  font-size: clamp(2.75rem, 7vw, 7rem);
-  letter-spacing: -0.06em;
-  line-height: 0.9;
-}
-
-.studio-process__steps p {
-  grid-column: 2;
-  align-self: end;
-}
-
-.studio-process__note {
-  margin: clamp(3rem, 7vw, 7rem) auto 0;
 }
 
 .editorial-page__next {
@@ -1000,14 +872,12 @@ body > main > .content-shell {
 }
 
 @media (max-width: 64rem) {
-  .intro-section__grid,
-  .contact-section__grid {
+  .intro-section__grid {
     grid-template-columns: auto 1fr;
   }
 
   .editorial-page__hero,
   .manifesto-statement__grid,
-  .studio-process__intro,
   .contact-page__hero {
     grid-template-columns: auto minmax(0, 1fr);
   }
@@ -1019,8 +889,7 @@ body > main > .content-shell {
   }
 
   .editorial-page__flag,
-  .manifesto-statement__grid > p:last-child,
-  .studio-process__intro > p:last-child {
+  .manifesto-statement__grid > p:last-child {
     grid-column: 2;
   }
 
@@ -1028,9 +897,7 @@ body > main > .content-shell {
     grid-template-columns: 1fr;
   }
 
-  .intro-section__orbit,
-  .contact-section__links,
-  .contact-section__grid > .dev-note {
+  .intro-section__orbit {
     grid-column: 2;
     inline-size: min(100%, 18rem);
   }
@@ -1060,25 +927,20 @@ body > main > .content-shell {
     min-block-size: auto;
   }
 
-  .stack-section > .content-shell,
-  .contact-section__grid {
+  .stack-section > .content-shell {
     padding-block: clamp(5rem, 24vw, 8rem);
   }
 
-  .intro-section__grid,
-  .contact-section__grid {
+  .intro-section__grid {
     grid-template-columns: 1fr;
   }
 
-  .intro-section__orbit,
-  .contact-section__links,
-  .contact-section__grid > .dev-note {
+  .intro-section__orbit {
     grid-column: 1;
   }
 
   .editorial-page__hero,
   .manifesto-statement__grid,
-  .studio-process__intro,
   .contact-page__hero {
     grid-template-columns: 1fr;
   }
@@ -1112,8 +974,7 @@ body > main > .content-shell {
   }
 
   .editorial-page__flag,
-  .manifesto-statement__grid > p:last-child,
-  .studio-process__intro > p:last-child {
+  .manifesto-statement__grid > p:last-child {
     grid-column: 1;
   }
 
@@ -1125,29 +986,13 @@ body > main > .content-shell {
     padding-block: clamp(6rem, 28vw, 10rem);
   }
 
-  .manifesto-statement h2,
-  .studio-process__intro h2 {
+  .manifesto-statement h2 {
     font-size: clamp(3rem, 16vw, 5.5rem);
   }
 
-  .studio-process__steps,
   .editorial-page__next,
   .contact-page__routes {
     grid-template-columns: 1fr;
-  }
-
-  .studio-process__steps li {
-    min-block-size: 20rem;
-  }
-
-  .studio-process__steps li:nth-child(3) {
-    background: var(--color-brand-ink);
-    color: var(--color-brand-cream);
-  }
-
-  .studio-process__steps li:nth-child(4) {
-    background: var(--color-brand-orange);
-    color: var(--color-brand-ink);
   }
 
   .editorial-page__next a {

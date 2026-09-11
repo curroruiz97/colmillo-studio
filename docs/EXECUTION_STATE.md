@@ -5,7 +5,7 @@ repository state, not an aspirational roadmap.
 
 ## Last Updated
 
-2026-09-10
+2026-09-11
 
 ## Current Phase
 
@@ -2401,5 +2401,826 @@ mid-flight, and a resize to 1280x720 and back.
 - Not done: inspection in the user's own Chrome, whose tab ran in the
   background (`visibilityState: hidden`, so rAF and ScrollTrigger were paused);
   all rendering checks ran in headless Chromium instead.
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-11 Session: Goodbye Side B Becomes A Solid CTA Panel
+
+User request: second iteration of the panoramic pre-footer, changing only the
+right-hand state and adding a clear back control, after the structure of the
+beans.agency end state (visual + solid side strip + CTA + round back button).
+The pan, the single scene, `100svh`, side A and every other section are
+unchanged. See `docs/DECISIONS.md` ("Goodbye Side B Is The Scene Beside A
+Solid CTA Panel") and `docs/MOTION_SPEC.md` ("Goodbye").
+
+### What changed
+
+- `src/data/goodbye.ts`: side B is now a `GoodbyePanel` (optional kicker and a
+  CTA `{ label, href, destination }`). Demo record: the approved claim "Haz que
+  tu marca muerda" -> `/contacto/` (read from `primaryNavigation`); kicker
+  "¿Hablamos?" provisional. Still flagged, so still absent from `dist/`.
+- `GoodbyeSection.astro`: side A untouched; side B is `.goodbye-panel`
+  (`[data-goodbye-stop="end"]`) holding the back button (hung outside the
+  panel over the scene) and the headline link with the arrow disc set into its
+  last word.
+- `goodbye-section.css`: solid `#cd5730` panel, ink type, one white mark in
+  the kicker. Width `clamp(21rem, 31vw, 38rem)`, 37% up to 80rem; along the
+  bottom (`min(44%, 30rem)`) on phones and portrait tablets. The scene stops
+  at the panel's edge through the same custom property. CTA hover/focus/press
+  states; back-button pressure radius. Transitions off inside the stage under
+  reduced motion.
+- `GoodbyePanorama.ts`: one timeline played/reversed (scene, panel +0.08 s,
+  copy from 0.55 s, back button from 0.86 s); settle moves focus, makes the
+  other side `inert` and dispatches an `animationend` so the edge tab
+  re-samples its tone.
+- `tests/e2e/demo.spec.ts`: the goodbye specs now assert the panel off-screen
+  on side A, flush right on side B with the scene meeting it, the 28-40% share
+  and full height at 1440, the bottom layout on touch, the back button whole
+  and clear of the panel, the CTA's `/contacto/` href, the new back name
+  ("Volver a la vista anterior"), focus after the reduced jump, and the no-JS
+  panel.
+- Docs: `MOTION_SPEC.md`, `DECISIONS.md`, `CONTENT_NEEDED.md`,
+  `CONTENT_MODEL.md`, `CLAUDE.md`, this file.
+
+### Defects found and fixed during QA
+
+- Reduced motion: focus was lost after the jump back. Measured cause: the
+  site-wide 0.01ms `all` transition runs on every descendant for inherited
+  `visibility`, so the arriving arrow stayed hidden for 1-2 frames and
+  `focus()` did nothing; the same lag made the edge tab miss the orange.
+  A two-frame wait was tried and was still flaky; transitions inside the stage
+  are now off under reduced motion and settling is synchronous.
+- Phones: a 50% bottom panel put its top edge exactly where the touch tab
+  rests, so the tab straddled orange and ink. Now 44%.
+- A spec counted the off-screen (but opaque) panel as shown; the helper now
+  requires the element to be on screen.
+- Spec race under full-suite load: the scene is flush at 1.10 s but the stage
+  settles (side A turns `inert`) when the timeline ends, ~1.16 s, after the
+  back button lands. Side A is already `visibility: hidden` in that window,
+  so it is not reachable; the spec now waits for the settled state.
+
+A QA artefact, not a site defect, for future sessions: in Chromium headless
+mobile emulation, `page.screenshot()` followed by a synthetic mouse click
+mid-travel leaves `getBoundingClientRect()` reporting stale mid-travel boxes
+while the computed transforms are already at rest and no animation runs.
+Measure computed styles or avoid that sequence. Also, `serve-dist.mjs` exits
+after 10 s without requests, so long scripted sessions need a keep-alive.
+
+### Verification (actually run)
+
+- Scratch Playwright sweep (not committed) at 1920x1080, 1440x900, 1366x768,
+  1180x820, 1024x768, 834x1112, 390x844, 320x720, plus reduced motion at 1440
+  and 390 and no-JS at 1440: forward, mid-travel, back, three round trips,
+  a request for the other side mid-travel ignored, resize to 85% width on
+  side B and back, Enter/Space/Tab/Shift+Tab with focus hand-over, console.
+  All checks passed: panel off-screen on A and flush right on B, scene meeting
+  the panel within 1px after resize, back button whole and >= 10px from the
+  panel, CTA >= 16px from every panel edge, section = viewport height on the
+  side layouts, overflow 0, edge tab ink over the panel, no console errors.
+- Measured side B: 1920 panel 595px (31%), CTA 67px type on 3 lines; 1440
+  446px (31%), 49px; 1366 423px (31%); 1180 437px (37%); 1024 379px (37%);
+  834 bottom panel 480px; 390 371px; 320 317px.
+- Screenshots inspected at every size above for states A, mid, B, CTA hover
+  and focus, back hover, no-JS and mid-return.
+- `astro check` 86 files 0/0/0; ESLint and Prettier (`--end-of-line auto`)
+  clean on every touched file.
+- `build` 9 pages, `check:production` passed (37 files, 147,107 JS bytes
+  including the concurrent contact work below), `check:links` passed, no
+  goodbye markup in `dist/index.html`. `build:demo` 14 pages.
+- Goodbye specs 9/9 on all three demo profiles. Full demo suite after the
+  spec-race fix: 66 passed, 27 skipped, 0 failed; a second run had one
+  failure in the unrelated Studio spread spec (touch-390), which then passed
+  9/9 in isolation (`--repeat-each=3`), so it is intermittent under load. An
+  earlier run's single failure of "demo routes render without browser
+  errors" also passed 3/3 in isolation. Production suite: 62 passed,
+  10 skipped.
+
+### Concurrent work by another session - not this session's
+
+During this session another process modified
+`src/components/sections/ContactSection.astro`, `src/styles/layout.css`,
+`src/styles/index.css` and `src/scripts/motion/MotionController.ts` (two lines
+registering `initContactBite()` after `initGoodbyePanorama()`), and added
+`src/scripts/motion/ContactBite.ts`, `ContactBiteMotion.ts` and
+`src/styles/contact-section.css`. None of it was touched here. The demo builds
+used for this QA include it.
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-11 Session: Home Contact Close Rebuilt As "La Última Mordida"
+
+Claude Code session at the user's request. Only the home `#contacto` section
+and what it strictly needs were touched. Hero, Manifesto, Services, Projects,
+Studio, Goodbye, the edge menu, the Instagram control, the cursor, the footer
+and the intro were not modified. Design and rejected alternatives in
+`docs/DECISIONS.md` ("The Contact Close Is A Poster"); motion in
+`docs/MOTION_SPEC.md` ("Contact Close").
+
+### What it is now
+
+- A poster on white: kicker (orange dot + "Contacto"), "HAZ QUE / TU MARCA"
+  in black caps and "muerda" larger, orange, italic, stepped right. One orange
+  disc (about 37% of the width on desktop) bleeds off the right edge and has
+  already taken the end of "muerda"; an inverted copy of the headline rides
+  inside it, so letters under orange turn white (ink for "muerda"). Phones and
+  portrait tablets stack headline, disc, rows.
+- The two approved channels (`contactChannels`, no new URL) as full-width
+  editorial rows: Correo presses horizontally with an orange stroke and a
+  runner; Instagram shows a tape of the handle while hovered or focused.
+- Fine pointer: heavy lean (max 42 x 32 px, 1.15 s `quickTo`), per-line
+  pressure, a squash-notch-release bite (~0.65 s) on "muerda" or the disc.
+  Touch: entrance only. Reduced motion: short fade, nothing else.
+- The section is exactly one screen on desktop (1920x1080, 1440x900,
+  1366x768 all measure the viewport) and grows with its content elsewhere.
+
+### Files
+
+- Rewritten: `src/components/sections/ContactSection.astro` (markup plus a
+  home-only script that registers the chunk loader on the section).
+- New: `src/styles/contact-section.css` (`sections` layer),
+  `src/scripts/motion/ContactBite.ts` (lifecycle, run by `MotionController`),
+  `src/scripts/motion/ContactBiteMotion.ts` (the motion chunk).
+- Two-line registrations: `src/styles/index.css` (import after the goodbye
+  one), `src/scripts/motion/MotionController.ts` (import and call after
+  `initGoodbyePanorama()`).
+- `src/styles/layout.css`: the old contact-only rules and selectors removed
+  (`.contact-section`, `__grid`, `h2`, `__links`, `__value`, and the contact
+  members of shared intro selectors). The intro members were kept.
+- `tests/e2e/demo.spec.ts`: three specs appended at the end (poster and
+  channels on all profiles; lean, pressure, bite and tape on fine-1440;
+  reduced motion). `docs/MOTION_SPEC.md`, `docs/DECISIONS.md`, `CLAUDE.md`
+  (module list) and this file.
+
+### Bundle budget (important for every session)
+
+Measured on scratch builds: the shared motion bundle without any contact
+motion is 149,102 bytes against the 150,000 largest-asset budget. A dynamic
+`import()` inside that bundle adds Vite's preload helper and cost 1,629 bytes,
+which broke the budget (150,731). The loader therefore lives in the section's
+own script and GSAP is handed to the chunk instead of imported, so GSAP is not
+split out: shared bundle 149,342, `ContactBiteMotion` 4,884,
+`ContactSection` script 1,467; total 155,693 of 220,000. Only about 650 bytes
+of headroom remain in the shared bundle for everyone.
+
+### Defects found and fixed during QA
+
+- The disc did not render: a GSAP `from()` on `--sx/--sy` read its end back as
+  0 and collapsed the clip ellipse. Now `fromTo`.
+- Under reduced motion the headline stayed invisible: the `from()` fade
+  recorded a from-state already on the lines as its end (0 -> 0). Every
+  entrance tween is now a `fromTo`; the reveal also uses `end: 'max'`,
+  `onRefresh` and an in-view check so a deep link cannot skip it.
+- Desktop sections were 50-70 px taller than the screen; the vertical rhythm
+  was tightened until they measure exactly one screen.
+- "tu marca" overflowed its stage at 390 and 320 px and at 200% text; the
+  headline size is capped at 18.5cqw of the stage.
+- At 1440 the disc stopped short of "muerda"; its centre, size and the word's
+  indent were retuned so the bite is visible at rest.
+- A `@vite-ignore` attempt to drop the preload helper left the chunk unemitted
+  (a 404 in production); reverted in favour of the section-script loader.
+
+### Verification (actually run)
+
+- Rendered and measured on the dev server at 1920x1080, 1440x900, 1366x768,
+  1024x1366, 768x1024, 430x932, 390x844 and 320x720, plus 200% text at 1440
+  and 390, no JavaScript at 1440 and 390, reduced motion at 1440 and 390, and
+  a resize sweep 1440 -> 1024x1366 -> 1366x768 -> 1440: horizontal overflow 0,
+  the inverted copy within 0 px of the real word everywhere, no console errors
+  from this section.
+- Interaction on a fine pointer: lean -36.7 px at the disc's edge (bounded),
+  lines 2-3 pressure ~0.87, bite state with squash 41.6%/45.8% and a 41 px
+  notch, cursor pressed pose and release, Correo and Instagram hover states,
+  tape off after leaving, Tab to both rows with `:focus-visible`, scroll back
+  and forth leaves everything shown.
+- `astro check`: 1 error, in `tests/e2e/demo.spec.ts:715`
+  (`offsetHeight` on `HTMLElement | SVGElement`) inside the concurrent
+  services session's uncommitted test hunk, not this work; before that hunk
+  landed the check was 88 files 0/0/0. ESLint repo-wide: clean. Prettier
+  (`--end-of-line auto`) clean on every touched file.
+- Scratch builds (shared `dist/` and `dist-demo/` untouched): standard 9
+  pages, demo 14. `check:production` (patched copy on the scratch output)
+  passed, 40 files, 155,693 JS bytes. `check:links` passed on both.
+- Demo suite on the scratch demo build: 74 passed, 31 skipped, 0 failed.
+  Production suite on the scratch standard build: 62 passed, 10 skipped,
+  0 failed. Temporary `playwright.contact-*.config.ts` files were deleted.
+- After the final 18.5cqw headline cap, both artifacts were rebuilt in the
+  scratchpad: `check:production` passed (44 files, 156,088 JS bytes, the new
+  total including concurrent sessions' work), `check:links` passed, and the
+  layout-sensitive demo specs (contact, compact 320px, 200% text, fixed
+  controls, reveal band, edge-rail scene) ran 17 passed, 10 skipped, 0 failed.
+
+### Open items for the user
+
+- The kicker "Contacto" and the cursor label "Escribir" are structural labels,
+  not client copy; no other text was added.
+- The shared bundle is ~650 bytes under its budget; the next motion addition
+  anywhere will need a split (for example GSAP in its own vendor chunk via
+  `astro.config`) or a budget decision.
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-11 Session: Services Rebuilt As A Sticky Editorial Sequence
+
+Claude Code session at the user's request. Only the home services section was
+redesigned; hero, manifesto, the project rail, Studio, goodbye and contact were
+not touched. See `docs/DECISIONS.md` ("Services Becomes A Sticky Editorial
+Sequence") and the new "Services" section of `docs/MOTION_SPEC.md`.
+
+### What changed
+
+- `src/components/sections/ServicesSection.astro`: track > sticky stage >
+  two zones. Left: title, illustration, CTA slot, `01 / 04` readout with a 2px
+  orange line. Right: the four services, each with an `aria-hidden` number,
+  name, description, hairline rule and glyph. A home-only `<script>` hands the
+  lazy loader to the section, as `ContactSection.astro` does.
+- `src/styles/services-section.css`: rewritten. Linear list by default; the
+  sequence layout only under `[data-services-enhanced]` on wide, tall screens.
+  The section is `position: relative` everywhere (no longer a sticky layer).
+- `src/scripts/motion/ServicesMotion.ts`: stub in the shared bundle; switches
+  the layout synchronously, mounts the chunk, falls back to the list if it
+  fails, and keeps the one-shot reveal for the linear layout.
+- `src/scripts/motion/ServicesSequence.ts` (new, lazy chunk, 1,930 bytes): the
+  scrubbed timeline, readout, illustration press and focus hand-off.
+- `src/data/services.ts`: `servicesPage` (`href: null`, label `Abrir
+  servicios`). No services page exists; by the user's decision the CTA is not
+  rendered until a real route is set there.
+- `tests/e2e/demo.spec.ts`: the 2x2 spec was replaced by "services hand the
+  stage from one to the next, then let the rail in" (one service painted per
+  step, counter, fixed anchor, reverse scroll, a single seam onto the rail and
+  the rail pinning only after services leave) and "reduced motion lists the
+  services without the sequence"; the readability spec now checks numbering,
+  the absent CTA and painted opacity on touch; the reveal-band spec expects
+  services `relative`. The file also carries another session's concurrent
+  goodbye/contact specs, left as found.
+- Docs: `DECISIONS.md`, `MOTION_SPEC.md`, `CONTENT_NEEDED.md` (services page
+  route), `CLAUDE.md` (module list), this file.
+
+### Measured (dev server and scratch builds, headless Chromium)
+
+- Section 2.80 viewports at 1920x1080, 1440x900, 1366x768, 1280x720 and
+  1100x650; the stage stays at `top: 0` through the whole track; counter and
+  line follow the playhead; at each boundary every service is at opacity 0 (no
+  two names overlap); the rail's top is at the viewport's bottom exactly when
+  the stage lets go, and the rail is `position: fixed` only once services are
+  off screen.
+- Fast wheel flicks down and up through manifesto -> services -> rail: no
+  frame where the rail is pinned while services is visible, no other layer
+  inside the services band (the only extra hits were the dev toolbar and the
+  pre-existing reveal band's side strips over the white manifesto).
+- Resize mid-sequence to 1280x720 and back: the playhead returned to the same
+  service. Horizontal overflow 0 everywhere. No console errors from services.
+- Linear: 834x1112, 390x844 and 1440x900 reduced motion show every service
+  painted, in order; the heading column stays in view on wide reduced motion.
+- The CTA was checked by injecting it (it is not rendered): accessible name
+  "Abrir servicios", arrow via `content: '↗' / ''`.
+
+### Verification
+
+- `astro check`: 91 files, 0 errors, 0 warnings, 0 hints. ESLint and Prettier
+  (`--end-of-line auto`) clean on every touched file.
+- Scratch builds (shared `dist/` and `dist-demo/` untouched): standard 9 pages,
+  `check:production` (patched copy on the scratch output) passed with 43 files
+  and 156,285 JS bytes, largest asset 147,735 (it was 150,731, over budget,
+  before the timeline moved to its own chunk); no services markup in `dist/`.
+  Demo 14 pages.
+- Demo suite on the scratch build: 74 passed / 31 skipped / 0 failed before the
+  split; after it, 67 passed / 31 skipped / 7 failed, all seven in the goodbye
+  specs, whose files another session rewrote at 09:41-09:42 during that run.
+  The only 404 on the static demo is that session's missing
+  `/assets/goodbye/goodbye-panorama.webp`. Production suite: 62 passed,
+  10 skipped, 0 failed. The temporary `playwright.services-*.config.ts` files
+  were deleted afterwards.
+
+### Open items for the user
+
+- A services page route for `servicesPage.href` (`CONTENT_NEEDED.md`).
+- The brief's 55-65vh per service and 220-280vh overall cannot both hold with
+  four services; 280svh was kept (45svh per step). `--services-step` is the one
+  value to change.
+
+Nothing was committed, pushed or deployed.
+
+### 2026-09-11 follow-up: numbers removed, sizes and art position adjusted
+
+User request. The `01`-`04` above each service name are gone (markup, CSS and
+spec, which now asserts none exist; the `01 / 04` readout stays). Heading
+`clamp(2.9rem, 5.6vw, 5rem)`; service names smaller at every width (5.5rem max
+in the sequence); on wide screens the illustration is 88% of its column and
+centred in it (the user chose "centred in its column" over a three-zone
+layout). Re-probed at 1440x900, 1920x1080 and 390x844: sequence, handovers,
+release onto the rail and rail pin unchanged, no console errors, overflow 0.
+`astro check` 0/0/0, ESLint and Prettier clean.
+
+Nothing was committed, pushed or deployed.
+
+### 2026-09-11 follow-up: art and service centred as a pair, per-service images
+
+User request, composition only (scroll logic, timings and copy unchanged). In
+the sequence layout the heading (top-left) and the readout (bottom-left) stay
+as anchors; the illustration and the service on stage form one pair centred
+on the viewport, the art beside the copy and centred on the name and
+description. The art grew rather than shrank (461px at 1440, 576px at 1920).
+`ServiceRecord.image` (null for all four) adds a layer to a new art frame
+(`[data-services-art]`), and `ServicesSequence.ts` cross-fades layers at a
+handover (same window and ease both ways, opacities summing to one); the
+press/pose now acts on the frame. See `DECISIONS.md` and `MOTION_SPEC.md`.
+
+- Measured at 1440x900, 1920x1080, 1366x768 and 1100x650: pair 0px from the
+  viewport centre, art-to-copy gap 50-80px, art centre 13-16px from the
+  copy's, heading unmoved. The cross-fade was verified with a temporary image
+  on Identidad (reverted): layers 1.00/0.00 -> 0.50/0.50 at the boundary ->
+  0.00/1.00, forwards and backwards, no console errors.
+- `astro check` 0/0/0; ESLint and Prettier clean. Scratch builds: standard 9
+  pages, `check:production` passed (158,289 JS bytes, largest 147,558; the
+  sequence chunk is 2,316 bytes). Services and layout-sensitive demo specs on
+  the scratch build (temporary config deleted): 16 passed, 14 skipped,
+  0 failed. The sequence spec now also asserts the pair's centring, gap,
+  vertical alignment and art width.
+- Note: at 1100x650 the art's top sits 23px under the heading's last line;
+  every larger size has more room.
+
+Nothing was committed, pushed or deployed.
+
+### 2026-09-11 follow-up: the client's per-service illustrations
+
+User request: Identidad, Digital and Contenido get their own illustrations
+(`public/assets/servicio *.png`, supplied by the user, left untouched);
+Estrategia keeps `servicios-trimmed.png`. Structure, scroll effect and copy
+unchanged. See `DECISIONS.md` (third follow-up) and `MOTION_SPEC.md`.
+
+- New `scripts/prepare-services-media.mjs` (`npm run media:services`, sharp):
+  alpha-channel trim, 1200px wide, WebP with alpha, into
+  `public/assets/services/` (identidad 1200x658 141 KB, digital 1200x574
+  125 KB, contenido 1200x610 113 KB). Constants added after
+  `servicesIllustration` in `src/config/assets.ts` (the file also carries
+  another session's goodbye change, left as found); `src/data/services.ts`
+  points the three services at them.
+- `services-section.css`: service layers `object-fit: contain`, anchored at
+  the frame's foot. `ServicesSequence.ts`: cross-fade with complementary
+  opacity plus scale 0.99/1.015 and -4/+6px, and an `IntersectionObserver`
+  (150% margin) that switches the lazy layers to eager and decodes them.
+- Spec: the sequence test asserts, at every step, that exactly that service's
+  layer is painted and loaded; the touch branch asserts the service layers are
+  hidden in the list.
+- Measured on the dev server: at 1440x900 and on a 1180x820 touch tablet (which
+  runs the sequence) the painted layer is shared/1/2/3 per step, 0.50/0.50 at
+  each boundary, correct in reverse; the frame keeps its size (461x267 and
+  384x222); overflow 0; no console errors or 4xx. At 390x844 the list shows the
+  shared art and the three layers are never fetched. Reduced motion keeps the
+  list (no sequence, so no change of art), as decided for the section.
+- `astro check` 0/0/0; ESLint and Prettier clean on touched files. Scratch
+  builds: `check:production` passed (157,777 JS bytes), `dist/` references no
+  service art. Services and layout-sensitive demo specs: 21 passed,
+  12 skipped, 0 failed (temporary config deleted).
+
+Open: the PNG masters sit in `public/` and ship in `dist/` unreferenced
+(~2.3 MB); moving them to `media-src/` is recommended. Their clothing is opaque
+near-black, unlike the shared art's transparent clothing; kept as supplied.
+
+Nothing was committed, pushed or deployed.
+
+### 2026-09-11 follow-up: more air under the heading
+
+User request. Only the sequence stage's upper spacer row changed
+(`minmax(clamp(3rem, 9svh, 6rem), 0.85fr)`). Heading-to-art 64 -> 81px at
+1440x900, 108px at 1920x1080, 69px at 1366x768, 23 -> 59px at 1100x650; the
+pair still clears the readout (53-212px), stays centred (0px) and aligned with
+the copy (13-16px). No console errors; Prettier clean.
+
+Nothing was committed, pushed or deployed.
+
+### 2026-09-11 follow-up: `Abrir servicios ↗` beside the heading
+
+User request. `/servicios/` now exists (another session's staged rename of
+`manifiesto.astro`, listed in `primaryNavigation`; not touched here), so
+`servicesPage.href` is `/servicios/` and the existing bite-button CTA renders.
+It moved from the foot into a new `.services-section__head` beside the `h2`
+(flex, centred, gap `clamp(2.5rem, 5vw, 5rem)`, wraps when narrow); in the
+sequence the head takes the heading's grid cell, so the pair, the readout and
+the air under the heading are unchanged. The spec now asserts one CTA to
+`/servicios/` named "Abrir servicios", and on fine-1440 at least 32px beside
+the heading and level with it.
+
+- Measured: gap 72px at 1440x900, 80px at 1920x1080, 55px at 1100x650, 42px
+  at 834x1112, all centred on the heading (0px); at 390x844 and in the
+  reduced-motion two-column list it wraps 28px under the heading. No overflow,
+  no console errors.
+- `astro check` 0/0/0; ESLint and Prettier clean. Scratch builds:
+  `check:production` passed (157,777 JS bytes). Services and layout-sensitive
+  demo specs: 20 passed, 10 skipped, 0 failed (temporary config deleted).
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-11 Session: The Goodbye Pans Across The Supplied Photograph
+
+User request: try `public/assets/bg panoramica.png` (saved with a space, not
+the `bg-panoramica.png` the brief named) as the goodbye's panoramic scene,
+keeping 100vh and the smooth arrow-driven pan, with the copy in the
+photograph's black fields. Only the goodbye was touched. See
+`docs/DECISIONS.md` ("The Goodbye Pans Across A Photograph; The Orange Panel
+Goes") and `docs/MOTION_SPEC.md` ("Goodbye").
+
+### What changed
+
+- `scripts/prepare-goodbye-media.mjs` (new): measures the master (2048x768,
+  sRGB, no alpha) and writes `public/assets/goodbye/goodbye-panorama.webp`
+  (quality 92, 104,946 bytes, same size). The PNG is untouched. Uses the
+  `sharp` Astro already installs; run `node scripts/prepare-goodbye-media.mjs`.
+- `src/config/assets.ts`: `goodbyeVisual` is that image (on trial).
+- `GoodbyeSection.astro`: writes `--goodbye-ratio`; side A is `.goodbye-start`;
+  side B is `.goodbye-end` (back button + `.goodbye-end__copy` with kicker and
+  the CTA headline), replacing the orange `.goodbye-panel`.
+- `goodbye-section.css` rewritten: wide layout (aspect >= 5:4, enhanced) with
+  the photograph full-bleed and the copy boxes cut from the scene's width at
+  the measured fractions (side A within 26%, CTA from 69% and above 68% of the
+  height, back button bottom-right past 76%); band layout (portrait, square
+  and no-JS) with the photograph on top fading into the ink and the copy
+  below. White type, orange only on the arrows and one small mark.
+- `GoodbyePanorama.ts`: the panel tween and the edge-tab `animationend` signal
+  are gone; the copy leaves by 28% and arrives from 76% of the pan, the back
+  button from 86% (about 1.3 s overall), so fixed copy never crosses the
+  bright photograph.
+- `src/data/goodbye.ts`: one comment. `tests/e2e/demo.spec.ts`: the goodbye
+  specs now check the real image, the copy in the black fields (from the
+  scene box and the measured fractions), the band layout on touch, and sample
+  the travel on every frame in the page instead of a fixed 450ms wait.
+- Docs: `MOTION_SPEC.md`, `DECISIONS.md`, `CONTENT_NEEDED.md`, `CLAUDE.md`.
+
+### Defects found and fixed during QA
+
+- The wide copy layer's grid row was content-sized, so side B's box was 0px
+  tall and the back button sat mid-screen. One `1fr` row now fills the layer.
+- "¿HABLAMOS?" faded in over the orange piece mid-pan; side A's title was
+  crossed by the piece's tip at ~40% opacity. Retimed (above).
+- The mid-travel spec was timing-dependent and failed once under full-suite
+  load on touch-390; it now samples frames in the page.
+
+### Verification (actually run)
+
+- Scratch Playwright sweep at 1920x1080, 2560x1080, 1440x900, 1366x768,
+  1280x1024, 1180x820, 1024x768, 844x390, 834x1112, 768x1024, 390x844 and
+  320x720, plus reduced motion at 1440 and 390 and no-JS at 1440. All checks
+  passed: section = viewport height on the wide layout (>= on the band), one
+  image and one scene size throughout, `img` box undistorted, flush on both
+  sides and after a resize on side B, three round trips, a request mid-travel
+  ignored, Enter/Space/Tab focus hand-over, overflow 0, no console errors, and
+  every copy element visible over the photograph (opacity > 0.08) on its black
+  on every frame of both directions.
+- Screenshots inspected at every size for A, mid-travel, B, back-mid and
+  focus, plus the seams entering the goodbye from Studio and leaving it into
+  Contacto at 1440 and 390: no band of another colour (the stack's clipped
+  strip shows the white body next to white Studio/Contacto).
+- Measured upscale of the 2048px master: 1.0 at 1366x768 and 1024x768, 1.17 at
+  1440x900, 1.33 at 1280x1024, 1.41 at 1920x1080, 1.69 at 2560x1080.
+- `astro check` 91 files 0/0/0; ESLint and Prettier clean on touched files.
+- `build` 9 pages, `check:production` passed (44 files, 156,108 JS bytes,
+  including concurrent services/contact work), `check:links` passed, no
+  goodbye markup in `dist/index.html`. `build:demo` 14 pages.
+- Goodbye specs 27/27 with `--repeat-each=3`; full demo suite 74 passed,
+  31 skipped, 0 failed; production suite 62 passed, 10 skipped.
+
+The services session above saw 7 goodbye failures and a 404 for the WebP
+because its run overlapped this rewrite; both are resolved by this session's
+files.
+
+### Open items for the user
+
+- Approval and rights for the photograph, and a larger master for sharpness.
+- The edge menu's tab stays orange over the orange leather on side A at about
+  1280-1440px wide (it only reads CSS backgrounds). Out of this scope.
+- Side A's copy ("Titular A") is still a placeholder; the section stays
+  demo-only until it is approved.
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-11 Session: Contact Close, Second Pass (Soft Sculpture, Sentence Case)
+
+User direction: keep the structure and the interaction, but replace the flat
+orange disc with a protagonist 3D-feeling piece, move the section to sentence
+case, give the headline far more air above the channels, and refine the
+rows. Only the contact close was touched. See `docs/DECISIONS.md` ("The
+Contact Close: A Soft Sculpture, Sentence Case, More Air") and
+`docs/MOTION_SPEC.md` ("Contact Close").
+
+### What changed
+
+- New `src/scripts/motion/ContactSculpture.ts`: pure geometry for an inflated
+  orange cushion with a large, soft-shouldered scoop missing from the side
+  that faces "muerda" (superellipse minus a sphere, smooth SDF subtraction),
+  plus the positions of its light, shade, scoop wall, lip and contact shadow.
+  Used by the server render and by the motion, so both draw the same object.
+- `ContactSection.astro` rewritten: sentence-case eyebrow "Contacto" and
+  headline ("Haz que / tu marca / muerda"), the SVG sculpture rendered at rest
+  from the geometry, the channel rows (label, address, arrow, stroke). The
+  disc, the inverted headline copy, the rule-top notch, the Instagram tape and
+  the stroke runner are gone. The loader script is unchanged.
+- `contact-section.css` rewritten: headline left, sculpture right bleeding off
+  the edge, channels bottom-left in a 36rem column with a floor of 9svh of air;
+  lighter rows (20% ink hairlines, orange stroke, diagonal arrow on hover and
+  focus); stacked layout for phones and portrait tablets; reduced-motion
+  overrides.
+- `ContactBiteMotion.ts` rewritten around the sculpture: one entrance
+  choreography (eyebrow, lines, "muerda" deform-reveal, sculpture released
+  from a squash, rows), the eased pointer state redrawing the SVG (turn, dent
+  and swell, bite opening, drift <= 18px, ~1 s inertia), pressure moving
+  "muerda" 1-3px, and the bite (squash plus a deeper scoop).
+- `tests/e2e/demo.spec.ts`: my three contact specs rewritten (sentence case,
+  collision-free layout and air; follow, dent, 1-3px press on "muerda", bite,
+  exact return to rest, diagonal arrow; reduced motion). Only lines inside
+  that block were touched or reformatted.
+- `CLAUDE.md` module line, `docs/MOTION_SPEC.md`, `docs/DECISIONS.md`.
+- `MotionController.ts`, `index.css` and `layout.css` were not touched in
+  this pass.
+
+### Measured
+
+| Viewport | Section | Air headline -> rows | Sculpture vs text/rows |
+| --- | --- | --- | --- |
+| 1920x1080 | 1080 | 159 | clear |
+| 1440x900 | 900 | 124 | clear |
+| 1366x768 | 768 | 89 | clear |
+| 1024x1366 | 1469 (stacked) | sculpture between | clear |
+| 768x1024 | 1200 (stacked) | sculpture between | clear |
+| 430x932 | 932 | sculpture between | clear |
+| 390x844 | 859 | sculpture between | clear |
+
+Horizontal overflow 0 and console clean at every size and under reduced
+motion. Interaction on a fine pointer: pressure 0.31 -> 0.67 as the pointer
+approaches (inertia), "muerda" moves 2.1px, bite state with the cursor's
+pressed pose and release, outline back to exactly its resting path after
+leaving, row arrow +5.6/-5.6px, keyboard `:focus-visible` on both rows. One
+redraw costs about 0.8 ms and only runs when the state changed.
+
+### Verification (actually run)
+
+- `astro check`: 91 files, 0 errors, 0 warnings, 0 hints. ESLint clean on
+  every touched file; Prettier (`--end-of-line auto`) clean on every touched
+  file.
+- Scratch builds (shared `dist/` and `dist-demo/` untouched): standard 9
+  pages, demo 14. `check:production` (patched copy on the scratch output)
+  passed: 44 files, 157,998 JS bytes; largest asset 147,558 (the shared
+  bundle; another session's lazy services chunk moved Vite's preload helper
+  into its own 1,342-byte chunk), `ContactBiteMotion` 6,774, the section
+  script 193. `check:links` passed on both.
+- Demo suite: 74 passed, 31 skipped, 0 failed; the three contact specs also
+  passed three times in a row (21 passed, 6 capability skips). Production
+  suite: 62 passed, 10 skipped, 0 failed. Temporary `playwright.contact-*`
+  configs were deleted.
+- One spec failure found and fixed on the way: the follow test's pointer path
+  crossed the piece, so the early pressure read higher than the settled one.
+  It now approaches from outside the piece's reach.
+
+### Open items for the user
+
+- Portrait tablets stack the sculpture between the headline and the rows, so
+  the section is taller than one screen there (1469px at 1024x1366).
+- The eyebrow "Contacto" and the cursor label "Escribir" are structural
+  labels, not client copy.
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-11 Session: Contact Close, Third Pass (Bite Buttons, Sculpture CTA)
+
+Adjustments only, at the user's request; the section was not rebuilt. See
+`docs/DECISIONS.md` ("Contact Close: Bite Buttons, And The Sculpture Is The
+CTA") and `docs/MOTION_SPEC.md` ("Contact Close").
+
+### What changed
+
+- The eyebrow "Contacto" and its orange dot are gone (markup, CSS, entrance).
+- The headline is centred vertically on the stage, with the buttons' height
+  mirrored above it, so the headline itself sits on the sculpture's centre
+  (1-3px apart at 1920, 1440 and 1366). "muerda" stays orange and italic.
+- The channel rows are replaced by two of the hero's `bite-button`s side by
+  side under the headline, "Correo ↗" and "Instagram ↗", with the hero CTA's
+  `0 0.4rem 0` ink shadow and `data-magnetic`. Their computed radius, shadow,
+  fill and border equal `.hero__cta`'s; the hover squeeze is the shared one.
+  Phones narrow their side padding so both fit on one line.
+- The sculpture is a link to `/contacto/` (accessible name "Contacto"). Only
+  its painted form takes the pointer; the white around it is not a hit area,
+  and the link's box ends at the stage edge, clear of the edge rail. On hover
+  and keyboard focus, in 160 ms: `cursor: pointer`, the form presses 6px onto
+  a hard ink shadow in its own silhouette, and "Contacto ↗" appears set into
+  the piece; `:active` presses it 14px; keyboard focus adds an ink ring on the
+  real silhouette. Touch shows the note and the shadow at rest. The live 3D
+  interaction (follow, dent, bite, pressure on "muerda") is unchanged.
+- Cursor: the three controls keep the active ring with no text, because the
+  shared cursor label is set in capitals.
+- Files: `src/components/sections/ContactSection.astro`,
+  `src/styles/contact-section.css`, `src/scripts/motion/ContactBiteMotion.ts`
+  (the eyebrow tween removed), my contact specs in `tests/e2e/demo.spec.ts`,
+  `docs/MOTION_SPEC.md`, `docs/DECISIONS.md`, this file. `MotionController.ts`,
+  `index.css` and `layout.css` were not touched.
+
+### Defect found and fixed during QA
+
+The first mouse probe showed no hover and no navigation on the sculpture:
+the left block (z-index 2) spans the whole stage and swallowed the pointer
+over it. The block now takes no pointer events, the headline shrinks to its
+own width and the headline and buttons opt back in. Keyboard focus worked
+throughout.
+
+### Verification (actually run)
+
+- Seven sizes plus reduced motion on the dev server: no eyebrow; buttons on
+  one line everywhere; no collision between the sculpture and the type or
+  buttons; the link box never past the stage; desktop sections exactly one
+  screen; horizontal overflow 0; console clean.
+- Fine pointer: hover presses the form (`matrix(.985, 0, 0, .975, 0, 6)`),
+  shows the shadow and the note, `:active` goes to 14px, a click opens
+  `/contacto/`; the empty corner of the link box hits no link; button span
+  squeezes to `.97/.94` like the hero's; keyboard focus shows the ring.
+- `astro check` 91 files 0/0/0; ESLint and Prettier clean on every touched
+  file (the spec reformat touched only lines inside the contact block).
+- Scratch builds: standard 9 pages, demo 14; `check:production` passed, 44
+  files, 157,903 JS bytes, largest 147,558, `ContactBiteMotion` 6,679;
+  `check:links` passed on both. Demo suite: 74 passed, 31 skipped, 0 failed.
+  Production suite: 62 passed, 10 skipped, 0 failed. Temporary
+  `playwright.contact-*` configs were deleted.
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-11 Session: Contact Close, Fourth Pass (Type Scale, Cursor Disc)
+
+Adjustments only, at the user's request. See `docs/DECISIONS.md` ("Contact
+Close: Manifesto Type Scale, The Hero's Cursor Disc").
+
+### What changed
+
+- Headline at the manifesto's word sizes: desktop
+  `clamp(3.06rem, 5.58vw, 5.58rem)` (80px at 1440, 89px at 1920), portrait
+  tablets `clamp(4rem, 11vw, 7rem)`, phones `clamp(2.2rem, 12.4vw, 4.6rem)`;
+  "muerda" stays 1.3x, orange and italic (104px at 1440).
+- The text block is set in from the gutter by `clamp(1.5rem, 4.5vw, 5.5rem)`,
+  as the services and Studio headings are (65px at 1440); portrait tablets
+  `clamp(1rem, 4vw, 2.5rem)`; phones keep the site gutter.
+- "Correo ↗" and "Instagram ↗" start exactly where "muerda" starts (0px at
+  every size).
+- Hovering the sculpture shows the cursor's "Contacto" disc, as the hero CTA
+  does (`data-cursor-label="Contacto"`, measured identical to the hero). The
+  note set into the piece is kept for keyboard focus and touch only; the press
+  onto the ink shadow and the link to `/contacto/` are unchanged.
+- Files: `src/components/sections/ContactSection.astro` (one attribute),
+  `src/styles/contact-section.css`, my contact specs in
+  `tests/e2e/demo.spec.ts`, `docs/MOTION_SPEC.md`, `docs/DECISIONS.md`, this
+  file.
+
+### Verification (actually run)
+
+- Seven sizes plus reduced motion on the dev server: headline centred on the
+  sculpture (1-3px), buttons on one line and aligned with "muerda", no
+  collision, overflow 0, desktop exactly one screen, console clean.
+- Fine pointer: the cursor reads `data-labelled="true"` with "Contacto" over
+  the piece, the note stays hidden, the press still applies and a click opens
+  `/contacto/`.
+- `astro check` 91 files 0/0/0; ESLint and Prettier clean on every touched
+  file (the spec reformat touched only lines inside the contact block).
+- Scratch builds: standard 9 pages, demo 14; `check:production` passed, 44
+  files, 158,289 JS bytes, largest 147,558, `ContactBiteMotion` 6,679;
+  `check:links` passed on both. Demo suite: 74 passed, 31 skipped,
+  0 failed. Production suite: 62 passed, 10 skipped, 0 failed. Temporary
+  `playwright.contact-*` configs were deleted.
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-11 Session: Edge Menu Order, Servicios Route, Fixed Active State
+
+Navigation only, at the user's request. See `docs/DECISIONS.md` ("Edge Menu:
+Servicios Replaces Manifiesto, Route-Only Active State").
+
+### What changed
+
+- `primaryNavigation`: Inicio, Studio, Servicios, Proyectos, Contacto.
+- `src/pages/manifiesto.astro` renamed (staged `git mv`) to
+  `src/pages/servicios.astro`; `/manifiesto/` no longer exists. Heading,
+  title, index and mark read Servicios / 03; "Siguiente" now Proyectos.
+- `EdgeMenu.astro`/`EdgeMenu.ts`: the home-scene IntersectionObserver and the
+  `data-section-link` attributes are gone; the active item is only the
+  server-rendered `aria-current="page"` from the URL, so on `/` it is always
+  Inicio (readout 01).
+- Links repointed to `/servicios/`: `contacto.astro` route cards (reordered to
+  Studio, Servicios, Proyectos), `IntroSection.astro` CTA ("Ver servicios"),
+  `studio.astro` "Siguiente Servicios".
+- Tests: route lists and labels updated; the demo "reports the current home
+  scene" test became "keeps Inicio active across the home scenes"; new
+  foundations test "the active route follows the URL, never the home scroll".
+- Docs: `MOTION_SPEC.md`, `CONTENT_MODEL.md`, `QA_CHECKLIST.md`, `README.md`,
+  `DECISIONS.md`, this file.
+
+### Verification (actually run)
+
+- `astro check` 91 files 0/0/0; ESLint clean; Prettier clean on touched files
+  apart from the known CRLF mismatch.
+- Scratch builds: standard 9 pages, demo 14; `check:links` passed on both; no
+  `/manifiesto/` href remains in either artifact.
+- Production suite: 64 passed, 10 skipped, 0 failed. Demo suite: 73 passed,
+  31 skipped, 1 failed - `services hand the stage from one to the next`
+  (`[data-layer] shared` instead of `1`), in the services sequence another
+  terminal was editing at the same time (`ServicesSequence.ts`,
+  `services-section.css`, `demo.spec.ts` modified 12:16-12:18). Not caused by
+  the navigation change; left to that work.
+- Temporary `playwright.navtmp*` configs were deleted.
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-11 Session: Contact Close Headline About 15% Larger
+
+At the user's request ("aumente un poco el tamaño del titulo"), only the
+`--f` token in `src/styles/contact-section.css` changed; indents, the 1.3x
+"muerda", button alignment and the sculpture are derived from it and
+untouched.
+
+- Desktop `clamp(3.5rem, 6.4vw, 6.4rem)` (92px at 1440, "muerda" 120px),
+  portrait tablets `clamp(4.6rem, 12.6vw, 8rem)`, phones
+  `clamp(2.5rem, 14.2vw, 5.3rem)`; the `21cqw` cap is kept.
+- Verified on the dev server at 1440x1000 (full motion), 1280x720, 834x1112,
+  390x844 and 320x720 (reduced motion, touch): headline clear of the
+  sculpture, buttons still under "muerda", overflow 0, console clean. At 320
+  the two buttons stack on two lines (not compared against the old size).
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-11 Session: Goodbye Copy
+
+User request: copy only in the panoramic goodbye; structure, photograph,
+pan, easing, timing, positions and buttons unchanged.
+
+- `src/data/goodbye.ts`: side A "Las buenas ideas necesitan presión."; CTA
+  "Nosotros sabemos dónde apretar." (still the `/contacto/` link with the
+  arrow set into its last word); new optional `note` field, "Estrategia ·
+  Identidad · Digital · Contenido". The kicker "¿Hablamos?" is unchanged. The
+  record stays flagged (photograph on trial, kicker provisional), so `dist/`
+  is unchanged.
+- `GoodbyeSection.astro`: the headline and the note share one
+  `.goodbye-end__headline` wrapper that carries `data-goodbye-reveal`, so the
+  timeline still reveals exactly two items and its timing is identical.
+- `goodbye-section.css`: `.goodbye-end__note` (label size, sentence case,
+  white at 72%). Nothing else changed.
+- `tests/e2e/demo.spec.ts`: the goodbye specs look for the new link name and
+  the new wrapper (three lines).
+
+Verification: `astro check` 92 files 0/0/0; ESLint and Prettier clean on the
+touched files; `build:demo` 14 pages. The scratch sweep (twelve sizes, reduced
+motion, no-JS, every frame of both directions) passed: all copy, the note
+included, stays on the photograph's black. Screenshots inspected at 1920,
+1366, 844x390 and 390. Goodbye specs 9/9.
+
+Open for the user: at 390px the side A headline hyphenates "necesi-tan"
+because `.goodbye-start__title` has `hyphens: auto` (pre-existing; "Titular
+A" never broke). Setting it to `manual` would keep "necesitan" whole; not done
+because the brief was copy only.
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-11 Session: /studio/ Redesign
+
+User request: rebuild `/studio/` completely (hero, "Somos Colmillo", four
+principles, team, close) in the home's language, reusing the project-tile
+dent; no fabricated content; the home and other pages untouched.
+
+- New: `src/components/studio/` (`StudioHero`, `StudioIntro`,
+  `StudioPrinciples`, `StudioTeam`, `StudioCTA`), `src/data/studioPage.ts`,
+  `src/styles/studio-page.css` (imported in `index.css`, layer `sections`),
+  `src/scripts/motion/PressSurface.ts` (the dent extracted from
+  `ProjectTilePress.ts`, behaviour unchanged), `StudioPage.ts` (loader run by
+  `MotionController`), `StudioPageMotion.ts` (route-only chunk; its dynamic
+  import lives in the page's own script), `tests/e2e/studio.demo.spec.ts`,
+  `tests/e2e/studio.spec.ts`.
+- Changed: `src/pages/studio.astro` (rewritten: the demo `studio-process`,
+  the "S" mark, "02 / Studio", the kicker, the flag and the "Siguiente" cards
+  are gone), `ProjectTilePress.ts` (calls `PressSurface`),
+  `src/config/assets.ts` (+ `studioHeroMedia`, `null`), `MotionController.ts`
+  (+ `initStudioPage`), `index.css` (+1 import), `layout.css` (dead
+  `studio-process` and `editorial-page__mark--studio` rules removed),
+  `playwright.config.ts` / `playwright.demo.config.ts` (route the new specs),
+  `tests/e2e/demo.spec.ts` (one Studio assertion), `DECISIONS.md`,
+  `MOTION_SPEC.md`, `CONTENT_NEEDED.md`, `CLAUDE.md`.
+- Standard build: `/studio/` renders the hero (geometric placeholder disc, no
+  development note) and the close only. The intro, principles and team are
+  demo-only because their copy is provisional and the team is placeholders.
+- JS budget: with the motion in the shared bundle it measured 152,176 bytes
+  against 150,000. Now: shared 147,021, Studio chunk 5,150, total 163,444.
+
+Verification (executed): `astro check` 0/0/0; ESLint clean; Prettier applied
+to every new file; `build` 9 pages; `check:production` passed; `build:demo`
+14 pages. Standard Playwright suite 66 passed / 10 skipped (before the page
+script moved into the layout slot), then `studio.spec.ts` + performance 4/4.
+Demo: `studio.demo.spec.ts` 12 passed / 6 skipped over the three projects;
+the Studio-related `demo.spec.ts` tests (destinations, 320px, 200% text,
+routes without errors) 8 passed / 4 skipped. The full `demo.spec.ts` was not
+run. Scratch QA on the demo build at 1920x1080, 1440x900, 1366x768,
+1024x1366, 768x1024, 430x932 and 390x844: overflow 0, console clean;
+screenshots inspected; hover, keyboard (arrows, Home, End, Tab), touch tap,
+reduced motion, no JavaScript, the dent and its release, and two motion
+restarts checked.
+
+Incident: the concurrent dev server on :4321 (another terminal) cached a
+failed resolution of `./studio-page.css`, because the `@import` landed a few
+seconds before the file. Every route there returns 500 until it is restarted
+(`astro dev stop`, then `npm run dev`). Builds are unaffected. It was not
+restarted from this session because the process belongs to another terminal.
+
+Open: the hero loop, the four principle images, the team, and approval of the
+copy and section titles (`CONTENT_NEEDED.md`).
 
 Nothing was committed, pushed or deployed.

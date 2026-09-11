@@ -119,32 +119,32 @@ test('development demo exposes five unmistakably fictional projects', async ({
   await expect(page.locator('.project-card')).toHaveCount(5);
 });
 
-test('manifesto, studio and contact are complete demo destinations', async ({
+test('services, studio and contact are complete demo destinations', async ({
   page,
 }) => {
-  await page.goto('/manifiesto/');
+  await page.goto('/servicios/');
   await expect(
-    page.getByRole('heading', { level: 1, name: 'Manifiesto' }),
+    page.getByRole('heading', { level: 1, name: 'Servicios' }),
   ).toBeVisible();
   await expect(
     page.getByText('DEMO FICTICIA — NO PUBLICAR').first(),
   ).toBeVisible();
   await expect(
-    page.getByRole('link', { name: /Siguiente Studio/ }),
-  ).toHaveAttribute('href', '/studio/');
+    page.getByRole('link', { name: /Siguiente Proyectos/ }),
+  ).toHaveAttribute('href', '/proyectos/');
 
   await page.goto('/studio/');
   await expect(
     page.getByRole('heading', { level: 1, name: 'Studio' }),
   ).toBeVisible();
-  await expect(page.locator('.studio-process__steps li')).toHaveCount(4);
+  await expect(page.locator('[data-principle-trigger]')).toHaveCount(4);
 
   await page.goto('/contacto/');
   await expect(
     page.getByRole('heading', { level: 1, name: /Haz que tu marca/ }),
   ).toBeVisible();
   await expect(
-    page.locator('.contact-page__routes a[href="/manifiesto/"]'),
+    page.locator('.contact-page__routes a[href="/servicios/"]'),
   ).toBeVisible();
   await expect(
     page.locator('.contact-page__routes a[href="/studio/"]'),
@@ -457,36 +457,32 @@ test('the pinned project rail stays in view for the whole pin', async ({
   expect(finalX).toBeLessThan(-100);
 });
 
-test('the edge rail reports the current home scene', async ({
+test('the edge menu keeps Inicio active across the home scenes', async ({
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name !== 'fine-1440');
   await page.goto('/');
 
   // The pinned project rail adds a full pin's worth of document height once it
-  // registers. Scrolling before that lands on an earlier scene, which then
-  // stays reported because nothing scrolls again.
+  // registers; wait for it so the scroll really lands on the contact scene.
   await expect(page.locator('[data-horizontal-projects]')).toHaveAttribute(
     'data-horizontal-enhanced',
     'true',
   );
 
-  // The rail reports the scene crossing the middle of the viewport.
-  await expect
-    .poll(async () => {
-      await page
-        .locator('#contacto')
-        .evaluate((section) =>
-          section.scrollIntoView({ block: 'center', behavior: 'instant' }),
-        );
-      return page.locator('[data-edge-position]').textContent();
-    })
-    .toBe('05');
+  await page
+    .locator('#contacto')
+    .evaluate((section) =>
+      section.scrollIntoView({ block: 'center', behavior: 'instant' }),
+    );
+  await page.waitForTimeout(300);
 
-  await expect(page.locator('[data-section-link="contacto"]')).toHaveAttribute(
-    'aria-current',
-    'location',
-  );
+  // The active route follows the URL, not the scene in view.
+  await expect(page.locator('[data-edge-position]')).toHaveText('01');
+  await expect(
+    page.locator('.edge-menu__list a[aria-current="page"]'),
+  ).toHaveAttribute('href', '/');
+  await expect(page.locator('.edge-menu__list a[aria-current]')).toHaveCount(1);
 
   // The closed edge carries no readout of its own: only the panel reports.
   await expect(page.locator('.edge-menu__spine')).toHaveCount(0);
@@ -570,9 +566,30 @@ test('reduced motion keeps all project content available', async ({ page }) => {
   );
 });
 
+/** Each service's name and its opacity as painted: its own times its parents'. */
+const serviceOpacities = (section: Locator) =>
+  section.locator('[data-service-entry]').evaluateAll((nodes) =>
+    nodes.map((node) => {
+      let opacity = 1;
+      for (
+        let element: Element | null = node;
+        element && !element.matches('[data-services-section]');
+        element = element.parentElement
+      ) {
+        opacity *= Number(getComputedStyle(element).opacity);
+      }
+      return {
+        name: node.querySelector('h3')?.textContent?.trim() ?? '',
+        opacity: Math.round(opacity * 100) / 100,
+      };
+    }),
+  );
+
+const serviceNames = ['Estrategia', 'Identidad', 'Digital', 'Contenido'];
+
 test('the services block keeps every entry readable in all modes', async ({
   page,
-}) => {
+}, testInfo) => {
   await page.goto('/');
   const section = page.locator('#servicios');
   const entries = section.locator('[data-service-entry]');
@@ -580,13 +597,32 @@ test('the services block keeps every entry readable in all modes', async ({
   await expect(section.getByRole('heading', { level: 2 })).toHaveText(
     'Nuestros servicios',
   );
-  await expect(section.locator('h3')).toHaveCount(4);
+  await expect(section.locator('h3')).toHaveText(serviceNames);
 
-  // The removed decoration must stay removed: no per-service numbering, no
-  // backdrop word, no sticky marker.
-  await expect(section.locator('.service-entry__number')).toHaveCount(0);
+  // No printed number above each name (removed at the user's request); the
+  // sequence readout alone says where the reader is.
+  await expect(section.locator('.service-entry__index')).toHaveCount(0);
   await expect(section.locator('[data-services-ghost]')).toHaveCount(0);
   await expect(section.locator('[data-services-marker]')).toHaveCount(0);
+
+  // One CTA, beside the heading, into the real services page.
+  const cta = section.locator('.services-section__head a.bite-button');
+  await expect(cta).toHaveCount(1);
+  await expect(cta).toHaveAttribute('href', '/servicios/');
+  await expect(cta).toHaveAccessibleName('Abrir servicios');
+  if (testInfo.project.name === 'fine-1440') {
+    const [title, button] = await Promise.all([
+      section.locator('.services-section__title').boundingBox(),
+      cta.boundingBox(),
+    ]);
+    if (!title || !button) throw new Error('heading or CTA not rendered');
+    // Beside the heading, with real air between them, and level with it.
+    expect(button.x - (title.x + title.width)).toBeGreaterThanOrEqual(32);
+    expect(button.y).toBeGreaterThanOrEqual(title.y);
+    expect(button.y + button.height).toBeLessThanOrEqual(
+      title.y + title.height + 1,
+    );
+  }
 
   // Provisional copy stays machine-detectable so `check:production` can keep
   // it out of `dist/`, even though the loud badge is gone from the design.
@@ -614,6 +650,30 @@ test('the services block keeps every entry readable in all modes', async ({
         }).length,
     );
   expect(hiddenDescriptions).toBe(0);
+
+  // Where the sequence does not run (touch screens here), the list is linear:
+  // once each service has come into view, all four are painted at once.
+  if (testInfo.project.name !== 'fine-1440') {
+    await expect(section).not.toHaveAttribute('data-services-enhanced');
+    await expect(section.locator('.services-progress')).toBeHidden();
+    // The list keeps the shared illustration; the per-service art belongs to
+    // the sequence only.
+    for (const layer of await section
+      .locator('.services-section__illustration--service')
+      .all()) {
+      await expect(layer).toBeHidden();
+    }
+    for (let index = 0; index < 4; index += 1) {
+      await entries.nth(index).scrollIntoViewIfNeeded();
+    }
+    await expect
+      .poll(async () =>
+        (await serviceOpacities(section)).every(
+          (service) => service.opacity === 1,
+        ),
+      )
+      .toBe(true);
+  }
 
   // Decorative glyphs stay out of the accessibility tree.
   const exposedGlyphs = await section
@@ -643,75 +703,189 @@ test('the services block keeps every entry readable in all modes', async ({
   );
 });
 
-test('the services block is an even 2x2 beside the heading on desktop', async ({
+test('services hand the stage from one to the next, then let the rail in', async ({
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name !== 'fine-1440');
   await page.goto('/');
   const section = page.locator('#servicios');
-  await section.scrollIntoViewIfNeeded();
-  await page.waitForTimeout(900);
+  await expect(section).toHaveAttribute('data-services-enhanced', 'true');
+  // Not a sticky stack layer: a stage inside the track holds the screen and
+  // ordinary scroll releases it.
+  await expect(section).toHaveCSS('position', 'relative');
 
-  const [headingRight, boxes, art] = await Promise.all([
-    section
-      .locator('.services-section__lede')
-      .evaluate((node) => node.getBoundingClientRect().right),
-    section.locator('[data-service-entry]').evaluateAll((nodes) =>
+  const viewportHeight = page.viewportSize()?.height ?? 0;
+  const { top, height } = await section.evaluate((node) => ({
+    top: node.getBoundingClientRect().top + window.scrollY,
+    height: (node as HTMLElement).offsetHeight,
+  }));
+  // One screen of stage plus one step per service: roughly 220-280vh.
+  expect(height / viewportHeight).toBeGreaterThanOrEqual(2.2);
+  expect(height / viewportHeight).toBeLessThanOrEqual(2.81);
+  const travel = height - viewportHeight;
+  const scrollTo = (y: number) =>
+    page.evaluate(
+      (to) => window.scrollTo({ top: to, behavior: 'instant' }),
+      Math.round(y),
+    );
+  const heading = section.locator('.services-section__title');
+  const viewportWidth = page.viewportSize()?.width ?? 0;
+  const onStage = async () =>
+    (await serviceOpacities(section))
+      .filter((service) => service.opacity > 0.05)
+      .map((service) => `${service.name}:${service.opacity}`);
+
+  let anchor: { x: number; y: number } | undefined;
+  for (const [index, name] of serviceNames.entries()) {
+    await scrollTo(top + travel * ((index + 0.5) / serviceNames.length));
+    // Exactly one service is painted, fully, and it is this one.
+    await expect.poll(onStage).toEqual([`${name}:1`]);
+    await expect(section.locator('[data-services-counter]')).toHaveText(
+      `0${index + 1}`,
+    );
+    // The illustration follows the service: exactly this service's layer is
+    // painted (Estrategia keeps the shared art), fully and already loaded.
+    const expectedLayer = index === 0 ? 'shared' : String(index);
+    await expect
+      .poll(() =>
+        section
+          .locator('[data-services-layer]')
+          .evaluateAll((nodes) =>
+            nodes
+              .filter((node) => Number(getComputedStyle(node).opacity) > 0.95)
+              .map(
+                (node) =>
+                  `${(node as HTMLElement).dataset.servicesLayer}:${
+                    (node as HTMLImageElement).naturalWidth > 0
+                  }`,
+              ),
+          ),
+      )
+      .toEqual([`${expectedLayer}:true`]);
+    // The heading is the anchor: it never moves during the sequence.
+    const box = await heading.boundingBox();
+    if (!box) throw new Error('the heading is not rendered');
+    anchor ??= box;
+    expect(Math.abs(box.y - anchor.y)).toBeLessThanOrEqual(1);
+    expect(Math.abs(box.x - anchor.x)).toBeLessThanOrEqual(1);
+
+    // The art and the service on stage are one pair centred on the viewport:
+    // the art close to the copy without touching it, level with the name and
+    // description rather than hanging below them, and never shrunk.
+    const pair = await section.evaluate((node) => {
+      const art = node
+        .querySelector('[data-services-art]')!
+        .getBoundingClientRect();
+      const list = node
+        .querySelector('.services-section__list')!
+        .getBoundingClientRect();
+      const entry = node.querySelector('.service-entry[data-active]')!;
+      const name = entry.querySelector('h3')!.getBoundingClientRect();
+      const copy = entry.querySelector('p')!.getBoundingClientRect();
+      return {
+        artLeft: art.left,
+        artRight: art.right,
+        artMiddle: (art.top + art.bottom) / 2,
+        artWidth: art.width,
+        copyLeft: name.left,
+        copyMiddle: (name.top + copy.bottom) / 2,
+        listRight: list.right,
+      };
+    });
+    expect(pair.artLeft).toBeGreaterThan(box.x);
+    expect(pair.copyLeft - pair.artRight).toBeGreaterThanOrEqual(24);
+    expect(pair.copyLeft - pair.artRight).toBeLessThanOrEqual(140);
+    expect(
+      Math.abs((pair.artLeft + pair.listRight) / 2 - viewportWidth / 2),
+    ).toBeLessThanOrEqual(viewportWidth * 0.03);
+    expect(Math.abs(pair.artMiddle - pair.copyMiddle)).toBeLessThanOrEqual(
+      viewportHeight * 0.05,
+    );
+    expect(pair.artWidth).toBeGreaterThan(360);
+  }
+
+  // The sequence runs backwards as faithfully as forwards.
+  await scrollTo(top + travel * (1.5 / serviceNames.length));
+  await expect.poll(onStage).toEqual(['Identidad:1']);
+
+  // Past the track the stage leaves with the page and the rail follows right
+  // under it: one seam, nothing of an older layer, and the rail not pinned.
+  await scrollTo(top + travel + viewportHeight * 0.5);
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const services = document.querySelector('#servicios')!;
+        const rail = document.querySelector('#proyectos')!;
+        const seam = services.getBoundingClientRect().bottom;
+        const railTop = rail.getBoundingClientRect().top;
+        return {
+          seamMeetsRail: Math.abs(seam - railTop) <= 1,
+          above: services.contains(document.elementFromPoint(40, seam - 3)),
+          below: rail.contains(document.elementFromPoint(40, seam + 3)),
+          railPinned: getComputedStyle(rail).position === 'fixed',
+        };
+      }),
+    )
+    .toEqual({
+      seamMeetsRail: true,
+      above: true,
+      below: true,
+      railPinned: false,
+    });
+
+  // The rail pins only once the services are entirely off screen.
+  await scrollTo(top + height + 40);
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const rail = document.querySelector('#proyectos')!;
+        return {
+          servicesGone:
+            document.querySelector('#servicios')!.getBoundingClientRect()
+              .bottom <= 0,
+          railTop: Math.round(rail.getBoundingClientRect().top),
+          railPinned: getComputedStyle(rail).position === 'fixed',
+        };
+      }),
+    )
+    .toEqual({ servicesGone: true, railTop: 0, railPinned: true });
+});
+
+test('reduced motion lists the services without the sequence', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'fine-1440');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'reduced');
+  const section = page.locator('#servicios');
+  await expect(section).not.toHaveAttribute('data-services-enhanced');
+  await expect(section).toHaveCSS('position', 'relative');
+  await expect(section.locator('.services-progress')).toBeHidden();
+
+  // Every service painted at once, untransformed, one under the other.
+  expect(
+    (await serviceOpacities(section)).map((service) => service.opacity),
+  ).toEqual([1, 1, 1, 1]);
+  const boxes = await section
+    .locator('[data-service-entry]')
+    .evaluateAll((nodes) =>
       nodes.map((node) => {
         const rect = node.getBoundingClientRect();
         return {
           x: Math.round(rect.x),
-          y: Math.round(rect.y),
-          width: Math.round(rect.width),
+          top: rect.top,
+          bottom: rect.bottom,
+          transform: getComputedStyle(node).transform,
         };
       }),
-    ),
-    section.locator('.services-section__illustration').evaluate((node) => {
-      const rect = node.getBoundingClientRect();
-      return { top: rect.top, right: rect.right, width: rect.width };
-    }),
-  ]);
-
-  const [estrategia, identidad, digital, contenido] = boxes;
-  if (!estrategia || !identidad || !digital || !contenido) {
-    throw new Error(`expected four service entries, got ${boxes.length}`);
-  }
-
-  // Two zones: every entry sits to the right of the heading column.
-  for (const box of boxes) {
-    expect(box.x).toBeGreaterThan(headingRight);
-  }
-
-  // Two columns, not four indents and not a staircase.
-  expect(new Set(boxes.map((box) => box.x)).size).toBe(2);
-  expect(estrategia.x).toBe(digital.x);
-  expect(identidad.x).toBe(contenido.x);
-  expect(identidad.x).toBeGreaterThan(estrategia.x);
-
-  // Both rows start on one line, and the second row clears the first.
-  expect(estrategia.y).toBe(identidad.y);
-  expect(digital.y).toBe(contenido.y);
-  expect(digital.y).toBeGreaterThan(estrategia.y);
-
-  // Equal column widths, within a rounding pixel.
-  expect(Math.abs(estrategia.width - identidad.width)).toBeLessThanOrEqual(1);
-
-  // The illustration shares the heading column, so it must read as an
-  // illustration rather than a thumbnail, and it must never push the quadrant
-  // down: the first row starts above the art, not after it.
-  expect(art.width).toBeGreaterThan(360);
-  expect(estrategia.y).toBeLessThan(art.top);
-
-  // A full screen, and a wide channel of ink between the art and the 2x2.
-  const viewportHeight = page.viewportSize()?.height ?? 0;
-  const sectionHeight = await section.evaluate(
-    (node) => node.getBoundingClientRect().height,
-  );
-  expect(sectionHeight).toBeGreaterThanOrEqual(viewportHeight - 1);
-  expect(estrategia.x - art.right).toBeGreaterThanOrEqual(80);
-  // It holds the screen like every stack layer instead of scrolling away and
-  // exposing the project rail under it.
-  await expect(section).toHaveCSS('position', 'sticky');
+    );
+  expect(new Set(boxes.map((box) => box.x)).size).toBe(1);
+  boxes.forEach((box, index) => {
+    expect(box.transform).toBe('none');
+    const previous = boxes[index - 1];
+    if (previous) expect(box.top).toBeGreaterThanOrEqual(previous.bottom);
+  });
 });
 
 test('the route into the archive closes the project rail', async ({ page }) => {
@@ -814,7 +988,7 @@ test('primary and editorial routes fit a compact 320px viewport', async ({
   await page.setViewportSize({ width: 320, height: 720 });
   const routes = [
     '/',
-    '/manifiesto/',
+    '/servicios/',
     '/studio/',
     '/contacto/',
     '/proyectos/',
@@ -849,7 +1023,7 @@ test('editorial routes tolerate 200 percent text sizing', async ({
   await page.setViewportSize({ width: 390, height: 844 });
 
   for (const route of [
-    '/manifiesto/',
+    '/servicios/',
     '/studio/',
     '/contacto/',
     '/proyectos/',
@@ -870,7 +1044,7 @@ test('demo routes render without browser errors', async ({ page }) => {
   const errors = await collectConsoleErrors(page);
   const routes = [
     '/',
-    '/manifiesto/',
+    '/servicios/',
     '/studio/',
     '/proyectos/',
     '/proyectos/demo-rastro-naranja/',
@@ -1404,17 +1578,32 @@ async function measureGoodbye(page: Page) {
         top: Math.round(rect.top),
         left: Math.round(rect.left),
         right: Math.round(rect.right),
+        bottom: Math.round(rect.bottom),
         width: Math.round(rect.width),
         height: Math.round(rect.height),
       };
     };
+    // Painted and opaque. Side A fades as a block; side B's copy fades line
+    // by line, so its headline stands for it.
     const shown = (element: Element | null) => {
       const style = getComputedStyle(element!);
       return style.visibility === 'visible' && Number(style.opacity) > 0.5;
     };
     const startStop = section.querySelector('[data-goodbye-stop="start"]');
     const endStop = section.querySelector('[data-goodbye-stop="end"]');
+    const image = section.querySelector<HTMLImageElement>(
+      '[data-goodbye-scene] img',
+    );
     return {
+      image: image && {
+        src: image.currentSrc,
+        naturalWidth: image.naturalWidth,
+        naturalHeight: image.naturalHeight,
+      },
+      viewport: box(section.querySelector('.goodbye-section__viewport')),
+      startCopy: box(startStop),
+      copy: box(section.querySelector('.goodbye-end__copy')),
+      back: box(section.querySelector('[data-goodbye-travel="back"]')),
       viewportHeight: window.innerHeight,
       overflow:
         document.documentElement.scrollWidth -
@@ -1424,7 +1613,7 @@ async function measureGoodbye(page: Page) {
       section: box(section),
       scene: box(section.querySelector('[data-goodbye-scene]')),
       startShown: shown(startStop),
-      endShown: shown(endStop),
+      endShown: shown(endStop!.querySelector('.goodbye-end__headline')),
       startInert: (startStop as HTMLElement).inert,
       endInert: (endStop as HTMLElement).inert,
     };
@@ -1456,13 +1645,36 @@ test('the goodbye stage pans one panoramic scene from its left side to its right
     expect(start.section.height).toBeGreaterThanOrEqual(start.viewportHeight);
   }
 
-  // Side A: a scene far wider than the screen, showing its left side, under
-  // the first block.
+  // Side A: one photograph, far wider than the screen, showing its left side,
+  // under the first block.
   expect(start.at).toBe('start');
-  expect(start.scene.width).toBeGreaterThanOrEqual(start.section.width * 1.7);
+  expect(start.image?.src).toMatch(/goodbye-panorama\.webp$/);
+  expect(start.image?.naturalWidth).toBe(2048);
+  expect(start.scene.width).toBeGreaterThanOrEqual(start.section.width * 1.3);
   expect(start.scene.left).toBe(start.section.left);
   expect([start.startShown, start.endShown]).toEqual([true, false]);
   expect([start.startInert, start.endInert]).toEqual([false, true]);
+
+  /*
+   * The copy lives in the photograph's black fields, never on the orange
+   * piece: measured on the photograph, it is black left of 29% of its width,
+   * and right of 66% above 70% of its height. On the wide layout the scene is
+   * the photograph, cropped at most vertically.
+   */
+  const wide = testInfo.project.name === 'fine-1440';
+  const ratio = 2048 / 768;
+  const photoX = (state: typeof start, x: number) =>
+    (x - state.scene.left) / state.scene.width;
+  const photoY = (state: typeof start, y: number) => {
+    const drawn = state.scene.width / ratio;
+    return (y - (state.scene.top + (state.scene.height - drawn) / 2)) / drawn;
+  };
+  if (wide) {
+    expect(photoX(start, start.startCopy.right)).toBeLessThanOrEqual(0.29);
+  } else {
+    // Portrait: the photograph is a band and the copy lives below it.
+    expect(start.startCopy.top).toBeGreaterThanOrEqual(start.viewport.bottom);
+  }
 
   // Nothing moves on its own.
   await page.waitForTimeout(1200);
@@ -1470,34 +1682,97 @@ test('the goodbye stage pans one panoramic scene from its left side to its right
 
   const next = section.locator('[data-goodbye-travel="next"]');
   await expect(next).toHaveAccessibleName('Siguiente');
+
+  /*
+   * The travel, sampled in the page on every frame from before the click, so
+   * a slow machine can never skip past the middle: one scene, one size, and
+   * frames part of the way across.
+   */
+  const sampling = section.evaluate(
+    (element) =>
+      new Promise<
+        { left: number; right: number; size: string; scenes: number }[]
+      >((resolve) => {
+        const frames: {
+          left: number;
+          right: number;
+          size: string;
+          scenes: number;
+        }[] = [];
+        const started = performance.now();
+        const tick = () => {
+          const scenes = element.querySelectorAll('[data-goodbye-scene]');
+          const rect = scenes[0]!.getBoundingClientRect();
+          frames.push({
+            left: Math.round(rect.left),
+            right: Math.round(rect.right),
+            size: `${Math.round(rect.width)}x${Math.round(rect.height)}`,
+            scenes: scenes.length,
+          });
+          if (performance.now() - started < 1600) requestAnimationFrame(tick);
+          else resolve(frames);
+        };
+        requestAnimationFrame(tick);
+      }),
+  );
   await next.click();
+  const frames = await sampling;
+  expect(new Set(frames.map((frame) => frame.size))).toEqual(
+    new Set([`${start.scene.width}x${start.scene.height}`]),
+  );
+  expect(frames.every((frame) => frame.scenes === 1)).toBe(true);
+  expect(
+    frames.some(
+      (frame) =>
+        frame.left < start.scene.left - 20 &&
+        frame.right > start.section.right + 20,
+    ),
+  ).toBe(true);
 
-  // Mid-travel: the same scene, the same size, part of the way across.
-  await page.waitForTimeout(450);
-  const mid = await measureGoodbye(page);
-  expect(mid.scenes).toBe(1);
-  expect(mid.scene.width).toBe(start.scene.width);
-  expect(mid.scene.height).toBe(start.scene.height);
-  expect(mid.scene.left).toBeLessThan(start.scene.left - 20);
-  expect(mid.scene.right).toBeGreaterThan(start.section.right + 20);
-
-  // Side B: the scene's right edge on the screen's right edge.
+  // Side B: the same photograph's right side, flush with the screen's right
+  // edge. The back button lands just after the scene, and the stage settles
+  // (the side left behind turns inert) only then, so wait for both.
   await expect
     .poll(async () => {
       const state = await measureGoodbye(page);
-      return Math.abs(state.scene.right - state.section.right);
+      return (
+        Math.abs(state.scene.right - state.section.right) <= 1 &&
+        state.startInert
+      );
     })
-    .toBeLessThanOrEqual(1);
+    .toBe(true);
   const end = await measureGoodbye(page);
   expect(end.at).toBe('end');
+  expect(end.image?.src).toBe(start.image?.src);
   expect(end.scene.width).toBe(start.scene.width);
   expect(end.section).toEqual(start.section);
   expect([end.startShown, end.endShown]).toEqual([false, true]);
   expect([end.startInert, end.endInert]).toEqual([true, false]);
+  if (wide) {
+    // The CTA in the right black field, the back button in the corner that
+    // is black at every height (past 76%).
+    expect(photoX(end, end.copy.left)).toBeGreaterThanOrEqual(0.66);
+    expect(photoY(end, end.copy.bottom)).toBeLessThanOrEqual(0.7);
+    expect(photoX(end, end.back.left)).toBeGreaterThanOrEqual(0.76);
+  } else {
+    expect(end.copy.top).toBeGreaterThanOrEqual(end.viewport.bottom);
+  }
+  // The back button is whole, never cut by the stage.
+  expect(end.back.left).toBeGreaterThanOrEqual(end.section.left);
+  expect(end.back.right).toBeLessThanOrEqual(end.section.right);
+  expect(end.back.top).toBeGreaterThanOrEqual(end.section.top);
+  expect(end.back.bottom).toBeLessThanOrEqual(end.section.bottom);
 
-  // Focus followed the reader to the back arrow.
+  // The headline is the route to Contacto.
+  const cta = section.getByRole('link', {
+    name: /Nosotros sabemos dónde apretar/,
+  });
+  await expect(cta).toBeVisible();
+  await expect(cta).toHaveAttribute('href', '/contacto/');
+
+  // Focus followed the reader to the back button.
   const back = section.locator('[data-goodbye-travel="back"]');
-  await expect(back).toHaveAccessibleName('Volver');
+  await expect(back).toHaveAccessibleName('Volver a la vista anterior');
   await expect(back).toBeFocused();
 
   if (testInfo.project.name.startsWith('touch')) {
@@ -1524,6 +1799,7 @@ test('the goodbye stage pans one panoramic scene from its left side to its right
   const home = await measureGoodbye(page);
   expect(home.at).toBe('start');
   expect([home.startShown, home.endShown]).toEqual([true, false]);
+  expect(home.image?.src).toBe(start.image?.src);
 });
 
 test('the goodbye stage jumps between sides without travel under reduced motion', async ({
@@ -1551,6 +1827,8 @@ test('the goodbye stage jumps between sides without travel under reduced motion'
     false,
     true,
   ]);
+  // Focus waits for the jump to land, then moves to the back button.
+  await expect(page.locator('[data-goodbye-travel="back"]')).toBeFocused();
 });
 
 /**
@@ -1631,15 +1909,18 @@ test('no older stack layer shows through a reveal band', async ({
   // spacer's far end.
   await scrollTo('.pin-spacer:has(#proyectos)', 0.5);
   await page.waitForTimeout(900);
+  // Services is no longer a sticky layer at all: its own stage holds the
+  // screen inside its track and ordinary scroll releases it, so there is
+  // nothing to release or re-stick.
   const services = page.locator('#servicios');
   await expect(services).not.toHaveAttribute('data-stack-released');
-  await expect(services).toHaveCSS('position', 'sticky');
+  await expect(services).toHaveCSS('position', 'relative');
 });
 
 test.describe('without JavaScript', () => {
   test.use({ javaScriptEnabled: false });
 
-  test('the goodbye stage rests on its left side and lists both blocks', async ({
+  test('the goodbye stage rests on its left side and lists both blocks under the photograph', async ({
     page,
   }) => {
     await page.goto('/');
@@ -1647,8 +1928,13 @@ test.describe('without JavaScript', () => {
     await expect(section.locator('[data-goodbye-travel]')).toHaveCount(2);
     await expect(section.locator('[data-goodbye-travel]').first()).toBeHidden();
     await expect(section.locator('[data-goodbye-travel]').last()).toBeHidden();
-    const titles = section.locator('.goodbye-stop__title');
+    const titles = section.locator(
+      '.goodbye-start__title, .goodbye-end__title',
+    );
     await expect(titles).toHaveCount(2);
+    await expect(
+      section.getByRole('link', { name: /Nosotros sabemos dónde apretar/ }),
+    ).toHaveAttribute('href', '/contacto/');
     for (let position = 0; position < 2; position += 1) {
       await titles.nth(position).scrollIntoViewIfNeeded();
       await expect(titles.nth(position)).toBeVisible();
@@ -1660,4 +1946,259 @@ test.describe('without JavaScript', () => {
     );
     expect(Math.round(offset)).toBe(0);
   });
+});
+
+/** Lands on the contact close and waits for its entrance to settle. */
+async function settleOnContact(page: Page) {
+  await page.goto('/#contacto');
+  const section = page.locator('#contacto');
+  await expect(section).toHaveAttribute('data-bite-enhanced', 'true');
+  await section.evaluate((element) =>
+    element.scrollIntoView({ block: 'start', behavior: 'instant' }),
+  );
+  await page.waitForTimeout(2600);
+  return section;
+}
+
+const readSculpture = (section: Locator) =>
+  section.evaluate((element) => ({
+    press: parseFloat(element.style.getPropertyValue('--press') || '0'),
+    leanX: parseFloat(element.style.getPropertyValue('--lean-x') || '0'),
+    outline: element
+      .querySelector('[data-sculpture="body"]')!
+      .getAttribute('d'),
+    word: element
+      .querySelector('.contact-bite__line--bite .contact-bite__word')!
+      .getBoundingClientRect().x,
+  }));
+
+test('the contact close centres the headline on the sculpture, with two bite buttons', async ({
+  page,
+}, testInfo) => {
+  const section = await settleOnContact(page);
+
+  await expect(
+    page.getByRole('heading', { level: 2, name: 'Haz que tu marca muerda' }),
+  ).toBeVisible();
+  await expect(section.locator('.contact-bite__kicker')).toHaveCount(0);
+  const mail = section.getByRole('link', { name: 'Correo', exact: true });
+  const instagram = section.getByRole('link', {
+    name: 'Instagram',
+    exact: true,
+  });
+  await expect(mail).toHaveAttribute('href', 'mailto:hola@colmillostudio.com');
+  await expect(instagram).toHaveAttribute(
+    'href',
+    'https://www.instagram.com/colmillo.studio/',
+  );
+  await expect(mail).toHaveClass(/bite-button/);
+  await expect(instagram).toHaveClass(/bite-button/);
+  await expect(
+    section.getByRole('link', { name: 'Contacto', exact: true }),
+  ).toHaveAttribute('href', '/contacto/');
+
+  const layout = await section.evaluate((element) => {
+    const box = (node: Element) => node.getBoundingClientRect();
+    const hit = (a: DOMRect, b: DOMRect) =>
+      a.left < b.right &&
+      a.right > b.left &&
+      a.top < b.bottom &&
+      a.bottom > b.top;
+    const look = (node: Element) => {
+      const style = getComputedStyle(node);
+      return [
+        style.borderRadius,
+        style.boxShadow,
+        style.backgroundColor,
+        style.borderTopWidth,
+        style.borderTopColor,
+      ].join(' | ');
+    };
+    const title = box(element.querySelector('.contact-bite__title')!);
+    const form = box(element.querySelector('.contact-bite__form > use')!);
+    const words = [
+      ...element.querySelectorAll('.contact-bite__title .contact-bite__word'),
+    ].map(box);
+    const buttons = [...element.querySelectorAll('.contact-bite__button')];
+    const buttonBoxes = buttons.map(box);
+    return {
+      height: box(element).height,
+      viewport: window.innerHeight,
+      overflow:
+        document.documentElement.scrollWidth -
+        document.documentElement.clientWidth,
+      collides: [...words, ...buttonBoxes].some((rect) => hit(rect, form)),
+      sameLine: Math.abs(buttonBoxes[0]!.top - buttonBoxes[1]!.top) < 2,
+      underTitle: buttonBoxes[0]!.top > title.bottom,
+      // The buttons start where "muerda" starts.
+      offMuerda: Math.abs(
+        buttonBoxes[0]!.left -
+          box(
+            element.querySelector(
+              '.contact-bite__line--bite .contact-bite__word',
+            )!,
+          ).left,
+      ),
+      // The headline and the sculpture share one vertical centre.
+      centreDelta: title.top + title.height / 2 - (form.top + form.height / 2),
+      // The link's own box stays clear of the fixed edge rail.
+      pieceInside:
+        box(element.querySelector('[data-bite-piece]')!).right <=
+        box(element.querySelector('[data-bite-stage]')!).right + 1,
+      // The channel buttons are the hero's button, not a lookalike.
+      sameAsHero: buttons.every(
+        (button) =>
+          look(button) === look(document.querySelector('.hero__cta')!),
+      ),
+      transforms: [
+        element.querySelector('.contact-bite__title')!,
+        ...buttons,
+      ].map((node) => getComputedStyle(node).textTransform),
+      shown: [
+        ...element.querySelectorAll(
+          '[data-bite-line], [data-bite-row], [data-bite-piece]',
+        ),
+      ].every((node) => getComputedStyle(node).opacity === '1'),
+    };
+  });
+  expect(layout.height).toBeGreaterThanOrEqual(layout.viewport - 1);
+  expect(layout.overflow).toBeLessThanOrEqual(0);
+  expect(layout.collides).toBe(false);
+  expect(layout.sameLine).toBe(true);
+  expect(layout.underTitle).toBe(true);
+  expect(layout.offMuerda).toBeLessThanOrEqual(2);
+  expect(layout.pieceInside).toBe(true);
+  expect(layout.sameAsHero).toBe(true);
+  expect(new Set(layout.transforms)).toEqual(new Set(['none']));
+  expect(layout.shown).toBe(true);
+  if (testInfo.project.name === 'fine-1440') {
+    expect(Math.abs(layout.centreDelta)).toBeLessThanOrEqual(12);
+  }
+});
+
+test('the contact sculpture follows, dents, presses "muerda" and bites', async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== 'fine-1440',
+    'The follow, the pressure and the bite need a fine pointer.',
+  );
+  const section = await settleOnContact(page);
+  const form = (await page
+    .locator('.contact-bite__form > use')
+    .first()
+    .boundingBox())!;
+  const away = { x: form.x + form.width / 2, y: form.y + form.height + 160 };
+
+  await page.mouse.move(away.x, away.y, { steps: 2 });
+  await page.waitForTimeout(1300);
+  const rest = await readSculpture(section);
+
+  // Come in from far left, level with the bite, so the path never crosses the
+  // piece; just outside the bite it answers with inertia.
+  const level = form.y + form.height * 0.55;
+  await page.mouse.move(form.x - form.width * 0.95, level, { steps: 4 });
+  await page.waitForTimeout(1300);
+  await page.mouse.move(form.x - 40, level, { steps: 10 });
+  await page.waitForTimeout(250);
+  const early = await readSculpture(section);
+  await page.waitForTimeout(1400);
+  const pressed = await readSculpture(section);
+  expect(pressed.outline).not.toBe(rest.outline);
+  expect(pressed.press).toBeGreaterThan(early.press);
+  expect(Math.abs(pressed.leanX)).toBeLessThanOrEqual(18.5);
+  // "muerda" gives way 1-3px under the same pressure.
+  const shift = rest.word - pressed.word;
+  expect(shift).toBeGreaterThan(0.5);
+  expect(shift).toBeLessThanOrEqual(3.5);
+
+  // Touching the piece bites once and lets go well inside a second.
+  await page.mouse.move(
+    form.x + form.width * 0.55,
+    form.y + form.height * 0.45,
+    { steps: 4 },
+  );
+  await expect(section).toHaveAttribute('data-biting', 'true');
+  await expect(section).not.toHaveAttribute('data-biting', /.*/, {
+    timeout: 1500,
+  });
+
+  // Away from it, it settles back into exactly its resting shape.
+  await page.mouse.move(away.x, away.y, { steps: 4 });
+  await expect
+    .poll(async () => (await readSculpture(section)).outline, {
+      timeout: 3000,
+    })
+    .toBe(rest.outline);
+
+  // The white around the piece is never part of the button.
+  const piece = section.locator('[data-bite-piece]');
+  const pieceBox = (await piece.boundingBox())!;
+  const corner = await page.evaluate(
+    ([x, y]) =>
+      document.elementFromPoint(x!, y!)?.closest('a')?.getAttribute('href') ??
+      null,
+    [pieceBox.x + 6, pieceBox.y + 6],
+  );
+  expect(corner).toBeNull();
+
+  // The piece itself is a button: hovering presses it onto its ink shadow
+  // and names it, and a click opens Contacto.
+  const target = {
+    x: form.x + form.width * 0.62,
+    y: form.y + form.height * 0.5,
+  };
+  await page.mouse.move(target.x, target.y, { steps: 4 });
+  await expect(piece.locator('.contact-bite__form')).toHaveCSS(
+    'cursor',
+    'pointer',
+  );
+  // The cursor takes the hero CTA's "Contacto" disc over the piece, so the
+  // note set into it stays for keyboard focus and touch only.
+  const cursor = page.locator('[data-custom-cursor]');
+  await expect(cursor).toHaveAttribute('data-labelled', 'true');
+  await expect(cursor.locator('[data-cursor-text]')).toHaveText('Contacto');
+  await expect(piece.locator('.contact-bite__hint')).toHaveCSS('opacity', '0');
+  await expect(piece.locator('.contact-bite__offset')).toHaveCSS(
+    'opacity',
+    '1',
+  );
+  await expect(piece.locator('.contact-bite__form')).not.toHaveCSS(
+    'transform',
+    'none',
+  );
+  await page.mouse.click(target.x, target.y);
+  await expect(page).toHaveURL(/\/contacto\/$/);
+});
+
+test('reduced motion keeps the contact composition complete and still', async ({
+  page,
+}, testInfo) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const section = await settleOnContact(page);
+
+  const shown = await section.evaluate((element) =>
+    [
+      ...element.querySelectorAll(
+        '[data-bite-line], [data-bite-row], [data-bite-piece]',
+      ),
+    ].every((node) => getComputedStyle(node).opacity === '1'),
+  );
+  expect(shown).toBe(true);
+
+  if (testInfo.project.name === 'fine-1440') {
+    const rest = await readSculpture(section);
+    const form = (await page
+      .locator('.contact-bite__form > use')
+      .first()
+      .boundingBox())!;
+    await page.mouse.move(form.x - 40, form.y + form.height * 0.55, {
+      steps: 6,
+    });
+    await page.waitForTimeout(1200);
+    const after = await readSculpture(section);
+    expect(after.outline).toBe(rest.outline);
+    expect(after.press).toBe(0);
+    expect(after.word).toBe(rest.word);
+  }
 });

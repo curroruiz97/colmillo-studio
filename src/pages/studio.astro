@@ -1,102 +1,55 @@
 ---
-import { demoMode } from '@/data/projects';
+/**
+ * /studio/ — hero, "Somos Colmillo", the four principles, the team and one
+ * closing call to action.
+ *
+ * Content lives in `src/data/studioPage.ts` and the hero loop slot in
+ * `src/config/assets.ts`. Blocks whose copy is still provisional resolve to
+ * `null` in the standard build and are not rendered there; development and
+ * `build:demo` show the complete page.
+ */
+import StudioCTA from '@/components/studio/StudioCTA.astro';
+import StudioHero from '@/components/studio/StudioHero.astro';
+import StudioIntro from '@/components/studio/StudioIntro.astro';
+import StudioPrinciples from '@/components/studio/StudioPrinciples.astro';
+import StudioTeam from '@/components/studio/StudioTeam.astro';
+import {
+  studioClose,
+  studioIntro,
+  studioPrinciples,
+  studioTeam,
+} from '@/data/studioPage';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 ---
 
 <BaseLayout title="Studio" description="Página de estudio de Colmillo Studio.">
   <article
-    class="editorial-page studio-page"
+    class="studio-page"
     aria-labelledby="studio-page-title"
+    data-studio-page
   >
-    <header
-      class="editorial-page__hero content-shell"
-      data-surface-tone="light"
-    >
-      <p class="section-index" aria-hidden="true">02 / Studio</p>
-      <div class="editorial-page__title-block">
-        <p class="section-kicker">Colmillo Studio</p>
-        <h1 id="studio-page-title">Studio</h1>
-      </div>
-      <div
-        class="editorial-page__mark editorial-page__mark--studio"
-        data-editorial-mark
-        aria-hidden="true"
-      >
-        <span>S</span><span>02</span>
-      </div>
-      {
-        demoMode && (
-          <strong class="demo-flag editorial-page__flag">
-            DEMO FICTICIA — NO PUBLICAR
-          </strong>
-        )
-      }
-    </header>
-
-    {
-      demoMode && (
-        <section
-          class="studio-process"
-          aria-labelledby="studio-process-title"
-          data-dev-placeholder
-          data-surface-tone="dark"
-        >
-          <div class="content-shell studio-process__intro">
-            <p class="section-index" aria-hidden="true">
-              Mapa ficticio
-            </p>
-            <h2 id="studio-process-title">
-              Una forma de trabajar, puesta a prueba.
-            </h2>
-            <p>
-              Estructura demostrativa para validar una futura página de estudio.
-              No describe equipo, servicios ni metodología oficiales.
-            </p>
-          </div>
-          <ol class="studio-process__steps content-shell">
-            <li data-reveal-block>
-              <span>01</span>
-              <strong>Mirar</strong>
-              <p>Leer el contexto antes de mover una sola pieza.</p>
-            </li>
-            <li data-reveal-block>
-              <span>02</span>
-              <strong>Tensar</strong>
-              <p>Buscar el punto donde una idea deja de ser cómoda.</p>
-            </li>
-            <li data-reveal-block>
-              <span>03</span>
-              <strong>Morder</strong>
-              <p>Dar forma con intención, jerarquía y contraste.</p>
-            </li>
-            <li data-reveal-block>
-              <span>04</span>
-              <strong>Soltar</strong>
-              <p>Dejar que la identidad respire y pueda crecer.</p>
-            </li>
-          </ol>
-          <p class="dev-note studio-process__note">
-            DEMO FICTICIA — NO PUBLICAR. Pendiente de copy y estructura
-            aprobados por el cliente.
-          </p>
-        </section>
-      )
-    }
-
-    <nav
-      class="editorial-page__next content-shell"
-      aria-label="Continuar el recorrido"
-    >
-      <a href="/proyectos/" data-cursor-label="Ver">
-        <span>Siguiente</span>
-        <strong>Proyectos</strong>
-        <span aria-hidden="true">↘</span>
-      </a>
-      <a href="/contacto/" data-cursor-label="Hablar">
-        <span>Ir a</span>
-        <strong>Contacto</strong>
-        <span aria-hidden="true">↗</span>
-      </a>
-    </nav>
+    <StudioHero />
+    {studioIntro && <StudioIntro intro={studioIntro} />}
+    {studioPrinciples && <StudioPrinciples principles={studioPrinciples} />}
+    {studioTeam && <StudioTeam team={studioTeam} />}
+    <StudioCTA close={studioClose} />
   </article>
+
+  <script>
+    /*
+     * Only says where the page's motion lives. The dynamic import sits in this
+     * route-only script so the chunk stays out of the shared motion bundle;
+     * `StudioPage.ts`, run by `MotionController`, mounts, restarts and cleans
+     * it up. It must stay inside the layout's slot: module scripts run in
+     * document order, and this one has to run before the layout's own.
+     */
+    const page = document.querySelector('[data-studio-page]');
+    if (page) {
+      Reflect.set(
+        page,
+        'loadStudioPage',
+        () => import('@/scripts/motion/StudioPageMotion'),
+      );
+    }
+  </script>
 </BaseLayout>

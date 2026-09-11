@@ -1,7 +1,7 @@
 export const primaryNavigation = [
   { label: 'Inicio', href: '/' },
-  { label: 'Manifiesto', href: '/manifiesto/' },
   { label: 'Studio', href: '/studio/' },
+  { label: 'Servicios', href: '/servicios/' },
   { label: 'Proyectos', href: '/proyectos/' },
   { label: 'Contacto', href: '/contacto/' },
 ] as const;

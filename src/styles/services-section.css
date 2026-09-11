@@ -1,33 +1,37 @@
 /*
- * SERVICIOS — the quiet block
+ * SERVICIOS — an editorial sequence
  *
- * Deliberately the calmest section on the home page. The manifesto pins a stage
- * and plays a sequence; this one is a still editorial spread that is simply
- * read: heading on the left third, four small vignettes stepping down the right
- * two thirds, and a large amount of empty ink between them. Every position
- * comes from an explicit rule, never from randomness.
+ * Two layouts share one markup:
+ *
+ * - linear (the default): title, illustration, CTA, then the four services in
+ *   a vertical sequence, every one fully readable. Phones, tablets, short
+ *   windows, reduced motion and visitors without JavaScript get it. Wide
+ *   screens keep it in two zones, with the heading column held in view by
+ *   plain CSS `sticky` while the list scrolls past it.
+ * - sequence (`data-services-enhanced`, set by `ServicesMotion.ts` on wide
+ *   screens with motion allowed): a tall track with one sticky stage. The left
+ *   zone is the anchor; the right zone shows one service at a time and the
+ *   scroll hands the stage from one to the next. When the track ends the stage
+ *   is released by ordinary scroll and the project rail follows it directly.
+ *
+ * Every position comes from an explicit rule, never from randomness. Motion
+ * only ever touches transform and opacity.
  */
 
 /*
- * A full screen at every width: never shorter than the viewport, but never a
- * fixed height either, so a low window or 200% text grows the section instead
- * of cutting it. This sections-layer rule outranks the 62svh floor and the
- * mobile `auto` reset in layout.css; on phones the content is taller than one
- * screen anyway, so there it changes nothing.
- */
-.services-section,
-.services-section > .services-section__inner {
-  min-block-size: 100svh;
-}
-
-/*
- * No `position` here: this layer outranks layout.css, and a `relative` in this
- * rule used to cancel the shared stack `sticky`, so the section scrolled away
- * and the project rail showed under it the moment it left the top. Now it holds
- * the whole screen until the rail slides over it, like every stack layer;
- * reduced motion still resets it to `relative`.
+ * Never a sticky stack layer, at any width. A sticky section taller than the
+ * screen would hold its own lower half out of reach, and the sequence needs a
+ * track that ordinary scroll can run to its end so the stage lets go of the
+ * screen before the project rail pins. The manifesto opts out for the same
+ * reason. This sections-layer rule outranks the shared stack `sticky`.
  */
 .services-section {
+  /* The furniture under each service's copy. Named once, because the sequence
+     layout also uses its height to line the art up with the copy above it. */
+  --services-rule-gap: clamp(1.5rem, 3vw, 2.25rem);
+  --services-mark-gap: clamp(1.1rem, 2vw, 1.5rem);
+  --services-mark: clamp(2.8rem, 3.6vw, 3.8rem);
+  position: relative;
   isolation: isolate;
   overflow: clip;
 }
@@ -36,9 +40,7 @@
   position: relative;
   z-index: 1;
   display: grid;
-  gap: clamp(3rem, 8vw, 5rem);
-  /* Deep top and bottom margins are most of what makes this block feel calm:
-     the section is short, so the emptiness above and below it is the frame. */
+  gap: clamp(3.5rem, 10vw, 6rem);
   padding-block: clamp(6rem, 13vw, 10rem) clamp(8rem, 20vw, 14rem);
 }
 
@@ -47,6 +49,27 @@
 .services-section__lede {
   display: grid;
   justify-items: start;
+  align-content: start;
+}
+
+.services-section__title {
+  max-inline-size: 12ch;
+  margin: 0;
+  /* An editorial heading, not a poster: clearly smaller than the manifesto,
+     the hero and the service names it introduces. */
+  font-size: clamp(2.9rem, 5.6vw, 5rem);
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+}
+
+/* The heading and its CTA on one line, centred on each other, with a wide
+   channel of ink between them; when the line is too narrow the button wraps
+   under the heading instead of crowding it. */
+.services-section__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.75rem clamp(2.5rem, 5vw, 5rem);
 }
 
 /*
@@ -54,31 +77,121 @@
  * brand orange and cream, so it needs no plate, border or blend mode: it sits
  * directly on the ink and reads as part of the composition. Decorative, so it
  * never takes pointer events away from anything.
+ *
+ * The frame holds stacked layers in one cell: the shared illustration sets the
+ * frame's size, and a service's own image (when one exists) is laid over it at
+ * the same size, so a change of image can never move the layout.
  */
-.services-section__illustration {
+.services-section__art {
+  display: grid;
   inline-size: 100%;
-  block-size: auto;
-  max-inline-size: 30rem;
+  max-inline-size: 26rem;
   margin-block-start: clamp(1.5rem, 3vw, 2.5rem);
-  object-fit: contain;
   pointer-events: none;
 }
 
-.services-section__title {
-  max-inline-size: 8ch;
-  margin: 0;
-  /* An editorial heading, not a poster: clearly smaller than the manifesto and
-     the hero, and never taller than the four entries beside it. */
-  font-size: clamp(2.4rem, 4.6vw, 4rem);
-  letter-spacing: -0.04em;
-  line-height: 0.95;
+.services-section__illustration {
+  grid-area: 1 / 1;
+  inline-size: 100%;
+  block-size: auto;
+  object-fit: contain;
 }
 
-/* ---------- entries ---------- */
+/*
+ * Per-service layers only exist for the sequence; the list keeps the shared
+ * illustration alone (and, being lazy and undisplayed, never fetches them).
+ * Each fills the frame the shared art defines and is contained in it, never
+ * cropped, with its foot on the frame's foot: the figures of every service
+ * stand on the same ground line whatever the file's own proportion.
+ */
+.services-section__illustration--service {
+  display: none;
+  block-size: 100%;
+  object-fit: contain;
+  object-position: 50% 100%;
+}
+
+/* Holds only the sequence readout, which the list layout never shows. */
+.services-section__foot {
+  display: flex;
+  align-items: center;
+}
+
+/*
+ * The CTA is the family's bite button. On ink its own ink outline and ink slab
+ * would vanish, so the slab is cream here; pressing sinks the button into it.
+ */
+.services-section__button {
+  max-inline-size: min(100%, 24rem);
+  box-shadow: 0 0.4rem 0 var(--color-brand-cream);
+  transition:
+    border-radius var(--duration-medium) var(--ease-bite),
+    box-shadow var(--duration-fast) var(--ease-bite),
+    translate var(--duration-fast) var(--ease-bite);
+}
+
+.services-section__button:active {
+  box-shadow: 0 0.12rem 0 var(--color-brand-cream);
+  translate: 0 0.28rem;
+}
+
+/* The arrow is decoration: empty alternative text keeps the link's name to its
+   label. A browser without the alt syntax keeps the first declaration. */
+.services-section__label::after {
+  display: inline-block;
+  margin-inline-start: 0.35em;
+  content: '↗';
+  content: '↗' / '';
+  transition: translate var(--duration-medium) var(--ease-bite);
+}
+
+.services-section__button:is(:hover, :focus-visible)
+  .services-section__label::after {
+  translate: 0.14em -0.14em;
+}
+
+/*
+ * The sequence readout. It only means something while the sequence runs, so
+ * the linear layout never shows it.
+ */
+.services-progress {
+  display: none;
+  align-items: center;
+  gap: 0.9rem;
+  font-size: var(--font-label);
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.services-progress__total {
+  opacity: 0.5;
+}
+
+/* A hairline track with the brand orange running along it. */
+.services-progress__line {
+  position: relative;
+  display: block;
+  inline-size: clamp(4.5rem, 8vw, 8rem);
+  block-size: 2px;
+  overflow: hidden;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--color-brand-cream) 18%, transparent);
+}
+
+.services-progress__fill {
+  position: absolute;
+  inset: 0;
+  background: var(--color-brand-orange);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+
+/* ---------- services ---------- */
 
 .services-section__list {
   display: grid;
-  gap: clamp(2.5rem, 4.5vw, 3.75rem);
+  gap: clamp(4rem, 12vw, 6rem);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -87,26 +200,18 @@
 .service-entry {
   display: grid;
   justify-items: start;
-  gap: 0.5rem;
-  max-inline-size: 42ch;
-}
-
-.service-entry__mark {
-  display: block;
-  inline-size: clamp(2.6rem, 3.4vw, 3.4rem);
-  margin-block-end: 0.4rem;
+  max-inline-size: 40rem;
 }
 
 .service-entry__title {
   margin: 0;
-  /* The section's only colour. On ink `--color-brand-orange` clears 4.5:1, and
+  /* The section's colour. On ink `--color-brand-orange` clears 4.5:1, and
      these are large bold headings, so it clears AA with room to spare. */
   color: var(--color-brand-orange);
-  font-size: clamp(1.35rem, 2.1vw, 1.9rem);
-  letter-spacing: -0.02em;
-  line-height: 1;
+  font-size: clamp(2.3rem, 9vw, 3.4rem);
+  letter-spacing: -0.045em;
+  line-height: 0.92;
   /* Set as written in `src/data/services.ts`: capital initial only. */
-  transition: transform var(--duration-medium) var(--ease-bite);
 }
 
 .service-entry__title a {
@@ -115,14 +220,30 @@
 }
 
 .service-entry__description {
-  max-inline-size: 42ch;
-  margin: 0;
-  font-size: clamp(0.9rem, 1vw, 1.02rem);
+  max-inline-size: 38ch;
+  margin: clamp(1rem, 2vw, 1.4rem) 0 0;
+  font-size: clamp(1rem, 1.1vw, 1.15rem);
   line-height: 1.5;
-  /* Never below the contrast floor: cream on ink at 0.72 still clears AA at
-     this size, and the pointer state lifts it back to full. */
-  opacity: 0.72;
-  transition: opacity var(--duration-medium) linear;
+  /* Never below the contrast floor: cream on ink at 0.78 clears AA. */
+  opacity: 0.78;
+}
+
+/* The editorial rule between the copy and the drawing. */
+.service-entry__rule {
+  display: block;
+  inline-size: min(100%, 26rem);
+  block-size: 1px;
+  margin-block-start: var(--services-rule-gap);
+  background: var(--color-brand-cream);
+  opacity: 0.32;
+  transform-origin: 0 50%;
+}
+
+/* Square, like the glyph's own 64x64 box, so its height is its width. */
+.service-entry__mark {
+  display: block;
+  inline-size: var(--services-mark);
+  margin-block-start: var(--services-mark-gap);
 }
 
 /* ---------- glyphs ---------- */
@@ -181,201 +302,215 @@
   transform-origin: 32% 40%;
 }
 
-/* ---------- desktop composition ---------- */
-
-@media (min-width: 64.01rem) {
-  /*
-   * Two zones: the heading and the illustration on the left, the 2x2 on the
-   * right, both ending on one line — the foot of the illustration and the foot
-   * of the second row of services.
-   *
-   * The extra inline-start padding is the section's own editorial indent. Every
-   * other home section buys the same air with a leading spacer column carrying
-   * the index; this one puts the index inside the eyebrow, so it pays for the
-   * indent directly.
-   */
-  .services-section__inner {
-    /*
-     * How far the 2x2 may reach past the shell's right edge into the air the
-     * shell leaves there. Zero by default: on touch the shell is right-aligned
-     * against the edge tab and has none to give (see the fine-pointer rule).
-     */
-    --services-overhang: 0px;
-
-    /*
-     * The right column is exactly as wide as the 2x2 wants (two entries at
-     * their own measure plus the gap), so the quadrant sits against the right
-     * edge; the left column takes everything else, which is what sizes the
-     * illustration. The 40% floor keeps the art from being squeezed on
-     * narrow desktops, where the quadrant yields instead.
-     */
-    grid-template-columns: minmax(40%, 1fr) auto;
-    /* The single row stretches to fill the screen: the title holds the top,
-       the illustration and the 2x2 hold the foot, and the spare height becomes
-       the margin between them. The foot padding is deeper than the head so the
-       composition does not sit on the next section's edge. */
-    align-items: end;
-    /* A wide channel of ink between the art and the 2x2, so the illustration
-       and the services read as two pieces instead of one crowded block. */
-    column-gap: clamp(4.5rem, 8vw, 9rem);
-    row-gap: 0;
-    padding-block: clamp(4.5rem, 11svh, 8rem) clamp(6rem, 22svh, 16rem);
-    padding-inline: clamp(1.5rem, 4.5vw, 5.5rem) 0;
+/* Pressure, not bounce: a short, tense compression of the vignette. */
+@media (hover: hover) and (pointer: fine) {
+  .service-entry:hover .service-glyph__scene,
+  .service-entry:focus-within .service-glyph__scene {
+    transform: scale(0.96, 1.05);
   }
 
-  /* Title pinned to the top of the row, illustration to its foot. */
-  .services-section__lede {
-    align-self: stretch;
-    align-content: space-between;
-  }
-
-  /*
-   * Sized by its column, capped near 1.5x the previous drawn width. Width
-   * only, so the aspect ratio is the file's own and nothing is cropped.
-   */
-  .services-section__illustration {
-    /* Also held to ~40% of the screen's height (69svh of width at the art's
-       1202:696 ratio), so a short laptop screen keeps real air under the
-       title instead of spending it all on the art. */
-    max-inline-size: min(40rem, 69svh);
-    /* The least the title keeps above the art when the screen is too short
-       to give it more. */
-    margin-block-start: clamp(2.5rem, 6svh, 4.5rem);
-  }
-
-  /*
-   * A plain, even 2x2. Both columns are the same width and both rows start
-   * their entries on one line, so the block stays a calm quadrant rather than
-   * a staircase; the air between them does the composing. It hangs from the
-   * foot of the row so its last line lands with the foot of the illustration.
-   */
-  .services-section__list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: start;
-    align-self: end;
-    column-gap: clamp(2rem, 4vw, 4.5rem);
-    row-gap: clamp(4.5rem, 9vw, 8rem);
-    margin-inline-end: calc(-1 * var(--services-overhang));
-    padding-block-start: 0;
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    /*
-     * The left-anchored shell stops 4.75rem short of the edge rail's
-     * clearance; the quadrant takes part of that reserve, never the tab's own
-     * strip, plus half of any air the capped shell leaves on very wide
-     * screens.
-     */
-    .services-section__inner {
-      --services-overhang: calc(
-        clamp(1.5rem, 3vw, 3rem) +
-          max(
-            0px,
-            (
-                100vw - (2 * var(--page-gutter)) - 4.75rem -
-                  var(--content-width)
-              ) /
-              2
-          )
-      );
-    }
-  }
-
-  .service-entry {
-    /* Held well under the column width: the entries stay small pieces of copy,
-       never blocks that fill their half. */
-    max-inline-size: 32ch;
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .service-entry:hover .service-entry__title,
-    .service-entry:focus-within .service-entry__title {
-      transform: translateX(0.2rem);
-    }
-
-    .service-entry:hover .service-entry__description,
-    .service-entry:focus-within .service-entry__description {
-      opacity: 1;
-    }
-
-    /* Pressure, not bounce: a short, tense compression of the vignette. */
-    .service-entry:hover .service-glyph__scene,
-    .service-entry:focus-within .service-glyph__scene {
-      transform: scale(0.96, 1.05);
-    }
-
-    .service-entry:hover .service-glyph__arm,
-    .service-entry:focus-within .service-glyph__arm {
-      transform: translate(1.5px, -1px);
-    }
-  }
-}
-
-/*
- * Short desktop screens keep the 2x2 and only lose vertical air, so the whole
- * quadrant still lands on one screen at 1366x768.
- */
-/* Only the lowest desktop windows (under ~670px) trim the deep foot, so the
-   section still measures one screen there. */
-@media (min-width: 64.01rem) and (max-height: 42rem) {
-  .services-section__inner {
-    padding-block-end: clamp(6rem, 18svh, 16rem);
-  }
-}
-
-@media (min-width: 64.01rem) and (max-height: 58rem) {
-  .services-section__list {
-    row-gap: clamp(3.5rem, 11vh, 7rem);
-  }
-}
-
-/* ---------- tablet / mobile ---------- */
-
-@media (max-width: 64rem) {
-  /* One column, in DOM order: heading, the services, then the CTA. */
-  .services-section__inner {
-    grid-template-columns: minmax(0, 1fr);
-    justify-items: start;
-    /* Heading and art on top, services at the foot: any height the full-screen
-       floor adds lands between the illustration and the services. */
-    align-content: space-between;
-    gap: clamp(3.5rem, 10vw, 6rem);
-  }
-
-  .services-section__illustration {
-    max-inline-size: 26rem;
-  }
-
-  .services-section__title {
-    max-inline-size: 12ch;
-  }
-
-  .service-entry {
-    max-inline-size: 42ch;
-  }
-
-  .services-section__list {
-    row-gap: clamp(3rem, 10vw, 4.5rem);
+  .service-entry:hover .service-glyph__arm,
+  .service-entry:focus-within .service-glyph__arm {
+    transform: translate(1.5px, -1px);
   }
 }
 
 /* ---------- tablet ---------- */
 
-/*
- * From 768px to 1024px the heading stacks above the services, but the services
- * keep the desktop 2x2: there is easily room for two columns here, and a single
- * column would leave half the screen empty and the block twice as long. Below
- * 768px it becomes one column.
- */
-@media (min-width: 48rem) and (max-width: 64rem) {
-  .services-section__list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: start;
-    column-gap: clamp(1.5rem, 3.5vw, 3rem);
-    row-gap: clamp(3.5rem, 7vw, 5rem);
+@media (min-width: 48.01rem) and (max-width: 64rem) {
+  .services-section__art {
+    max-inline-size: 30rem;
   }
 
-  .service-entry {
-    max-inline-size: 34ch;
+  .service-entry__title {
+    font-size: clamp(2.6rem, 6vw, 3.8rem);
+  }
+}
+
+/* ---------- wide screens: two zones ---------- */
+
+@media (min-width: 64.01rem) {
+  .services-section__inner {
+    /* The heading zone takes about two fifths of the shell and the services
+       the rest, with a wide channel of ink between them. */
+    grid-template-columns: minmax(0, 42fr) minmax(0, 58fr);
+    column-gap: clamp(3.5rem, 6vw, 7.5rem);
+    row-gap: 0;
+    /* The section's own editorial indent, off the shell's left edge. */
+    padding-inline: clamp(1.5rem, 4.5vw, 5.5rem) 0;
+  }
+
+  .services-section__title {
+    max-inline-size: 8ch;
+  }
+
+  /* Sized by its column, capped near 1.5x the old drawn width; width only, so
+     the aspect ratio is the file's own and nothing is cropped. A little
+     narrower than the column and centred in it, so it sits in the middle of
+     its zone rather than against the heading's margin. */
+  .services-section__art {
+    justify-self: center;
+    max-inline-size: min(40rem, 88%);
+    margin-block-start: clamp(2rem, 5svh, 4rem);
+  }
+
+  .services-section__list {
+    row-gap: clamp(6rem, 16svh, 11rem);
+    /* The first service starts level with the heading's second line. */
+    padding-block-start: clamp(3rem, 8svh, 6rem);
+  }
+
+  .service-entry__title {
+    font-size: clamp(2.8rem, 4.8vw, 5.2rem);
+  }
+
+  .service-entry__description {
+    font-size: clamp(1.02rem, 1.15vw, 1.25rem);
+  }
+}
+
+/* The heading column keeps its place in the linear layout while the list goes
+   by: plain CSS `sticky`, no scroll-driven state. */
+@media (min-width: 64.01rem) and (min-height: 40rem) {
+  .services-section__lede {
+    position: sticky;
+    inset-block-start: clamp(2.5rem, 9svh, 6rem);
+    align-self: start;
+  }
+}
+
+/* ---------- the sequence ---------- */
+
+@media (min-width: 64.01rem) and (min-height: 40rem) {
+  /*
+   * One step of scroll per service on top of the screen the stage fills:
+   * 100svh + 4 x 45svh = 280svh for the four services. The count is written
+   * by the component, so the track stays honest if the list changes.
+   */
+  .services-section[data-services-enhanced] {
+    --services-step: 45svh;
+  }
+
+  .services-section[data-services-enhanced] .services-section__track {
+    block-size: calc(100svh + var(--services-count, 4) * var(--services-step));
+  }
+
+  .services-section[data-services-enhanced] .services-section__stage {
+    position: sticky;
+    inset-block-start: 0;
+    block-size: 100svh;
+    overflow: clip;
+  }
+
+  /*
+   * The stage composition. The heading (with its CTA beside it) holds the
+   * top-left corner and the readout the bottom-left, as anchors; the art and the service on
+   * stage form one pair in the middle row. Two equal elastic columns either
+   * side of the pair, inside equal side padding, centre the pair on the
+   * viewport rather than on the left-anchored shell. The side padding equals
+   * the shell's gutter plus the section's indent, so the heading keeps the
+   * exact line it had. The upper spacer is lighter than the lower one, so the
+   * pair sits a little above the middle of the room the heading leaves.
+   */
+  .services-section[data-services-enhanced] .services-section__inner {
+    --services-art: min(clamp(24rem, 32vw, 36rem), 72svh);
+    inline-size: auto;
+    block-size: 100svh;
+    min-block-size: 0;
+    margin-inline: 0;
+    grid-template-columns:
+      minmax(0, 1fr) auto minmax(0, 30rem)
+      minmax(0, 1fr);
+    grid-template-rows:
+      auto minmax(clamp(3rem, 9svh, 6rem), 0.85fr) auto minmax(0, 1fr)
+      auto;
+    column-gap: clamp(2.5rem, 4.5vw, 5rem);
+    align-items: center;
+    padding-block: clamp(4.5rem, 11svh, 8rem) clamp(3rem, 9svh, 6.5rem);
+    padding-inline: calc(var(--page-gutter) + clamp(1.5rem, 4.5vw, 5.5rem));
+  }
+
+  /* The heading block dissolves into the stage grid so its three pieces can
+     be placed independently; it has no box, role or semantics of its own. */
+  .services-section[data-services-enhanced] .services-section__lede {
+    display: contents;
+  }
+
+  .services-section[data-services-enhanced] .services-section__head {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    justify-self: start;
+    align-self: start;
+  }
+
+  /*
+   * Full size, never squeezed by the row. The bottom margin is exactly the
+   * rule and drawing that hang under each service's copy, so centring the two
+   * boxes on each other centres the art on the name and description instead.
+   */
+  .services-section[data-services-enhanced] .services-section__art {
+    grid-column: 2;
+    grid-row: 3;
+    inline-size: var(--services-art);
+    max-inline-size: none;
+    margin: 0 0
+      calc(
+        var(--services-rule-gap) + var(--services-mark-gap) +
+          var(--services-mark)
+      );
+    justify-self: auto;
+  }
+
+  .services-section[data-services-enhanced]
+    .services-section__illustration--service {
+    display: block;
+    opacity: 0;
+  }
+
+  .services-section[data-services-enhanced] .services-section__foot {
+    grid-column: 1 / -1;
+    grid-row: 5;
+    justify-self: start;
+    margin-block-start: 0;
+  }
+
+  .services-section[data-services-enhanced] .services-progress {
+    display: flex;
+  }
+
+  /*
+   * Every service lives in one cell, so the name of whichever is on stage
+   * always sits on the same line and the handover never shifts the layout.
+   * The cell is as tall as the longest entry and sits on the stage's centre.
+   */
+  .services-section[data-services-enhanced] .services-section__list {
+    grid-column: 3;
+    grid-row: 3;
+    grid-template-areas: 'stage';
+    align-self: center;
+    row-gap: 0;
+    padding-block-start: 0;
+  }
+
+  .services-section[data-services-enhanced] .service-entry {
+    grid-area: stage;
+    align-self: start;
+  }
+
+  /* The layout switches before the timeline chunk arrives; until it does,
+     only the first service is on stage. The timeline's inline styles take
+     over from here. */
+  .services-section[data-services-enhanced] .service-entry:not(:first-child) {
+    opacity: 0;
+  }
+
+  /* Only the service on stage takes the pointer; the rest are transparent
+     but stay in the accessibility tree and in reading order. */
+  .services-section[data-services-enhanced] .service-entry:not([data-active]) {
+    pointer-events: none;
+  }
+
+  .services-section[data-services-enhanced] .service-entry__title {
+    font-size: clamp(2.9rem, 5vw, 5.5rem);
   }
 }

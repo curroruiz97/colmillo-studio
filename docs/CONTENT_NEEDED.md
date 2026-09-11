@@ -59,19 +59,26 @@ Still missing:
 - Goodbye animation source and approved derivatives under
   `public/assets/motion/goodbye/` (`goodbye.webm`, `goodbye.mp4`,
   `goodbye-poster.webp`).
-- Goodbye stage (rebuilt 2026-09-10 as a pan across one panoramic scene,
-  architecture only), still to be decided before it can publish:
-  - the panoramic visual itself, video or image. It fills the screen's height
-    and spans 180-220% of its width (on a 16:9 desktop, roughly a 3.2:1 to
-    3.9:1 frame), so it needs a composition that works as a left half and a
-    right half, with calm areas where each block of copy sits. Portrait phones
-    will crop it with `object-fit: cover`;
-  - the copy for side A (left) and side B (right): a large title and an
-    optional supporting line each;
-  - whether side B carries a CTA, its label and destination;
-  - the section's accessible name and the final transition.
-  The copy in `src/data/goodbye.ts` is structural ("Titular A", "Titular B")
-  and never reaches `dist/`.
+- Goodbye stage (a pan across one panoramic scene), still to be decided
+  before it can publish:
+  - approval of the photograph on trial since 2026-09-11
+    (`public/assets/bg panoramica.png`, published as
+    `public/assets/goodbye/goodbye-panorama.webp`), its rights, and ideally a
+    larger master: at 2048x768 it is upscaled 1.17x at 1440x900, 1.41x at
+    1920x1080 and 1.69x at 2560x1080 (twice that on 2x displays). About
+    5400px wide would be sharp on every tested screen. If the composition
+    changes, the copy boxes in `goodbye-section.css` must be re-measured;
+  - a decision on where the 1.8 MB PNG master should live: it sits under
+    `public/`, so it is copied into `dist/` although nothing references it;
+  - copy supplied by the user on 2026-09-11 and live in the demo: side A "Las
+    buenas ideas necesitan presión.", the CTA "Nosotros sabemos dónde
+    apretar." linked to `/contacto/`, and the note "Estrategia · Identidad ·
+    Digital · Contenido". Still open: the small line above the CTA,
+    "¿Hablamos?", which is provisional and needs approval or replacement;
+  - the section's accessible name (currently "Despedida").
+  The record in `src/data/goodbye.ts` stays flagged as a placeholder while the
+  photograph and the kicker are unapproved, so the section never reaches
+  `dist/`.
 - Permission to convert GIF assets to WebM/MP4 for production performance.
 
 Open questions on the supplied hero master:
@@ -115,8 +122,38 @@ Still missing:
   short description each, then enable `contentAvailability.services`. Each
   service can also carry a real destination and a related project when those
   exist. The design has no slot for a second accent line, so do not budget one.
-- Studio/about page copy and approved process or methodology, if it should be
-  published.
+- Services page. Since 2026-09-11 `/servicios/` exists (another session,
+  in `primaryNavigation`) and the home section's `Abrir servicios ↗` CTA,
+  beside the heading, points at it through `servicesPage.href` in
+  `src/data/services.ts`. The page's own copy is still provisional.
+- Per-service illustrations: received 2026-09-11 for Identidad, Digital and
+  Contenido and live in the home sequence (Estrategia keeps the shared art).
+  Still open: where the three 1600x900 PNG masters should live. They sit in
+  `public/assets/` (about 2.3 MB), so they are copied into `dist/` although
+  only their WebP derivatives are referenced; `media-src/` is the recommended
+  home, and `npm run media:services` already reads from there first. Also a
+  confirmation that their opaque near-black clothing is intended (the shared
+  illustration's clothing is transparent).
+- `/studio/` page (rebuilt 2026-09-11, fully designed; demo build only for the
+  provisional blocks). Everything below lives in `src/data/studioPage.ts`
+  unless noted; filling an `approved…` record publishes that block:
+  - hero loop: a square-ish WebM + MP4 pair and a WebP poster of the first
+    frame for `studioHeroMedia` in `src/config/assets.ts` (subject centred:
+    it is masked to a disc with a bite out of its top-right shoulder). Until
+    then the disc shows a geometric placeholder;
+  - "Somos Colmillo" copy: approval or replacement of the provisional
+    headline, lede and paragraph supplied on 2026-09-11 (`approvedIntro`);
+  - the four principles (Mirar, Tensar, Morder, Soltar): approval of their
+    provisional descriptions and one image each (`image` on every item; any
+    ratio, cropped with `object-fit: cover` to 4:5 on desktop and 5:4 on
+    phones), with alternative text (`approvedPrinciples`);
+  - the team: real names, roles, portraits (4:5 or taller, at least 1200 px
+    on the long side), alternative text and optional links
+    (`approvedTeam`). The six current entries are structural placeholders and
+    set no team size;
+  - confirmation of the section titles "Somos Colmillo", "Cómo hacemos las
+    cosas" (or "Nuestra forma de hacer las cosas") and "Los que muerden" (or
+    "El equipo").
 - Home Studio copy: one editorial headline that sets in at most two lines (about
   18 characters per line) and one supporting sentence of about one line. The section is built and waiting in
   `src/data/studio.ts`; the current demonstration headline ("Tensamos cada idea

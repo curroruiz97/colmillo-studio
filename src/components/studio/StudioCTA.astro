@@ -1,0 +1,48 @@
+---
+/**
+ * /studio/ — 05 Close
+ *
+ * The page's only ink surface, and deliberately small: one question and the
+ * shared bite button to Contacto. The closing "?" is the orange detail. On ink
+ * the button's offset slab is cream, as in the home services, and pressing
+ * sinks the button into it.
+ *
+ * The reveal lives on the button's wrapper and the magnetic pull on the link,
+ * because both drive `transform`.
+ */
+import { splitClosingMark, type StudioCloseCopy } from '@/data/studioPage';
+
+interface Props {
+  close: StudioCloseCopy;
+}
+
+const { close } = Astro.props;
+const { text, mark } = splitClosingMark(close.title);
+---
+
+<section
+  class="studio-close"
+  aria-labelledby="studio-close-title"
+  data-surface-tone="dark"
+  data-reveal-group
+>
+  <div class="content-shell studio-close__inner">
+    <h2 id="studio-close-title" class="studio-close__title">
+      <span class="studio-line">
+        <span data-reveal-line>
+          {text}{mark && <span class="studio-close__mark">{mark}</span>}
+        </span>
+      </span>
+    </h2>
+    <div class="studio-close__action" data-reveal-fade>
+      <a
+        class="bite-button studio-close__button"
+        href={close.action.href}
+        data-magnetic
+        data-cursor-label="Hablar"
+      >
+        <span class="studio-close__label">{close.action.label}</span>
+      </a>
+    </div>
+  </div>
+</section>

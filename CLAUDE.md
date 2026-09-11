@@ -212,7 +212,17 @@ registers ScrollTrigger and initializes/cleans:
   close control), focus/inert/Escape behavior, scroll lock and home progress;
 - `SectionStack.ts`: rounded stack reveal/compression;
 - `HorizontalProjects.ts`: desktop pin/scrub plus native scroll-snap fallback;
-- `ProjectTilePress.ts`: fine-pointer edge dent on the home project tiles;
+- `ServicesMotion.ts`: switches the home services to their sticky sequence
+  layout and mounts `ServicesSequence.ts` (lazy chunk) for the scrubbed
+  one-service-at-a-time handover;
+- `ProjectTilePress.ts`: fine-pointer edge dent on the home project tiles,
+  through the shared `PressSurface.ts` (also used by the Studio team);
+- `StudioPage.ts`: mounts `StudioPageMotion.ts` (route-only chunk) for the
+  `/studio/` reveals, the principles tab list (hover/focus/tap/keys, picture
+  drift) and the team portraits' dent; the hero entrance there is CSS;
+- `ContactBite.ts`: loads `ContactBiteMotion.ts` on demand for the home contact
+  close (entrance, the soft sculpture's live pose from `ContactSculpture.ts`,
+  pressure on "muerda", bite);
 - `MagneticElements.ts`: bounded pointer response with cached bounds.
 
 Motion must support full/reduced preferences, fine/coarse pointers, keyboard,
@@ -318,10 +328,12 @@ licenses and publication approval before enabling client material.
   source (the sticky header and the manual motion toggle were both removed on
   2026-09-10 at the user's request).
 - Responsive official hero contract and CSS hero fallback.
-- Goodbye stage architecture (2026-09-10, phase 1): a viewport over one
-  panoramic scene that pans from its left side to its right and back with two
-  round arrows (`GoodbyePanorama.ts`); visual, copy, final motion and CTA
-  still open.
+- Goodbye stage (2026-09-10, photograph on trial since 2026-09-11): a viewport
+  over one panoramic photograph that pans from its left end to its right; the
+  copy sits in the photograph's black fields (the CTA "Haz que tu marca
+  muerda" -> Contacto on the right) and a round back button reverses the same
+  timeline (`GoodbyePanorama.ts`). Portrait screens use a photo band with the
+  copy below. Photo approval and side A copy are still open.
 - Validated black/cream wordmark PNGs.
 - Production/demo Playwright matrices and integrity/link/asset/brand/hero/release
   checks.

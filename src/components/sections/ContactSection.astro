@@ -1,6 +1,34 @@
 ---
-import { publishedContactChannels } from '@/config/contact';
+/**
+ * COLMILLO STUDIO — home contact close: "la última mordida"
+ *
+ * White, a large headline with the two channels as buttons under it, and one
+ * strange orange object beside it that answers the reader and is itself the
+ * way into Contacto. The object is a soft, inflated piece with a large piece
+ * missing from its left side, turned towards "muerda". Its geometry comes
+ * from `ContactSculpture.ts`: the still pose is rendered here, so no
+ * JavaScript, touch and reduced motion get exactly the same object, and
+ * `ContactBiteMotion.ts` redraws it live on a fine pointer.
+ *
+ * The channel buttons are the hero's `bite-button`, unchanged. The sculpture
+ * is a link to `/contacto/`: only its painted shape takes the pointer, so the
+ * white around it never becomes a hit area. All type is in sentence case.
+ */
+import { contactChannels } from '@/config/contact';
 import { demoMode } from '@/data/projects';
+import {
+  RADIUS,
+  REST_STATE,
+  VIEW_H,
+  VIEW_W,
+  sculptureFrame,
+} from '@/scripts/motion/ContactSculpture';
+
+const channels = Object.entries(contactChannels).flatMap(([key, channel]) =>
+  channel.href === null ? [] : [{ key, ...channel, href: channel.href }],
+);
+
+const rest = sculptureFrame(REST_STATE);
 ---
 
 <section
@@ -9,34 +37,170 @@ import { demoMode } from '@/data/projects';
   aria-labelledby="contact-title"
   data-stack-section
   data-surface-tone="light"
+  data-contact-bite
 >
-  <div class="content-shell contact-section__grid">
-    <p class="section-index" aria-hidden="true">04</p>
-    <h2 id="contact-title">Haz que tu marca <em>muerda</em></h2>
-    {
-      publishedContactChannels.length > 0 && (
-        <ul class="contact-section__links" role="list">
-          {publishedContactChannels.map((channel) => (
-            <li>
-              <a href={channel.href} data-magnetic>
-                <span>{channel.label}</span>
-                {channel.value && (
-                  <span class="contact-section__value">{channel.value}</span>
-                )}
-                <span aria-hidden="true">↗</span>
-              </a>
-            </li>
-          ))}
-        </ul>
-      )
-    }
-    {
-      demoMode && publishedContactChannels.length === 0 && (
-        <p class="dev-note" data-dev-placeholder>
-          Los canales se activarán aquí y en el encabezado cuando se confirmen
-          los datos públicos.
-        </p>
-      )
-    }
+  <div class="content-shell contact-bite" data-bite-stage>
+    <div class="contact-bite__lead">
+      <h2 id="contact-title" class="contact-bite__title">
+        <span class="contact-bite__line" data-bite-line="1">
+          <span class="contact-bite__word">Haz que</span>
+        </span>{' '}
+        <span class="contact-bite__line" data-bite-line="2">
+          <span class="contact-bite__word">tu marca</span>
+        </span>{' '}
+        <span
+          class="contact-bite__line contact-bite__line--bite"
+          data-bite-line="3"
+        >
+          <em class="contact-bite__word" data-bite-trigger data-cursor-label="">
+            muerda
+          </em>
+        </span>
+      </h2>
+
+      {
+        channels.length > 0 && (
+          <ul class="contact-bite__actions" role="list">
+            {channels.map((channel) => (
+              <li data-bite-row>
+                <a
+                  class="bite-button contact-bite__button"
+                  href={channel.href}
+                  data-magnetic
+                  data-cursor-label=""
+                >
+                  <span>
+                    {channel.label} <span aria-hidden="true">↗</span>
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+      {
+        demoMode && channels.length === 0 && (
+          <p class="dev-note" data-dev-placeholder>
+            Los canales se activarán aquí y en el encabezado cuando se confirmen
+            los datos públicos.
+          </p>
+        )
+      }
+    </div>
+
+    <a
+      class="contact-bite__piece"
+      href="/contacto/"
+      aria-label="Contacto"
+      data-bite-piece
+      data-cursor-label="Contacto"
+    >
+      <svg
+        class="contact-bite__sculpture"
+        viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+        aria-hidden="true"
+        focusable="false"
+        data-bite-sculpture
+      >
+        <defs>
+          <path id="cb-body" d={rest.body} data-sculpture="body"></path>
+          <clipPath id="cb-clip"><use href="#cb-body"></use></clipPath>
+          <radialGradient
+            id="cb-light"
+            gradientUnits="userSpaceOnUse"
+            cx={rest.light.x}
+            cy={rest.light.y}
+            r={RADIUS}
+            data-sculpture="light"
+          >
+            <stop offset="0" stop-color="#fff" stop-opacity="0.42"></stop>
+            <stop offset="0.35" stop-color="#fff" stop-opacity="0.16"></stop>
+            <stop offset="1" stop-color="#fff" stop-opacity="0"></stop>
+          </radialGradient>
+          <radialGradient
+            id="cb-shade"
+            gradientUnits="userSpaceOnUse"
+            cx={rest.shade.x}
+            cy={rest.shade.y}
+            r={RADIUS * 1.45}
+            data-sculpture="shade"
+          >
+            <stop offset="0.45" stop-color="#12100f" stop-opacity="0"></stop>
+            <stop offset="0.8" stop-color="#12100f" stop-opacity="0.14"></stop>
+            <stop offset="1" stop-color="#12100f" stop-opacity="0.3"></stop>
+          </radialGradient>
+          <linearGradient id="cb-bounce" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0.72" stop-color="#fff" stop-opacity="0"></stop>
+            <stop offset="1" stop-color="#fff" stop-opacity="0.16"></stop>
+          </linearGradient>
+          <radialGradient id="cb-wall">
+            <stop offset="0.78" stop-color="#12100f" stop-opacity="0"></stop>
+            <stop offset="0.92" stop-color="#12100f" stop-opacity="0.22"></stop>
+            <stop offset="1" stop-color="#12100f" stop-opacity="0.34"></stop>
+          </radialGradient>
+          <radialGradient id="cb-ground">
+            <stop offset="0" stop-color="#12100f" stop-opacity="0.2"></stop>
+            <stop offset="1" stop-color="#12100f" stop-opacity="0"></stop>
+          </radialGradient>
+        </defs>
+        <ellipse
+          class="contact-bite__ground"
+          fill="url(#cb-ground)"
+          cx={rest.shadow.cx}
+          cy={rest.shadow.cy}
+          rx={rest.shadow.rx}
+          ry={rest.shadow.ry}
+          data-sculpture="shadow"></ellipse>
+        <!-- The buttons' hard ink shadow, in the piece's own silhouette. -->
+        <use class="contact-bite__offset" href="#cb-body" fill="#12100f"></use>
+        <g class="contact-bite__form" data-sculpture="form">
+          <use href="#cb-body" fill="#cd5730"></use>
+          <g clip-path="url(#cb-clip)">
+            <rect width={VIEW_W} height={VIEW_H} fill="url(#cb-shade)"></rect>
+            <rect width={VIEW_W} height={VIEW_H} fill="url(#cb-light)"></rect>
+            <use href="#cb-body" fill="url(#cb-bounce)"></use>
+            <ellipse
+              fill="url(#cb-wall)"
+              cx={rest.cavity.cx}
+              cy={rest.cavity.cy}
+              rx={rest.cavity.rx}
+              ry={rest.cavity.ry}
+              data-sculpture="cavity"></ellipse>
+            <ellipse
+              fill="none"
+              stroke="#fff"
+              stroke-opacity="0.45"
+              stroke-width="6"
+              cx={rest.lip.cx}
+              cy={rest.lip.cy}
+              rx={rest.lip.rx}
+              ry={rest.lip.ry}
+              data-sculpture="lip"></ellipse>
+          </g>
+          <!-- Keyboard focus, drawn on the real silhouette. -->
+          <use class="contact-bite__ring" href="#cb-body"></use>
+        </g>
+      </svg>
+      <span class="contact-bite__hint" aria-hidden="true">
+        Contacto <span>↗</span>
+      </span>
+    </a>
   </div>
 </section>
+
+<script>
+  /*
+   * Only says where the contact motion lives. The dynamic import sits in this
+   * home-only script so it stays out of the shared motion bundle;
+   * `ContactBite.ts`, run by `MotionController`, mounts, restarts and cleans
+   * it up. Module scripts run in document order, so this runs first.
+   */
+  const section = document.querySelector('[data-contact-bite]');
+  if (section) {
+    Reflect.set(
+      section,
+      'loadContactBite',
+      () => import('@/scripts/motion/ContactBiteMotion'),
+    );
+  }
+</script>

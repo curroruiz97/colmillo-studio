@@ -2,19 +2,24 @@
 /**
  * SERVICIOS
  *
- * An editorial block, not a card grid: the heading holds the left third and the
- * four vignettes sit in an even 2x2 across the right two thirds, starting well
- * below the heading's baseline. Deliberately spare — a title, one illustration,
- * four small drawings, four names and four short lines of copy — so it reads as
- * the calm beat between the manifesto and the project rail. The route onward
- * lives at the end of the projects section, not here.
+ * An editorial sequence, not a card grid. The left zone (title, the client
+ * illustration, the CTA and a small `01 / 04` readout) is the anchor; the right
+ * zone shows one service at a time. On a wide screen with motion allowed,
+ * `ServicesMotion.ts` turns the section into a tall track whose sticky stage
+ * hands the protagonist role from one service to the next as the page scrolls,
+ * then lets the stage go with ordinary scroll so the project rail follows it.
+ *
+ * Without that enhancement (no JavaScript, reduced motion, tablets, phones and
+ * short windows) the same markup is a plain vertical list with every service
+ * fully readable. All copy is always in the DOM, in reading order.
  */
 import ServiceGlyph from '@/components/ui/ServiceGlyph.astro';
 import { servicesIllustration } from '@/config/assets';
-import { homeServices } from '@/data/services';
+import { homeServices, servicesPage } from '@/data/services';
 
 const services = homeServices;
 const hasProvisionalCopy = services.some((service) => service.demo);
+const total = String(services.length).padStart(2, '0');
 ---
 
 {
@@ -26,52 +31,150 @@ const hasProvisionalCopy = services.some((service) => service.demo);
       data-stack-section
       data-surface-tone="dark"
       data-services-section
+      style={`--services-count:${services.length}`}
       {...(hasProvisionalCopy ? { 'data-dev-placeholder': true } : {})}
     >
-      <div class="services-section__inner content-shell">
-        <div class="services-section__lede">
-          <h2 id="services-title" class="services-section__title">
-            Nuestros servicios
-          </h2>
-          {/* Decorative: the heading and the four named services already carry
-              everything this says, and the art has a real alpha channel, so it
-              composites straight onto the ink with no plate behind it. */}
-          <img
-            class="services-section__illustration"
-            src={servicesIllustration.src}
-            width={servicesIllustration.width}
-            height={servicesIllustration.height}
-            alt=""
-            loading="lazy"
-            decoding="async"
-          />
-        </div>
-
-        <ol class="services-section__list" role="list">
-          {services.map((service, index) => (
-            <li
-              class="service-entry"
-              data-service-entry
-              data-service-id={service.id}
-              style={`--service-index:${index}`}
-            >
-              <span class="service-entry__mark" aria-hidden="true">
-                <ServiceGlyph variant={service.glyph} />
-              </span>
-              <h3 class="service-entry__title">
-                {service.href ? (
-                  <a href={service.href} data-cursor-label="Ver">
-                    {service.title}
-                  </a>
-                ) : (
-                  service.title
+      <div class="services-section__track" data-services-track>
+        <div class="services-section__stage">
+          <div class="services-section__inner content-shell">
+            <div class="services-section__lede">
+              {/* The heading and its CTA share one line, with a wide gap
+                  between them; a narrow screen wraps the button under it. */}
+              <div class="services-section__head">
+                <h2 id="services-title" class="services-section__title">
+                  Nuestros servicios
+                </h2>
+                {servicesPage.href && (
+                  /* The wrapper carries layout and the link carries the
+                     magnetic pull, as every other home CTA does. */
+                  <div class="services-section__cta">
+                    <a
+                      class="bite-button services-section__button"
+                      href={servicesPage.href}
+                      data-magnetic
+                      data-cursor-label="Abrir"
+                    >
+                      {/* The ↗ is drawn by CSS with empty alternative text,
+                          so the accessible name is the label alone. */}
+                      <span class="services-section__label">
+                        {servicesPage.label}
+                      </span>
+                    </a>
+                  </div>
                 )}
-              </h3>
-              <p class="service-entry__description">{service.description}</p>
-            </li>
-          ))}
-        </ol>
+              </div>
+              {/* Decorative: the heading and the four named services already
+                  carry everything this says, and the art has a real alpha
+                  channel, so it composites straight onto the ink with no plate
+                  behind it. One frame, stacked layers: the shared
+                  illustration sets the frame's size, and any service with its
+                  own image adds a layer the sequence fades to while that
+                  service is on stage. */}
+              <div
+                class="services-section__art"
+                aria-hidden="true"
+                data-services-art
+              >
+                <img
+                  class="services-section__illustration"
+                  src={servicesIllustration.src}
+                  width={servicesIllustration.width}
+                  height={servicesIllustration.height}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  data-services-illustration
+                  data-services-layer="shared"
+                />
+                {services.map(
+                  (service, index) =>
+                    service.image && (
+                      <img
+                        class="services-section__illustration services-section__illustration--service"
+                        src={service.image.src}
+                        width={service.image.width}
+                        height={service.image.height}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        data-services-layer={index}
+                      />
+                    ),
+                )}
+              </div>
+              <div class="services-section__foot">
+                {/* Where the sequence is: a visual readout only. Every service
+                    is in the list below, so assistive technology gets the
+                    whole set instead of a changing number. */}
+                <div class="services-progress" aria-hidden="true">
+                  <span class="services-progress__count">
+                    <span data-services-counter>01</span>
+                    <span class="services-progress__total"> / {total}</span>
+                  </span>
+                  <span class="services-progress__line">
+                    <span
+                      class="services-progress__fill"
+                      data-services-progress
+                    />
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <ol class="services-section__list" role="list">
+              {services.map((service) => (
+                <li
+                  class="service-entry"
+                  data-service-entry
+                  data-service-id={service.id}
+                >
+                  <h3 class="service-entry__title" data-service-part>
+                    {service.href ? (
+                      <a href={service.href} data-cursor-label="Ver">
+                        {service.title}
+                      </a>
+                    ) : (
+                      service.title
+                    )}
+                  </h3>
+                  <p class="service-entry__description" data-service-part>
+                    {service.description}
+                  </p>
+                  <span
+                    class="service-entry__rule"
+                    aria-hidden="true"
+                    data-service-rule
+                  />
+                  <span
+                    class="service-entry__mark"
+                    aria-hidden="true"
+                    data-service-part
+                  >
+                    <ServiceGlyph variant={service.glyph} />
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </div>
       </div>
     </section>
   )
 }
+
+<script>
+  /*
+   * Only says where the services sequence lives. The dynamic import sits in
+   * this home-only script so it stays out of the shared motion bundle;
+   * `ServicesMotion.ts`, run by `MotionController`, mounts, restarts and
+   * cleans it up. Module scripts run in document order, so this runs first.
+   */
+  const section = document.querySelector('[data-services-section]');
+  if (section) {
+    Reflect.set(
+      section,
+      'loadServicesSequence',
+      () => import('@/scripts/motion/ServicesSequence'),
+    );
+  }
+</script>
