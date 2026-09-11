@@ -48,6 +48,10 @@ reveal, overlap, tension and release.
 - The rail is images first: at rest a tile is only its picture. The title is
   revealed by a page-coloured cut-out that bites up into the image's bottom-left corner
   on hover and keyboard focus, and stays open on screens without hover.
+- Hover is pressure, not zoom: under a fine pointer the image edge nearest the
+  cursor bends inwards as a soft dent (`ProjectTilePress.ts`), inside a frame
+  that never scales, moves or resizes. Leaving releases it to the exact
+  rectangle.
 - The rail ends on the `Ver proyectos` route; it is the last piece of the
   moving track, never a row under it.
 - The pinned rail never cuts a tile off at the bottom of the viewport.
@@ -69,30 +73,36 @@ reveal, overlap, tension and release.
 
 ## Goodbye
 
-Rebuilt on 2026-09-10 as a full-screen stage. Phase 1 (architecture) only; the
-visual, the copy, the final transition and the CTA are still open.
+Rebuilt on 2026-09-10 as a viewport over one panoramic scene. Phase 1
+(architecture) only; the visual, the copy, the final transition and the CTA are
+still open.
 
-- One permanent visual layer (`goodbyeVisual`: a loop or a still, `null` until
-  approved; the bare ink surface meanwhile) that never changes, and an editorial
-  block on the left: the slides' copy plus one round orange arrow button hanging
-  off the headline's last line.
-- No dots, visible counter, cards, thumbnails or autoplay. Only the reader
-  advances it: the button (click, Enter, Space; ArrowLeft/ArrowRight while it
-  has focus) or, on touch, a horizontal swipe on the stage. Vertical gestures
-  stay native scroll (`touch-action: pan-y pinch-zoom`).
-- `GoodbyeSlides.ts`: the current slide leaves to the left while the next
-  enters from the right, masked at the copy column's edges (`overflow-x:
-  clip`), 0.9 s `power3.inOut`; the last slide wraps to the first. A request
-  made during a hand-over is ignored. These values are a neutral baseline for
-  the next phase to tune.
-- Every slide shares one grid cell and, through subgrid, the same title and
-  body rows, so the block never changes height and the button never moves.
-  Inactive slides are `inert` and hidden; the column is a polite live region.
-- Exactly `100svh` on a desktop (from 64.01rem wide and 40rem tall); narrower
-  or shorter screens keep `100svh` as a minimum and grow with their content.
-- Reduced motion swaps the copy in place with no travel and parks a video
-  visual on its poster. No JavaScript: the slides are listed one after another
-  and the button stays hidden.
+- One scene element (`[data-goodbye-scene]`: the `goodbyeVisual` loop or still,
+  or a structural placeholder panorama until one is approved), wider than the
+  screen: 200% of the viewport by default, `clamp(180cqw, height × ratio,
+  220cqw)` with a real asset. The section is `100svh` with `overflow: hidden`.
+- Two positions. Side A shows the scene's left side under the first editorial
+  block; its round orange arrow pans the whole scene left until its right side
+  fills the screen (side B) and the second block appears; B's back arrow pans
+  it home. The visual is never swapped, faded, zoomed or cut.
+- The distance is exact by construction: the viewport is a size container and
+  the scene is `translateX(calc((100cqw - 100%) * var(--goodbye-progress)))`.
+  `GoodbyePanorama.ts` only eases `--goodbye-progress` between 0 and 1 (1.1 s,
+  `power3.inOut`), so a resize can never leave the scene short of or past a
+  side.
+- During the travel the leaving block drifts 40px and fades early, the arriving
+  block drifts in after 55% of the travel, and keyboard focus moves from the
+  pressed arrow to the arriving block's arrow. Requests during a travel are
+  ignored. Both blocks share one grid cell, so the stage never changes height.
+- No dots, counter, cards, thumbnails or autoplay. Input: the arrows (click,
+  Enter, Space; ArrowLeft/ArrowRight while one has focus) and, on touch, a
+  horizontal swipe (drag left reveals the right side). Vertical gestures stay
+  native scroll (`touch-action: pan-y pinch-zoom`).
+- Phones and windows under 32rem tall keep `100svh` as a minimum and grow with
+  their content instead of cutting it.
+- Reduced motion jumps between the sides with no travel and parks a video scene
+  on its poster. No JavaScript: the scene rests on its left side, both blocks
+  are listed and the arrows stay hidden.
 
 ## Page Transitions
 
@@ -117,7 +127,11 @@ visual, the copy, the final transition and the CTA are still open.
 - `SectionStack.ts` gives each layer a clipped entrance and gently compresses
   the covered layer with transform/opacity and a coordinated pressure edge.
   Large screens receive sticky, rounded physical layers; mobile and
-  reduced-motion layouts remain linear.
+  reduced-motion layouts remain linear. The entrance band is 7% of the screen
+  (`min(layer, viewport)`), never 7% of a taller layer. A sticky layer returns
+  to `position: relative` (`data-stack-released`) once the section right after
+  it covers the screen, so a later section's reveal band can only ever show
+  the section directly before it or the page, never an older stuck layer.
 - `HorizontalProjects.ts` pins the section and scrubs the track sideways on
   screens at least 769 px wide with motion allowed. The travel is the track's
   real `scrollWidth` minus the viewport's width, re-measured on every
@@ -128,12 +142,29 @@ visual, the copy, the final transition and the CTA are still open.
   pinned viewport by construction. Native overflow with mandatory scroll snap
   remains the phone, reduced-motion and no-JavaScript experience. The counter,
   arrows, progress meter and active-card dimming were retired on 2026-09-10.
-- Project tile hover (CSS only, `projects-section.css`): the frame compresses
-  to 0.982 and bites its top-right corner, the image scales to 1.06 and a
-  page-coloured cut-out with concave fillets rises with the title and an orange arrow
-  (about 0.46 s, `--ease-bite`); leaving plays it back. `:focus-visible` gets
-  the same reveal; `(hover: none)` keeps it open; reduced motion makes it
-  instant through the global transition rules.
+- Project tile hover (2026-09-10, replaces the former 0.982 frame / 1.06
+  image scale and animated top-right radius): `ProjectTilePress.ts` bends only
+  the edge nearest a fine pointer inwards, modelled on the *behaviour* of the
+  project grid on hellomonday.com (a vector mask whose nearest segment is
+  dragged in while the corners stay pinned) without its code, WebGL or
+  values. The dent is a `clip-path: path()` on `.project-tile__surface`, the
+  layer inside the fixed `.project-tile__frame` that holds the picture and its
+  loading ground, so the page shows through the bite and nothing around the
+  tile moves. Geometry: a rounded outline one pixel outside the frame, with
+  two tangent cubic curves per dented edge meeting at a peak that follows the
+  pointer along that edge (kept 16% of the run from a corner; a flank shortens
+  near a corner so the pressure gathers there). Half width 0.3 of the short
+  side; depth 0.06 of the short side clamped to 16-34 px (about 31 px at
+  1440, 34 px at 1920), scaled from 50% with the cursor at the centre to 100%
+  at the edge, ×1.2 while the button is down. Another edge only takes over
+  once it is 6% of the short side closer. The pointer sets targets at most
+  once per animation frame; GSAP eases them (0.42 s `power3.out` in, 0.4 s
+  `power2.out` for an edge being handed over, 0.46 s `power3.out` on leave),
+  and the inline `clip-path` is removed once every edge is back at rest. The
+  title's CSS cut-out reveal runs alongside, unchanged; the label sits outside
+  the surface so the dent never clips it. `:focus-visible` gets the reveal
+  without a dent; `(hover: none)` keeps it open; touch pointers, coarse
+  pointers and reduced motion never bind the module and keep a still image.
 - `EdgeMenu.ts` drives the right-edge navigation through one state machine:
   `closed`, `tracking`, `open` and `open-collapsed`, published as `data-state`
   (closed | tracking | open) plus `data-close` (expanded | collapsed) while

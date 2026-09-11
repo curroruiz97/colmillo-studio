@@ -2,143 +2,177 @@
 /**
  * COLMILLO STUDIO — home goodbye stage (the pre-footer)
  *
- * Phase 1 of the redesign: architecture only. One full screen holding a
- * permanent visual layer that never changes and, over it, an editorial block
- * on the left — the slides' copy and one round arrow button hanging off the
- * headline. The button moves the copy to the next slide horizontally; the
- * visual stays put. No dots, counter, cards, thumbnails or autoplay.
+ * Phase 1 of the redesign: architecture only. A fixed viewport over ONE
+ * panoramic scene, wider than the screen. The stage opens on the scene's left
+ * side with the first editorial block; its arrow travels the whole scene
+ * sideways, like a camera panning, until the right side fills the screen and
+ * the second block appears. The back arrow travels it home. The visual is
+ * never swapped, faded or cut: there is one scene element, and it only moves.
  *
- * Every slide shares one grid cell and, through subgrid, the same title and
- * body rows, so the block is as tall as its tallest slide and changing slides
- * never moves the layout. Without JavaScript the slides are listed one after
- * another and the button stays hidden; `GoodbyeSlides.ts` enhances.
+ * `GoodbyePanorama.ts` drives the travel. Without JavaScript the scene rests
+ * on its left side, both blocks are listed one after the other and the arrows
+ * stay hidden.
  *
  * The final visual, copy, transition and CTA are still to be decided: see
- * `docs/CONTENT_NEEDED.md`. While the slides are placeholders the section
+ * `docs/CONTENT_NEEDED.md`. Until there is an asset the scene is a clearly
+ * structural placeholder, and while the copy is a placeholder the section
  * carries `data-dev-placeholder`, which `check:production` forbids in `dist/`.
  */
 import { goodbyeVisual } from '@/config/assets';
-import type { GoodbyeContent } from '@/data/goodbye';
+import type { GoodbyeContent, GoodbyeStop } from '@/data/goodbye';
 
 interface Props {
   content: GoodbyeContent;
 }
 
-const { label, slides, placeholder } = Astro.props.content;
-const slidesId = 'goodbye-slides';
+const { label, start, end, placeholder } = Astro.props.content;
+
+// A real asset sets the scene's width from its own ratio, kept inside the
+// 180-220 viewport-width band so the pan always has somewhere to go.
+const sceneStyle = goodbyeVisual
+  ? `--goodbye-scene-width: clamp(180cqw, calc(100cqh * ${
+      goodbyeVisual.width / goodbyeVisual.height
+    }), 220cqw)`
+  : undefined;
+
+const stops: {
+  key: 'start' | 'end';
+  stop: GoodbyeStop;
+  travel: 'next' | 'back';
+  travelLabel: string;
+}[] = [
+  { key: 'start', stop: start, travel: 'next', travelLabel: 'Siguiente' },
+  { key: 'end', stop: end, travel: 'back', travelLabel: 'Volver' },
+];
 ---
 
 <section
   class="goodbye-section"
   aria-labelledby="goodbye-title"
-  aria-roledescription="carrusel"
   data-stack-section
   data-surface-tone="dark"
   data-goodbye
+  data-goodbye-at="start"
   data-dev-placeholder={placeholder ? '' : undefined}
 >
-  <div class="goodbye-section__visual" aria-hidden="true">
-    {
-      goodbyeVisual?.kind === 'video' && (
-        <video
-          muted
-          loop
-          playsinline
-          preload="none"
-          poster={goodbyeVisual.poster}
-          width={goodbyeVisual.width}
-          height={goodbyeVisual.height}
-          tabindex="-1"
-          data-goodbye-video
-        >
-          <source
-            src={goodbyeVisual.mobile.webm}
-            type="video/webm"
-            media="(max-width: 48rem)"
+  <div class="goodbye-section__viewport" aria-hidden="true">
+    <div class="goodbye-section__scene" style={sceneStyle} data-goodbye-scene>
+      {
+        goodbyeVisual?.kind === 'video' && (
+          <video
+            muted
+            loop
+            playsinline
+            preload="none"
+            poster={goodbyeVisual.poster}
+            width={goodbyeVisual.width}
+            height={goodbyeVisual.height}
+            tabindex="-1"
+            data-goodbye-video
+          >
+            <source
+              src={goodbyeVisual.mobile.webm}
+              type="video/webm"
+              media="(max-width: 48rem)"
+            />
+            <source
+              src={goodbyeVisual.mobile.mp4}
+              type="video/mp4"
+              media="(max-width: 48rem)"
+            />
+            <source
+              src={goodbyeVisual.desktop.webm}
+              type="video/webm"
+              media="(min-width: 48.01rem)"
+            />
+            <source
+              src={goodbyeVisual.desktop.mp4}
+              type="video/mp4"
+              media="(min-width: 48.01rem)"
+            />
+          </video>
+        )
+      }
+      {
+        goodbyeVisual?.kind === 'image' && (
+          <img
+            src={goodbyeVisual.src}
+            alt=""
+            width={goodbyeVisual.width}
+            height={goodbyeVisual.height}
+            loading="lazy"
+            decoding="async"
           />
-          <source
-            src={goodbyeVisual.mobile.mp4}
-            type="video/mp4"
-            media="(max-width: 48rem)"
-          />
-          <source
-            src={goodbyeVisual.desktop.webm}
-            type="video/webm"
-            media="(min-width: 48.01rem)"
-          />
-          <source
-            src={goodbyeVisual.desktop.mp4}
-            type="video/mp4"
-            media="(min-width: 48.01rem)"
-          />
-        </video>
-      )
-    }
-    {
-      goodbyeVisual?.kind === 'image' && (
-        <img
-          src={goodbyeVisual.src}
-          alt=""
-          width={goodbyeVisual.width}
-          height={goodbyeVisual.height}
-          loading="lazy"
-          decoding="async"
-        />
-      )
-    }
+        )
+      }
+      {
+        !goodbyeVisual && (
+          <div class="goodbye-section__placeholder">
+            <span class="goodbye-section__mark goodbye-section__mark--disc" />
+            <span class="goodbye-section__mark goodbye-section__mark--ring" />
+          </div>
+        )
+      }
+    </div>
   </div>
 
   <div class="content-shell goodbye-section__inner">
     <h2 id="goodbye-title" class="visually-hidden">{label}</h2>
 
-    <div class="goodbye-section__composition">
-      {/* A polite live region: pressing the button announces the new copy. */}
-      <div
-        class="goodbye-section__viewport"
-        id={slidesId}
-        aria-live="polite"
-        data-goodbye-viewport
-      >
-        {
-          slides.map((slide, index) => (
-            <div
-              class="goodbye-slide"
-              role="group"
-              aria-roledescription="diapositiva"
-              aria-label={`${index + 1} de ${slides.length}`}
-              data-goodbye-slide
-            >
-              <h3 class="goodbye-slide__title">{slide.title}</h3>
-              {slide.body && <p class="goodbye-slide__body">{slide.body}</p>}
-            </div>
-          ))
-        }
-      </div>
-
+    {/* A polite live region: travelling announces the block that arrives. */}
+    <div class="goodbye-section__stops" aria-live="polite">
       {
-        slides.length > 1 && (
-          <button
-            class="goodbye-section__next"
-            type="button"
-            aria-controls={slidesId}
-            aria-label="Siguiente"
-            data-goodbye-next
-            hidden
-          >
-            <svg
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-              focusable="false"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.25"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+        stops.map(({ key, stop, travel, travelLabel }) => {
+          const button = (
+            <button
+              class="goodbye-stop__travel"
+              type="button"
+              aria-label={travelLabel}
+              data-goodbye-travel={travel}
+              hidden
             >
-              <path d="M4 12h15M13 6l6 6-6 6" />
-            </svg>
-          </button>
-        )
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.25"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d={
+                    travel === 'next'
+                      ? 'M4 12h15M13 6l6 6-6 6'
+                      : 'M20 12H5M11 6l-6 6 6 6'
+                  }
+                />
+              </svg>
+            </button>
+          );
+          return (
+            <div
+              class={`goodbye-stop goodbye-stop--${key}`}
+              data-goodbye-stop={key}
+            >
+              {/* The back arrow reads before its headline, the forward one after. */}
+              <div class="goodbye-stop__head">
+                {travel === 'back' && button}
+                <h3 class="goodbye-stop__title">{stop.title}</h3>
+                {travel === 'next' && button}
+              </div>
+              {stop.body && <p class="goodbye-stop__body">{stop.body}</p>}
+              {stop.cta && (
+                <div class="goodbye-stop__cta">
+                  <a class="bite-button" href={stop.cta.href} data-magnetic>
+                    <span>{stop.cta.label}</span>
+                  </a>
+                </div>
+              )}
+            </div>
+          );
+        })
       }
     </div>
   </div>

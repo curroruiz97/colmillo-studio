@@ -1410,31 +1410,117 @@ orange manifesto statement) disappears; ink reads there at about 4.9:1 and is
 already the brand's dark. The route labels follow the capital-initial rule the
 user set for the navigation.
 
-## 2026-09-10 - The Goodbye Is A Stage Of Slides Over One Visual
+## 2026-09-10 - The Goodbye Is A Viewport Over One Panoramic Scene
 
-Decision: the pre-footer goodbye is rebuilt as a full-screen stage — one
-permanent visual layer and, over it, a left editorial block whose copy changes
-slide by slide from a single round arrow button — replacing the CSS jaw/"ADIÓS"
-fallback, which is deleted with its keyframes and `SectionStack.ts` scrub. The
-structure takes its hierarchy from the "How we do this?" block on beans.agency;
-no code, copy, image, colour or motion was taken from it.
+Decision: the pre-footer goodbye is rebuilt as a full-screen viewport over a
+single panoramic scene wider than the screen. It opens on the scene's left side
+with a first editorial block; a round arrow pans the whole scene left until its
+right side fills the screen and a second block appears; a back arrow pans it
+home. It replaces the CSS jaw/"ADIÓS" fallback, which is deleted with its
+keyframes and its `SectionStack.ts` scrub. The structure follows the "How we do
+this?" block on beans.agency; no code, copy, image, colour or motion was taken.
 
-- The slides share one grid cell and subgrid rows instead of a sliding strip.
-  A strip would change height with the active slide, and wrapping from the
-  last slide back to the first would scroll backwards across the others. In one
-  cell the block is as tall as its tallest slide, the button never moves, and
-  every change — including the wrap — enters from the right.
-- One button outside the slides, not one per slide, so keyboard focus never
-  lands on content that is about to become `inert`.
-- Horizontal swipe on touch through pointer events with `touch-action: pan-y
-  pinch-zoom`, not native scroll-snap: vertical scrolling stays native and the
-  gesture uses the same hand-over as the button.
+A first pass the same day built it as a text slider over a static visual
+(`GoodbyeSlides.ts`, three slides). The user corrected the concept — one visual
+that travels, not copy that changes — and that module and its specs were
+replaced.
+
+- The travel is resolved in CSS, not measured: the viewport is a size
+  container, so `translateX(calc((100cqw - 100%) * progress))` is exactly the
+  scene's overhang for any screen, asset or resize. GSAP eases only the
+  progress number, which keeps the easing in GSAP (1.1 s `power3.inOut`) and
+  leaves nothing to re-measure.
+- The scene is 200cqw by default and `clamp(180cqw, height × ratio, 220cqw)`
+  with a real asset, so the pan always has somewhere to go and never grows
+  absurd on a portrait phone.
+- One arrow per block, beside its headline, so each reads as one composition.
+  Focus is moved to the arriving block's arrow once it is visible, so the
+  keyboard is never left on a block that has just become `inert`.
+- Under reduced motion the jump is written synchronously, but the site-wide
+  `reduced-motion.css` rule gives every element `transition-duration: 0.01ms`
+  with the default `transition-property: all`, so any property change lands on
+  the next frame. A same-frame read still sees the old side (measured: the
+  inline `--goodbye-progress: 1` was already set while the box had not moved).
+  The reader sees an instant change; specs wait two frames before measuring.
+  This also explains the intermittent failure of the superseded slider spec.
 - The section renders only from `homeGoodbye` (approved copy, or the flagged
-  placeholders in development and demo mode), no longer from the presence of
-  the media slot. The visual slot became `goodbyeVisual`, a video or an image,
-  because which one it will be is still open.
-- Surface ink with white type and the orange button, pending the final visual.
+  placeholders in development and demo mode). The visual slot became
+  `goodbyeVisual`, a video or an image, because which one is still open.
+  Until then the scene is a text-free placeholder panorama (ink, an orange
+  horizon, hairline marks, a disc on the left side and a ring on the right) so
+  the travel can be judged.
 
-Reason: user brief (phase 1: architecture only, no copy, visual, final motion
-or CTA decided). Every choice above is reversible and leaves those decisions
-to the next phase.
+Reason: user brief and correction (phase 1: architecture only; copy, visual,
+final motion and CTA are the next phase's decisions). Every choice above is
+reversible.
+
+## 2026-09-10 - Project Tiles Bend Under The Pointer Instead Of Zooming
+
+Decision: The home rail tile hover no longer scales anything. The frame's
+`scale(0.982)`, its animated top-right radius, the image's `scale(1.06)` and
+the `:active` `scale(0.962)` are removed. A fine pointer now bends only the
+image edge nearest to it inwards (`ProjectTilePress.ts`), inside a frame that
+keeps its exact box. The title's cut-out reveal is unchanged.
+
+- Reference studied live: on hellomonday.com the project images are drawn in a
+  WebGL (PIXI) canvas under a vector mask. On pointer entry the grid finds the
+  mask segment nearest the cursor and drags that segment's intermediate point
+  inwards with a GSAP ease while the corners stay pinned and the picture does
+  not move. Only that behaviour was taken; no code, shader, asset or value.
+- Technique, chosen in the requested order: an animated asymmetric
+  `border-radius` cannot produce a dent in a straight edge; a pseudo-element
+  or mask concavity would add a second painted colour or a mask image per
+  frame; an SVG mask needs per-tile SVG markup; perspective tilts the whole
+  image (rejected: "rotate de toda la tarjeta", "3D exagerado"). A
+  `clip-path: path()` generated per frame gives a true curve, needs no markup
+  beyond one wrapper, is supported by every current engine and costs one
+  style write per animation frame on one tile while it moves.
+- The clip sits on a new `.project-tile__surface`, not on the frame, so the
+  title's cut-out (outside the surface) is never clipped by the dent, and the
+  loading ground moved onto the surface so no second colour can show in the
+  bite. The page colour shows through, which matches the cut-out.
+- Magnitude is deliberately contained (16-34 px, about 6% of the tile's short
+  side) and localised (half width 0.3 of the short side); a first pass at
+  7.5% spanning the whole edge read as a cut side rather than pressure.
+- Touch, coarse pointers, keyboard focus and reduced motion get no dent: the
+  module is not bound there, which keeps the image still as briefed.
+
+Reason: explicit user brief ("la imagen se dobla", not "la tarjeta hace zoom").
+
+## 2026-09-10 - A Reveal Band Only Ever Shows The Section Before It
+
+Decision: two corrections in `SectionStack.ts`, with no change to the stack's
+choreography, triggers, scrub, pin, sticky behaviour or timing.
+
+- A sticky stack layer returns to `position: relative`
+  (`.stack-section[data-stack-released]` in `layout.css`) once the element
+  right after it reaches the top of the screen, and re-sticks as soon as the
+  reader scrolls back above that point. Only on the sticky query and only when
+  that next element is not sticky itself.
+- The entrance clip's top band is `min(layer, viewport) * 7%` in px, computed
+  on refresh, instead of `inset(7% ...)`. Both ends of the tween now share one
+  shape (`inset(Y 2.5% 0px round 5rem 5rem 0rem 0rem)` to all zeros).
+
+Reason: user report of a horizontal band of the previous section or background
+flashing between sections. Measured by hit-testing the incoming layer's band at
+1920x1080, 1440x900 and 1366x768, slow, reverse, fast and across a resize:
+
+- A sticky layer's containing block is `main`, so Services and Studio stayed
+  stuck at the top until the end of the page, behind everything after them.
+  When the section after them is not sticky (the pinned rail, the goodbye
+  stage), it scrolls away and the next layer opens its rounded band straight
+  onto the old one: the services ink, with its copy and illustration, showed as
+  a dark band and dark corners between the white rail and white Studio, and
+  Studio showed through the top of Contacto.
+- A percentage inset resolves against the layer's own height. On the 535svh
+  manifesto track 7% was ~340px, so its first word was cut while it entered;
+  on every one-screen layer the px band equals the old 7%.
+
+Rejected: hiding the covered layer with `visibility` or `opacity`, which drops
+it from the accessibility tree or leaves invisible focusable content; a
+negative margin or a 1-2px overlap, since no seam was found (the boundary rows
+hit the right layers at +-0.5px and match before and after); `pinSpacing` or
+`end` changes, since the pin was not the cause. Releasing is invisible: sticky
+and relative take the same room, the layer is fully covered at that moment, and
+if a frame lags on the way back the layer is at its own flow position right
+above the covering section, never a foreign surface.

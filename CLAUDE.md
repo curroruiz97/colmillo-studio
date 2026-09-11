@@ -212,6 +212,7 @@ registers ScrollTrigger and initializes/cleans:
   close control), focus/inert/Escape behavior, scroll lock and home progress;
 - `SectionStack.ts`: rounded stack reveal/compression;
 - `HorizontalProjects.ts`: desktop pin/scrub plus native scroll-snap fallback;
+- `ProjectTilePress.ts`: fine-pointer edge dent on the home project tiles;
 - `MagneticElements.ts`: bounded pointer response with cached bounds.
 
 Motion must support full/reduced preferences, fine/coarse pointers, keyboard,
@@ -317,9 +318,10 @@ licenses and publication approval before enabling client material.
   source (the sticky header and the manual motion toggle were both removed on
   2026-09-10 at the user's request).
 - Responsive official hero contract and CSS hero fallback.
-- Goodbye stage architecture (2026-09-10, phase 1): one permanent visual
-  layer, left editorial slides and a single round arrow button
-  (`GoodbyeSlides.ts`); visual, copy, final motion and CTA still open.
+- Goodbye stage architecture (2026-09-10, phase 1): a viewport over one
+  panoramic scene that pans from its left side to its right and back with two
+  round arrows (`GoodbyePanorama.ts`); visual, copy, final motion and CTA
+  still open.
 - Validated black/cream wordmark PNGs.
 - Production/demo Playwright matrices and integrity/link/asset/brand/hero/release
   checks.

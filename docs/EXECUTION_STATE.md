@@ -2215,3 +2215,191 @@ fixed by that session) and "the goodbye stage swaps its copy in place under
 reduced motion" (goodbye rebuild in progress).
 
 Nothing was committed, pushed or deployed.
+
+## 2026-09-10 Session: Goodbye Stage Rebuilt As A Panorama (Phase 1)
+
+User request: rebuild the pre-footer goodbye following the structure of the
+"How we do this?" block on beans.agency, architecture only — no final visual,
+copy, transition or CTA. See `docs/DECISIONS.md` ("The Goodbye Is A Viewport
+Over One Panoramic Scene") and `docs/MOTION_SPEC.md` ("Goodbye").
+
+### What it is now
+
+- One scene element, wider than the screen (200cqw by default;
+  `clamp(180cqw, height × ratio, 220cqw)` once `goodbyeVisual` holds an asset),
+  inside a clipped viewport. Section `100svh`, `overflow: hidden`.
+- Side A shows the scene's left side under block A ("Siguiente" arrow beside
+  its headline). The arrow pans the whole scene left until its right side is
+  flush with the screen (side B, block B with a "Volver" arrow); back pans it
+  home. `translateX(calc((100cqw - 100%) * var(--goodbye-progress)))`; GSAP
+  only eases the progress (1.1 s `power3.inOut`). Nothing is measured, so
+  resizing on side B stays flush.
+- Swipe on touch, ArrowLeft/ArrowRight on the arrows, focus handed to the
+  arriving arrow, requests ignored mid-travel, no autoplay. Reduced motion
+  jumps; no JavaScript rests on side A with both blocks listed.
+- Visual slot `goodbyeVisual` (video | image, `null`); until then a text-free
+  placeholder panorama (ink, orange horizon, hairline marks, disc left, ring
+  right). Copy in `src/data/goodbye.ts`: structural "Titular A"/"Titular B",
+  flagged, so the section stays out of `dist/` (verified: 0 goodbye markup).
+
+### Files
+
+- Rewritten: `src/components/sections/GoodbyeSection.astro`,
+  `src/data/goodbye.ts`, `src/styles/goodbye-section.css`; new
+  `src/scripts/motion/GoodbyePanorama.ts`; `MotionController.ts` registers it;
+  `src/config/assets.ts` (`goodbyeMedia` became `goodbyeVisual`);
+  `src/pages/index.astro` renders from `homeGoodbye`.
+- Removed: the CSS jaw/"ADIÓS" fallback from `layout.css` and `motion.css`,
+  its scrub from `SectionStack.ts`, and this session's first-pass slider
+  `GoodbyeSlides.ts` (the user corrected the concept mid-session).
+- Specs in `tests/e2e/demo.spec.ts`: the pan (one scene, same size throughout,
+  flush at both sides, focus hand-over, swipe back on touch), the reduced-motion
+  jump, and the no-JavaScript rest state.
+- Docs: `MOTION_SPEC.md`, `DECISIONS.md`, `CONTENT_NEEDED.md`,
+  `CONTENT_MODEL.md`, `CLAUDE.md`.
+
+### Verification (actually run)
+
+- `astro check` 0/0/0; `npm run lint` clean; Prettier clean on touched files.
+- `build` 9 pages; `check:production` passed (37 files, 145,778 JS bytes, incl.
+  concurrent work; the largest asset budget is 150,000, so headroom is thin);
+  `check:links` passed. `build:demo` 14 pages.
+- Demo suite 63 passed / 21 skipped; goodbye specs 54/54 over 6 repeats on all
+  three profiles. Production suite 62 passed / 10 skipped.
+- Scratch sweep at 1920x1080, 1440x900, 1366x768, 834x1112, 390x844, 320x720,
+  reduced 1440 and no-JS 1440: scene exactly 2x the viewport, side B flush
+  right, back at 0, overflow 0, no console errors; screenshots inspected.
+- Root cause of the reduced-motion spec failure on touch profiles:
+  `reduced-motion.css` gives every element a 0.01ms transition
+  (`transition-property` defaults to `all`), so a synchronous change lands on
+  the next frame; the spec now waits two frames. Not a module defect.
+
+### Important: an earlier state of this work is on `origin/main`
+
+Commit `786c9a2` ("Hold services full screen, add the home intro, Studio and
+goodbye stages", 15:46, the user's identity) was created and pushed by another
+process during this session. It contains this session's superseded slider
+(`GoodbyeSlides.ts`, "Titular 01/02/03"), so the public Vercel demo probably
+shows that version. The panorama is uncommitted. This session did not commit,
+push or deploy.
+
+Also uncommitted in the tree and NOT this session's: `ProjectTile.astro`,
+`projects-section.css`, `ProjectTilePress.ts` (and its registration in
+`MotionController.ts`), and `public/Captura de pantalla 2026-09-10 151522.png`.
+
+### Next action
+
+Phase 2 of the goodbye: choose the panoramic visual (see `CONTENT_NEEDED.md`),
+the copy for sides A and B, the CTA, and tune the travel and the copy
+hand-over. Commit the panorama files together once the user approves.
+
+## 2026-09-10 Session: Project Tile Hover Bends The Image
+
+Claude Code session at the user's request. Only the hover of the home project
+tiles changed; the horizontal scroll, image sizes and ratios, number of
+projects, section background, `Ver proyectos` CTA, project pages and every
+other section are untouched. See `docs/DECISIONS.md` ("Project Tiles Bend
+Under The Pointer Instead Of Zooming") and `docs/MOTION_SPEC.md`.
+
+### What changed
+
+- `src/scripts/motion/ProjectTilePress.ts` (new): nearest-edge dent via
+  `clip-path: path()`, pointer targets once per frame, GSAP easing, cleanup.
+- `src/scripts/motion/MotionController.ts`: one import and one call, after
+  `initHorizontalProjects()`. The file also carries another session's
+  uncommitted goodbye change (`GoodbyePanorama`), preserved as found.
+- `src/components/projects/ProjectTile.astro`: the media is wrapped in
+  `.project-tile__surface[data-tile-surface]`.
+- `src/styles/projects-section.css`: frame transitions/background and all
+  hover/active scale and radius rules removed; surface rule added.
+- `tests/e2e/demo.spec.ts`: two new specs ("a project tile bends at the edge
+  under the pointer and springs back", "reduced motion keeps the project tile
+  still on hover"). The file also holds another session's uncommitted goodbye
+  specs; `prettier --write` was run on the whole file, formatting only.
+- Docs: `MOTION_SPEC.md`, `DECISIONS.md`, this file, `CLAUDE.md` module list.
+
+### Verification
+
+- Reference analysed in Chrome (hellomonday.com): grid is a PIXI canvas with a
+  mask; nearest segment found with a point-to-edge search and dragged in.
+- Playwright visual pass against the dev server at 1440x1000, 1920x1080 and
+  1440x1000 reduced motion, cursor at right, left, top, bottom, centre,
+  top-right corner, right-low, moving along an edge, pressed, mid-entry and
+  mid-leave. Frame and all five tile boxes identical to rest at every position,
+  frame and media `transform: none`, document overflow 0, inline `clip-path`
+  empty again after leaving, no console errors. Reduced motion: no clip at any
+  position, title revealed.
+- `eslint` clean and Prettier clean on every touched file.
+- Scratch builds (shared `dist/`, `dist-demo/` untouched): standard 9 pages,
+  no rail markup; demo 14 pages. Largest/total JavaScript 145,778 bytes (budget
+  150,000 / 220,000) - within budget but the largest-asset margin is now small.
+- Rail-scoped demo specs on the scratch build: 11 passed, 13 capability skips.
+  Full demo suite on the same build: 65 passed, 25 skipped, 0 failed
+  (temporary `playwright.press-qa.config.ts`, deleted afterwards).
+  `astro check`: 87 files, 0 errors, 0 warnings, 0 hints.
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-10 Session: No Band Of An Older Section Between Layers
+
+User report: during some scroll transitions a horizontal band of the previous
+section or background flashed between two sections. Only the defect was fixed;
+sticky, pin, horizontal rail, scrub, triggers and every animation are
+unchanged. See `docs/DECISIONS.md` ("A Reveal Band Only Ever Shows The Section
+Before It").
+
+### Root causes (measured, not assumed)
+
+A scratch probe hit-tested the incoming layer's clipped band (top strip,
+rounded corners, side strips, +-0.5px around the seam) for every pair of
+adjacent home sections at 1920x1080, 1440x900, 1366x768 and 390x844: settled
+positions downwards, the same upwards, real wheel flicks down and up sampled
+mid-flight, and a resize to 1280x720 and back.
+
+- Services and Studio are `sticky` with `main` as containing block, so they
+  stayed stuck at the top until the end of the page. The rail and the goodbye
+  stage after them are not sticky and scroll away, so the NEXT layer opened its
+  band onto the old layer: services ink (its copy and illustration) between the
+  white rail and white Studio - the reported band - and Studio through the top
+  of Contacto. Reproduced in every desktop size and mode.
+- The clip used `inset(7% ...)`, a percentage of the layer's own height: ~340px
+  on the 535svh manifesto track, which cut "Morder." while it entered.
+- Not causes, checked: pin spacing and `end` (the pin covers exactly one
+  screen), margins (the one `-2rem` overlap only ever shows the manifesto),
+  transparent containers (all hits were layers, never an unpainted gap), and
+  subpixel seams (a 1px step on the services top edge is anti-aliasing of its
+  own half-pixel clip, identical before and after; no overlap was added).
+
+### Changes
+
+- `src/scripts/motion/SectionStack.ts`: on the sticky query, a sticky layer gets
+  `data-stack-released` once the element after it reaches the top (unless that
+  element is sticky too) and loses it when the reader scrolls back above that
+  point. The clip band is `min(layer, viewport) * 7%` in px, recomputed on
+  refresh (`invalidateOnRefresh`), with both tween ends in one shape.
+- `src/styles/layout.css`: `.stack-section[data-stack-released] { position:
+  relative }` inside the existing sticky media block.
+- `tests/e2e/demo.spec.ts`: new spec "no older stack layer shows through a
+  reveal band" (fine-1440). It fails on the pre-fix build and passes after.
+- `docs/MOTION_SPEC.md` (SectionStack paragraph) and `docs/DECISIONS.md`.
+
+### Verification
+
+- Probe after the fix: zero leaks in every pair, viewport and mode above, and
+  under `prefers-reduced-motion: reduce`. Horizontal overflow 0 at every size;
+  no console warnings or errors. (Before: 7 leaking families per desktop size.)
+  One remaining resize sample was checked over 3 s and is the rail legitimately
+  covering the stuck services layer, identical before the fix.
+- `astro check` 87 files 0/0/0; ESLint and Prettier (`--end-of-line auto`)
+  clean on every touched file.
+- Scratch builds (shared `dist/`, `dist-demo/` untouched): standard 9 pages,
+  `check:production` (patched copy on the scratch output) passed with 146,439
+  JS bytes; demo 14 pages.
+- Demo suite: 66 passed, 27 skipped, 0 failed. Production suite: 62 passed,
+  10 skipped, 0 failed. Temporary `playwright.seamfix-*.config.ts` files were
+  deleted afterwards.
+- Not done: inspection in the user's own Chrome, whose tab ran in the
+  background (`visibilityState: hidden`, so rAF and ScrollTrigger were paused);
+  all rendering checks ran in headless Chromium instead.
+
+Nothing was committed, pushed or deployed.

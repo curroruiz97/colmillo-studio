@@ -987,6 +987,12 @@ body > main > .content-shell {
     inset-block-start: 0;
   }
 
+  /* Covered by the section after it: back in the flow, so it can no longer
+     show through a later section's reveal band (`SectionStack.ts`). */
+  .stack-section[data-stack-released] {
+    position: relative;
+  }
+
   .manifesto-statement {
     position: sticky;
     inset-block-start: 0;

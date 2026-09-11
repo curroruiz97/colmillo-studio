@@ -276,6 +276,97 @@ test('project tiles reveal their title on hover and open their case study', asyn
   ]);
 });
 
+test('a project tile bends at the edge under the pointer and springs back', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'fine-1440');
+  await page.goto('/');
+  await expect(page.locator('[data-horizontal-projects]')).toHaveAttribute(
+    'data-projects-ready',
+  );
+  await scrollRailToTop(page);
+
+  const tile = page.locator('[data-project-card] a').first();
+  const frame = tile.locator('.project-tile__frame');
+  const surface = tile.locator('[data-tile-surface]');
+  const clip = () => surface.evaluate((element) => element.style.clipPath);
+  // Whether the pressed surface is still under a point of the frame.
+  const surfaceAt = (x: number, y: number) =>
+    page.evaluate(
+      ([px, py]) =>
+        Boolean(
+          document.elementFromPoint(px!, py!)?.closest('[data-tile-surface]'),
+        ),
+      [x, y],
+    );
+
+  const rest = await frame.boundingBox();
+  expect(rest).not.toBeNull();
+  expect(await clip()).toBe('');
+
+  // Near the right edge only that edge gives; the opposite edge stays put.
+  const middle = rest!.y + rest!.height / 2;
+  await page.mouse.move(rest!.x + rest!.width - 12, middle, { steps: 6 });
+  await expect.poll(clip).toContain('path(');
+  await page.waitForTimeout(600);
+  expect(await surfaceAt(rest!.x + rest!.width - 6, middle)).toBe(false);
+  expect(await surfaceAt(rest!.x + rest!.width - 60, middle)).toBe(true);
+  expect(await surfaceAt(rest!.x + 6, middle)).toBe(true);
+  expect(await surfaceAt(rest!.x + rest!.width / 2, rest!.y + 6)).toBe(true);
+
+  // The dent happens inside the frame: nothing scales, moves or resizes.
+  expect(await frame.boundingBox()).toEqual(rest);
+  await expect(frame).toHaveCSS('transform', 'none');
+  await expect(tile.locator('.project-tile__media')).toHaveCSS(
+    'transform',
+    'none',
+  );
+  await expect(tile.locator('.project-tile__title')).toHaveCSS('opacity', '1');
+
+  // The top edge takes over when the pointer goes there.
+  await page.mouse.move(rest!.x + rest!.width / 2, rest!.y + 10, {
+    steps: 10,
+  });
+  await page.waitForTimeout(700);
+  expect(await surfaceAt(rest!.x + rest!.width / 2, rest!.y + 6)).toBe(false);
+  expect(await surfaceAt(rest!.x + rest!.width - 6, middle)).toBe(true);
+
+  // Leaving releases it back to the untouched rectangle.
+  await page.mouse.move(2, 2);
+  await expect.poll(clip).toBe('');
+  expect(await frame.boundingBox()).toEqual(rest);
+});
+
+test('reduced motion keeps the project tile still on hover', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'fine-1440');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  await expect(page.locator('[data-horizontal-projects]')).toHaveAttribute(
+    'data-projects-ready',
+  );
+  await scrollRailToTop(page);
+
+  const tile = page.locator('[data-project-card] a').first();
+  const box = await tile.boundingBox();
+  expect(box).not.toBeNull();
+  await page.mouse.move(box!.x + box!.width - 12, box!.y + box!.height / 2, {
+    steps: 6,
+  });
+  await expect(tile.locator('.project-tile__title')).toHaveCSS('opacity', '1');
+  await page.waitForTimeout(500);
+  expect(
+    await tile
+      .locator('[data-tile-surface]')
+      .evaluate((element) => element.style.clipPath),
+  ).toBe('');
+  await expect(tile.locator('.project-tile__frame')).toHaveCSS(
+    'transform',
+    'none',
+  );
+});
+
 test('touch screens show every project title without hover', async ({
   page,
 }, testInfo) => {
@@ -1304,7 +1395,7 @@ async function scrollGoodbyeToTop(page: Page) {
   await page.waitForTimeout(600);
 }
 
-/** Boxes of the stage and the indices of the slides a reader can see. */
+/** Where the one scene sits and which editorial block a reader can see. */
 async function measureGoodbye(page: Page) {
   return page.locator('[data-goodbye]').evaluate((section) => {
     const box = (element: Element | null) => {
@@ -1312,29 +1403,35 @@ async function measureGoodbye(page: Page) {
       return {
         top: Math.round(rect.top),
         left: Math.round(rect.left),
+        right: Math.round(rect.right),
         width: Math.round(rect.width),
         height: Math.round(rect.height),
       };
     };
-    const slides = [...section.querySelectorAll('[data-goodbye-slide]')];
+    const shown = (element: Element | null) => {
+      const style = getComputedStyle(element!);
+      return style.visibility === 'visible' && Number(style.opacity) > 0.5;
+    };
+    const startStop = section.querySelector('[data-goodbye-stop="start"]');
+    const endStop = section.querySelector('[data-goodbye-stop="end"]');
     return {
       viewportHeight: window.innerHeight,
-      index: (section as HTMLElement).dataset.goodbyeIndex ?? '0',
+      overflow:
+        document.documentElement.scrollWidth -
+        document.documentElement.clientWidth,
+      at: (section as HTMLElement).dataset.goodbyeAt,
+      scenes: section.querySelectorAll('[data-goodbye-scene]').length,
       section: box(section),
-      composition: box(section.querySelector('.goodbye-section__composition')),
-      visual: box(section.querySelector('.goodbye-section__visual')),
-      visible: slides.flatMap((slide, position) => {
-        const style = getComputedStyle(slide);
-        return style.visibility === 'visible' && Number(style.opacity) > 0.5
-          ? [position]
-          : [];
-      }),
-      inert: slides.map((slide) => (slide as HTMLElement).inert),
+      scene: box(section.querySelector('[data-goodbye-scene]')),
+      startShown: shown(startStop),
+      endShown: shown(endStop),
+      startInert: (startStop as HTMLElement).inert,
+      endInert: (endStop as HTMLElement).inert,
     };
   });
 }
 
-test('the goodbye stage changes its copy over a visual that never moves', async ({
+test('the goodbye stage pans one panoramic scene from its left side to its right', async ({
   page,
 }, testInfo) => {
   await page.goto('/');
@@ -1344,51 +1441,67 @@ test('the goodbye stage changes its copy over a visual that never moves', async 
   // `check:production` keeps them out of `dist/`.
   await expect(section).toHaveAttribute('data-dev-placeholder');
   await expect(section).toHaveAttribute('data-goodbye-enhanced', 'true');
-  await expect(section.locator('[data-goodbye-slide]')).toHaveCount(3);
-
-  // Not a traditional carousel: one arrow button and nothing else to press,
-  // no visible counter, no autoplay.
-  const next = section.getByRole('button', { name: 'Siguiente' });
-  await expect(section.getByRole('button')).toHaveCount(1);
-  await expect(next).toHaveAttribute('aria-controls', 'goodbye-slides');
+  // Not a carousel: one scene, one arrow per side, no counter.
+  await expect(section.locator('[data-goodbye-scene]')).toHaveCount(1);
+  await expect(section.locator('[data-goodbye-travel]')).toHaveCount(2);
   await expect(section.getByText(/\b\d+\s*\/\s*\d+\b/)).toHaveCount(0);
+  await expect(section).toHaveCSS('overflow', 'hidden');
 
   await scrollGoodbyeToTop(page);
   const start = await measureGoodbye(page);
-  expect(start.visible).toEqual([0]);
-  expect(start.inert).toEqual([false, true, true]);
+  expect(start.overflow).toBeLessThanOrEqual(1);
   if (testInfo.project.name === 'fine-1440') {
-    // Exactly one screen on a desktop.
     expect(start.section.height).toBe(start.viewportHeight);
   } else {
     expect(start.section.height).toBeGreaterThanOrEqual(start.viewportHeight);
   }
 
+  // Side A: a scene far wider than the screen, showing its left side, under
+  // the first block.
+  expect(start.at).toBe('start');
+  expect(start.scene.width).toBeGreaterThanOrEqual(start.section.width * 1.7);
+  expect(start.scene.left).toBe(start.section.left);
+  expect([start.startShown, start.endShown]).toEqual([true, false]);
+  expect([start.startInert, start.endInert]).toEqual([false, true]);
+
   // Nothing moves on its own.
-  await page.waitForTimeout(1500);
-  expect((await measureGoodbye(page)).index).toBe('0');
+  await page.waitForTimeout(1200);
+  expect((await measureGoodbye(page)).scene.left).toBe(start.scene.left);
 
-  const advance = async (expected: string) => {
-    await expect
-      .poll(async () => {
-        const state = await measureGoodbye(page);
-        return `${state.index}:${state.visible.join(',')}`;
-      })
-      .toBe(`${expected}:${expected}`);
-    const state = await measureGoodbye(page);
-    // The copy changed; the layout, the section and the visual did not.
-    expect(state.composition).toEqual(start.composition);
-    expect(state.section).toEqual(start.section);
-    expect(state.visual).toEqual(start.visual);
-    return state;
-  };
-
+  const next = section.locator('[data-goodbye-travel="next"]');
+  await expect(next).toHaveAccessibleName('Siguiente');
   await next.click();
-  const second = await advance('1');
-  expect(second.inert).toEqual([true, false, true]);
+
+  // Mid-travel: the same scene, the same size, part of the way across.
+  await page.waitForTimeout(450);
+  const mid = await measureGoodbye(page);
+  expect(mid.scenes).toBe(1);
+  expect(mid.scene.width).toBe(start.scene.width);
+  expect(mid.scene.height).toBe(start.scene.height);
+  expect(mid.scene.left).toBeLessThan(start.scene.left - 20);
+  expect(mid.scene.right).toBeGreaterThan(start.section.right + 20);
+
+  // Side B: the scene's right edge on the screen's right edge.
+  await expect
+    .poll(async () => {
+      const state = await measureGoodbye(page);
+      return Math.abs(state.scene.right - state.section.right);
+    })
+    .toBeLessThanOrEqual(1);
+  const end = await measureGoodbye(page);
+  expect(end.at).toBe('end');
+  expect(end.scene.width).toBe(start.scene.width);
+  expect(end.section).toEqual(start.section);
+  expect([end.startShown, end.endShown]).toEqual([false, true]);
+  expect([end.startInert, end.endInert]).toEqual([true, false]);
+
+  // Focus followed the reader to the back arrow.
+  const back = section.locator('[data-goodbye-travel="back"]');
+  await expect(back).toHaveAccessibleName('Volver');
+  await expect(back).toBeFocused();
 
   if (testInfo.project.name.startsWith('touch')) {
-    // A horizontal swipe to the left is the same request as the button.
+    // Dragging to the right brings the left side back, like the back arrow.
     await section.evaluate((element) => {
       const at = (clientX: number) => ({
         pointerType: 'touch',
@@ -1397,57 +1510,154 @@ test('the goodbye stage changes its copy over a visual that never moves', async 
         clientY: 300,
         bubbles: true,
       });
-      element.dispatchEvent(new PointerEvent('pointerdown', at(260)));
-      element.dispatchEvent(new PointerEvent('pointerup', at(120)));
+      element.dispatchEvent(new PointerEvent('pointerdown', at(120)));
+      element.dispatchEvent(new PointerEvent('pointerup', at(260)));
     });
   } else {
-    await next.click();
+    await page.keyboard.press('Enter');
   }
-  await advance('2');
 
-  // The last slide wraps to the first, still entering from the right, and the
-  // keyboard stays on the one control.
-  await next.focus();
-  await page.keyboard.press('Enter');
-  await advance('0');
-  await expect(next).toBeFocused();
+  // Home again: the same scene travelled back to its left side.
+  await expect
+    .poll(async () => (await measureGoodbye(page)).scene.left)
+    .toBe(start.scene.left);
+  const home = await measureGoodbye(page);
+  expect(home.at).toBe('start');
+  expect([home.startShown, home.endShown]).toEqual([true, false]);
 });
 
-test('the goodbye stage swaps its copy in place under reduced motion', async ({
+test('the goodbye stage jumps between sides without travel under reduced motion', async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
   await scrollGoodbyeToTop(page);
-  const start = await measureGoodbye(page);
 
-  await page.locator('[data-goodbye-next]').click();
+  await page.locator('[data-goodbye-travel="next"]').click();
+  // `reduced-motion.css` gives every property a 0.01ms transition, so even an
+  // instant change lands on the next frame. Two frames, not the 1.1s travel.
+  await page.evaluate(
+    () =>
+      new Promise((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(resolve)),
+      ),
+  );
   const state = await measureGoodbye(page);
-  expect(state.index).toBe('1');
-  expect(state.visible, JSON.stringify(state)).toEqual([1]);
-  expect(state.composition).toEqual(start.composition);
-  // No travel: the new slide is already home.
-  const transform = await page
-    .locator('[data-goodbye-slide]')
-    .nth(1)
-    .evaluate((slide) => getComputedStyle(slide).transform);
-  expect(['none', 'matrix(1, 0, 0, 1, 0, 0)']).toContain(transform);
+  expect(state.at).toBe('end');
+  expect(Math.abs(state.scene.right - state.section.right)).toBeLessThanOrEqual(
+    1,
+  );
+  expect([state.startShown, state.endShown], JSON.stringify(state)).toEqual([
+    false,
+    true,
+  ]);
+});
+
+/**
+ * A reveal band (the incoming layer's clipped top strip, rounded corners and
+ * side strips) may only show the section right before it or the page. The
+ * services ink used to show between the rail and Studio, and Studio through the
+ * top of Contacto, because both stayed stuck behind everything after them.
+ */
+test('no older stack layer shows through a reveal band', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'fine-1440');
+  await page.goto('/');
+  await expect(page.locator('[data-horizontal-projects]')).toHaveAttribute(
+    'data-horizontal-enhanced',
+    'true',
+  );
+
+  // The band is 7% of the screen, not of the layer: the manifesto is several
+  // screens tall and a 7% inset of its own height cut its first word.
+  const viewportHeight = page.viewportSize()?.height ?? 0;
+  const band = await page
+    .locator('#manifiesto')
+    .evaluate((element) =>
+      Number(/^inset\(([\d.]+)px/.exec(element.style.clipPath)?.[1]),
+    );
+  expect(band).toBeGreaterThan(0);
+  expect(band).toBeLessThanOrEqual(Math.ceil(viewportHeight * 0.07));
+
+  const scrollTo = (selector: string, fraction: number) =>
+    page.locator(selector).evaluate((element, share) => {
+      window.scrollTo({
+        top:
+          element.getBoundingClientRect().top +
+          window.scrollY -
+          window.innerHeight * share,
+        behavior: 'instant',
+      });
+    }, fraction);
+
+  for (const selector of ['#studio', '#contacto']) {
+    for (const fraction of [0.85, 0.6, 0.4]) {
+      await scrollTo(selector, fraction);
+      await page.waitForTimeout(900);
+      const leaks = await page.locator(selector).evaluate((incoming) => {
+        const layers = [...document.querySelector('main')!.children];
+        const layerOf = (element: Element | null) =>
+          layers.find((layer) => element && layer.contains(element));
+        const own = layerOf(incoming)!;
+        const allowed = new Set([own, own.previousElementSibling]);
+        const top = incoming.getBoundingClientRect().top;
+        const found: string[] = [];
+        for (const y of [0.5, 2, 0.02, 0.04, 0.065].map((offset) =>
+          offset < 1 && offset > 0.01
+            ? top + window.innerHeight * offset
+            : top + offset,
+        )) {
+          for (const x of [3, 18, 40, window.innerWidth / 2]) {
+            const layer = layerOf(document.elementFromPoint(x, y));
+            if (layer && !allowed.has(layer)) {
+              const shown =
+                layer.classList.contains('pin-spacer') &&
+                layer.firstElementChild
+                  ? layer.firstElementChild
+                  : layer;
+              found.push(`${shown.id || shown.className} at ${x},${y - top}`);
+            }
+          }
+        }
+        return found;
+      });
+      expect(leaks, `${selector} entering at ${fraction}`).toEqual([]);
+    }
+  }
+
+  // Scrolling back re-sticks a released layer before it can be seen. The rail
+  // is measured by its pin spacer: past the pin the section itself sits at the
+  // spacer's far end.
+  await scrollTo('.pin-spacer:has(#proyectos)', 0.5);
+  await page.waitForTimeout(900);
+  const services = page.locator('#servicios');
+  await expect(services).not.toHaveAttribute('data-stack-released');
+  await expect(services).toHaveCSS('position', 'sticky');
 });
 
 test.describe('without JavaScript', () => {
   test.use({ javaScriptEnabled: false });
 
-  test('the goodbye stage lists every slide and hides its button', async ({
+  test('the goodbye stage rests on its left side and lists both blocks', async ({
     page,
   }) => {
     await page.goto('/');
     const section = page.locator('[data-goodbye]');
-    await expect(section.locator('[data-goodbye-next]')).toBeHidden();
-    const titles = section.locator('.goodbye-slide__title');
-    await expect(titles).toHaveCount(3);
-    for (let position = 0; position < 3; position += 1) {
+    await expect(section.locator('[data-goodbye-travel]')).toHaveCount(2);
+    await expect(section.locator('[data-goodbye-travel]').first()).toBeHidden();
+    await expect(section.locator('[data-goodbye-travel]').last()).toBeHidden();
+    const titles = section.locator('.goodbye-stop__title');
+    await expect(titles).toHaveCount(2);
+    for (let position = 0; position < 2; position += 1) {
       await titles.nth(position).scrollIntoViewIfNeeded();
       await expect(titles.nth(position)).toBeVisible();
     }
+    const offset = await section.evaluate(
+      (element) =>
+        element.querySelector('[data-goodbye-scene]')!.getBoundingClientRect()
+          .left - element.getBoundingClientRect().left,
+    );
+    expect(Math.round(offset)).toBe(0);
   });
 });

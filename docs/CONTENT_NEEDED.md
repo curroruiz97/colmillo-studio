@@ -59,13 +59,19 @@ Still missing:
 - Goodbye animation source and approved derivatives under
   `public/assets/motion/goodbye/` (`goodbye.webm`, `goodbye.mp4`,
   `goodbye-poster.webp`).
-- Goodbye stage (rebuilt 2026-09-10, architecture only), still to be decided
-  before it can publish: whether its permanent visual is a video or an image,
-  and that file; the copy of each slide (a large title and an optional
-  supporting line, as many slides as wanted); the section's accessible name;
-  the final transition; and whether it carries a CTA and where it leads. The
-  slides in `src/data/goodbye.ts` are structural placeholders ("Titular 01"…)
-  and never reach `dist/`.
+- Goodbye stage (rebuilt 2026-09-10 as a pan across one panoramic scene,
+  architecture only), still to be decided before it can publish:
+  - the panoramic visual itself, video or image. It fills the screen's height
+    and spans 180-220% of its width (on a 16:9 desktop, roughly a 3.2:1 to
+    3.9:1 frame), so it needs a composition that works as a left half and a
+    right half, with calm areas where each block of copy sits. Portrait phones
+    will crop it with `object-fit: cover`;
+  - the copy for side A (left) and side B (right): a large title and an
+    optional supporting line each;
+  - whether side B carries a CTA, its label and destination;
+  - the section's accessible name and the final transition.
+  The copy in `src/data/goodbye.ts` is structural ("Titular A", "Titular B")
+  and never reaches `dist/`.
 - Permission to convert GIF assets to WebM/MP4 for production performance.
 
 Open questions on the supplied hero master:

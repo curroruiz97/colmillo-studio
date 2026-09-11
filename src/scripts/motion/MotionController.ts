@@ -3,7 +3,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { initCustomCursor } from './CustomCursor';
 import { initEdgeMenu } from './EdgeMenu';
 import { initEditorialMotion } from './EditorialMotion';
-import { initGoodbyeSlides } from './GoodbyeSlides';
+import { initGoodbyePanorama } from './GoodbyePanorama';
 import { initHeroMotion } from './HeroMotion';
 import { initHomeIntro } from './HomeIntro';
 import { initHorizontalProjects } from './HorizontalProjects';
@@ -11,6 +11,7 @@ import { initInstagramBadge } from './InstagramBadge';
 import { initMagneticElements } from './MagneticElements';
 import { initManifestoMotion } from './ManifestoMotion';
 import { initMotionPreference } from './MotionPreference';
+import { initProjectTilePress } from './ProjectTilePress';
 import { initSectionStack } from './SectionStack';
 import { initServicesMotion } from './ServicesMotion';
 import { initStudioMotion } from './StudioMotion';
@@ -39,8 +40,9 @@ export function initMotion(): void {
     initSectionStack(),
     initServicesMotion(),
     initHorizontalProjects(),
+    initProjectTilePress(),
     initStudioMotion(),
-    initGoodbyeSlides(),
+    initGoodbyePanorama(),
     initMagneticElements(),
   ];
 

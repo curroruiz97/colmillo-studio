@@ -1,4 +1,17 @@
 import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+/** Where `layout.css` makes a stack layer sticky. */
+const STICKY_QUERY = '(min-width: 64.01rem) and (min-height: 40rem)';
+
+/*
+ * The reveal band is 7% of the screen, never of the layer. A percentage inset
+ * resolves against the layer's own height, so on the manifesto (a track more
+ * than five screens tall) it clipped ~340px and cut its first word as it
+ * entered. On every layer that is exactly one screen tall the band is the same.
+ */
+const bandTop = (section: HTMLElement) =>
+  Math.round(Math.min(section.offsetHeight, window.innerHeight) * 0.07);
 
 export function initSectionStack(): () => void {
   const sections = gsap.utils.toArray<HTMLElement>('[data-stack-section]');
@@ -15,14 +28,16 @@ export function initSectionStack(): () => void {
 
   const context = gsap.context(() => {
     sections.forEach((section, index) => {
+      // Both ends share one shape, so every value interpolates in pairs.
       gsap.fromTo(
         section,
         {
-          clipPath: 'inset(7% 2.5% 0 round 5rem 5rem 0 0)',
+          clipPath: () =>
+            `inset(${bandTop(section)}px 2.5% 0px round 5rem 5rem 0rem 0rem)`,
           borderRadius: '5rem 5rem 0 0',
         },
         {
-          clipPath: 'inset(0% 0% 0 round 0rem)',
+          clipPath: 'inset(0px 0% 0px round 0rem 0rem 0rem 0rem)',
           borderRadius: '0rem',
           ease: 'none',
           scrollTrigger: {
@@ -30,6 +45,7 @@ export function initSectionStack(): () => void {
             start: 'top 92%',
             end: 'top 38%',
             scrub: 0.6,
+            invalidateOnRefresh: true,
           },
         },
       );
@@ -54,7 +70,48 @@ export function initSectionStack(): () => void {
     });
   });
 
+  /*
+   * A sticky layer stays stuck at the top of `main` until the page ends, so it
+   * sits behind everything that follows it. When the section right after it is
+   * not sticky (the pinned project rail, the goodbye stage), that section
+   * scrolls away and the NEXT one opens its rounded band straight onto the old
+   * layer: the services ink showed between the white rail and Studio, and
+   * Studio showed through the top of Contacto.
+   *
+   * So a layer is released back into the flow once the section after it covers
+   * the whole screen. Sticky and relative take the same room, so nothing
+   * shifts, and at that moment the layer is entirely covered, so the switch is
+   * invisible; scrolling back re-sticks it before it can be seen. It is not
+   * hidden: it stays in the accessibility tree and focusable.
+   */
+  const release = gsap.matchMedia();
+  release.add(STICKY_QUERY, () => {
+    const triggers = sections.flatMap((section) => {
+      const next = section.nextElementSibling;
+      if (!(next instanceof HTMLElement)) return [];
+      if (getComputedStyle(section).position !== 'sticky') return [];
+      if (getComputedStyle(next).position === 'sticky') return [];
+      const set = (released: boolean) => {
+        if (released) section.dataset.stackReleased = 'true';
+        else delete section.dataset.stackReleased;
+      };
+      return ScrollTrigger.create({
+        trigger: next,
+        start: 'top top',
+        end: 'max',
+        // Past `max` is still covered: only going back above `start` re-sticks.
+        onToggle: (self) => set(self.progress > 0),
+        onRefresh: (self) => set(self.progress > 0),
+      });
+    });
+    return () => {
+      triggers.forEach((trigger) => trigger.kill());
+      sections.forEach((section) => delete section.dataset.stackReleased);
+    };
+  });
+
   return () => {
+    release.revert();
     context.revert();
     sections.forEach((section) => delete section.dataset.stackReady);
   };

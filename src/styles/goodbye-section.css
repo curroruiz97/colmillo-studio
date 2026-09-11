@@ -1,58 +1,116 @@
 /*
  * GOODBYE — the pre-footer stage (phase 1: architecture)
  *
- * One screen. A permanent visual layer fills the section and never changes;
- * over it sits an editorial block on the left: the slides' copy and one round
- * arrow button hanging off the headline's last line, read as one composition.
- * Only the copy moves.
+ * A fixed viewport over one panoramic scene, wider than the screen. The stage
+ * opens on the scene's left side with the first editorial block; the arrow
+ * pans the whole scene sideways, like a camera, until its right side fills the
+ * screen and the second block appears. The back arrow pans it home. One
+ * visual, never swapped, faded or cut.
  *
- * Until the final visual is chosen the stage is the bare ink surface: white
- * type and the orange button on black. Copy, visual, transition and CTA are
- * the next phase's decisions; the sizes below are a neutral baseline.
+ * The travel is exact by construction: the viewport is a size container, so
+ * `100cqw - 100%` is always the scene's overhang, whatever the screen or the
+ * asset, and nothing is measured or hard-coded. `GoodbyePanorama.ts` only
+ * eases one number, `--goodbye-progress`, from 0 (left side) to 1 (right).
+ *
+ * Until the final visual is chosen the scene is a development placeholder: a
+ * continuous ink panorama with an orange horizon, hairline marks and two
+ * shapes, so the travel reads. Copy, visual, final motion and CTA are the next
+ * phase's decisions; the sizes below are a neutral baseline.
  */
 
 .goodbye-section {
   position: relative;
   z-index: 15;
   display: grid;
+  block-size: 100svh;
   min-block-size: 100svh;
-  overflow: clip;
+  overflow: hidden;
   background: var(--color-brand-ink);
   color: var(--color-white);
 }
 
-/*
- * Exactly one screen on a desktop once the slides share one cell. A short
- * window, every narrower screen and the no-JavaScript list grow with their
- * content instead of cutting it.
- */
-@media (min-width: 64.01rem) and (min-height: 40rem) {
-  .goodbye-section[data-goodbye-enhanced] {
-    block-size: 100svh;
+/* Phones and very short windows keep one screen as a minimum but grow with
+   their content rather than cut it. */
+@media (max-width: 47.99rem), (max-height: 32rem) {
+  .goodbye-section {
+    block-size: auto;
   }
 }
 
-/* Vertical pans stay native scroll; a horizontal swipe changes the slide. */
+/* Vertical pans stay native scroll; a horizontal swipe travels the scene. */
 .goodbye-section[data-goodbye-enhanced] {
   touch-action: pan-y pinch-zoom;
 }
 
-/* ---------------------------------------------------------- visual --- */
+/* ----------------------------------------------------------- scene --- */
 
-.goodbye-section__visual {
+.goodbye-section__viewport {
   position: absolute;
   inset: 0;
+  overflow: hidden;
+  container-type: size;
   pointer-events: none;
 }
 
-.goodbye-section__visual > :is(video, img) {
+.goodbye-section__scene {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: var(--goodbye-scene-width, 200cqw);
+  transform: translateX(calc((100cqw - 100%) * var(--goodbye-progress, 0)));
+}
+
+.goodbye-section__scene > :is(video, img) {
   display: block;
   inline-size: 100%;
   block-size: 100%;
   object-fit: cover;
 }
 
-/* ------------------------------------------------------ composition --- */
+/*
+ * Development placeholder: one continuous panorama, no text. A horizon and a
+ * mark every 5% of the scene make the travel legible; the disc belongs to the
+ * left side and the ring to the right side, both beside the copy, not under it.
+ */
+.goodbye-section__placeholder {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      to bottom,
+      transparent calc(62% - 1px),
+      var(--color-brand-orange) calc(62% - 1px) calc(62% + 1px),
+      transparent calc(62% + 1px)
+    ),
+    repeating-linear-gradient(
+      to right,
+      rgb(255 255 255 / 12%) 0 1px,
+      transparent 1px 5%
+    );
+}
+
+.goodbye-section__mark {
+  position: absolute;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  translate: -50% -50%;
+}
+
+.goodbye-section__mark--disc {
+  inset-block-start: 62%;
+  inset-inline-start: 34%;
+  inline-size: min(34cqh, 17cqw);
+  background: var(--color-brand-orange);
+}
+
+.goodbye-section__mark--ring {
+  inset-block-start: 40%;
+  inset-inline-start: 64%;
+  inline-size: min(46cqh, 23cqw);
+  border: var(--border-width) solid var(--color-white);
+}
+
+/* ------------------------------------------------------------ copy --- */
 
 .goodbye-section__inner {
   position: relative;
@@ -61,51 +119,44 @@
   padding-block: clamp(5rem, 12svh, 8rem);
 }
 
-.goodbye-section__composition {
+/* Without JavaScript both blocks are read in turn. */
+.goodbye-section__stops {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  column-gap: clamp(1rem, 2.4vw, 2.5rem);
-  max-inline-size: min(100%, 60rem);
+  row-gap: clamp(3rem, 8vw, 5rem);
 }
 
-/* Without JavaScript every slide is read in turn. */
-.goodbye-section__viewport {
-  display: grid;
-  row-gap: clamp(2.5rem, 6vw, 4rem);
-}
-
-/*
- * Enhanced: every slide sits in the same cell, and through subgrid every
- * title shares row 1 and every body row 2. The block is therefore as tall as
- * its tallest slide, and the button in row 1 always hangs off the headline.
- * The column clips sideways only, so the hand-over is masked at its edges
- * while descenders and accents keep their room.
- */
-[data-goodbye-enhanced] .goodbye-section__composition {
-  grid-template-rows: auto auto;
-}
-
-[data-goodbye-enhanced] .goodbye-section__viewport {
-  grid-column: 1;
-  grid-row: 1 / span 2;
-  grid-template-rows: subgrid;
+/* Enhanced: both blocks share one cell, so the stage never changes height. */
+[data-goodbye-enhanced] .goodbye-section__stops {
+  grid-template-areas: 'stop';
   row-gap: 0;
-  overflow-x: clip;
 }
 
-[data-goodbye-enhanced] .goodbye-slide {
-  display: grid;
-  grid-column: 1;
-  grid-row: 1 / span 2;
-  grid-template-rows: subgrid;
+[data-goodbye-enhanced] .goodbye-stop {
+  grid-area: stop;
+  align-self: center;
 }
 
-/* ------------------------------------------------------------ copy --- */
+/* On a wide screen the second block sits over the side the scene reveals. */
+@media (min-width: 64.01rem) {
+  [data-goodbye-enhanced] .goodbye-stop--end {
+    justify-self: end;
+  }
+}
 
-.goodbye-slide__title {
-  grid-row: 1;
-  align-self: end;
-  max-inline-size: 16ch;
+.goodbye-stop {
+  max-inline-size: min(100%, 46rem);
+}
+
+/* The arrow and the headline are one composition, sitting on its last line. */
+.goodbye-stop__head {
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(1rem, 2.2vw, 2.25rem);
+}
+
+.goodbye-stop__title {
+  min-inline-size: 0;
+  max-inline-size: 14ch;
   margin: 0;
   font-size: clamp(2.6rem, 5.8vw, 6.5rem);
   font-weight: 850;
@@ -116,21 +167,22 @@
   hyphens: auto;
 }
 
-.goodbye-slide__body {
-  grid-row: 2;
+.goodbye-stop__body {
   max-inline-size: 36ch;
   margin: clamp(1.25rem, 2.2vw, 2rem) 0 0;
   font-size: clamp(1.02rem, 1.25vw, 1.3rem);
   line-height: 1.45;
 }
 
-/* ---------------------------------------------------------- button --- */
+.goodbye-stop__cta {
+  margin-block-start: clamp(1.75rem, 3vw, 2.75rem);
+}
 
-.goodbye-section__next {
+/* ---------------------------------------------------------- arrows --- */
+
+.goodbye-stop__travel {
+  flex: none;
   display: grid;
-  grid-column: 2;
-  grid-row: 1;
-  align-self: end;
   place-items: center;
   inline-size: clamp(3.5rem, 5.4vw, 6rem);
   aspect-ratio: 1;
@@ -144,40 +196,49 @@
   transition: scale var(--duration-fast) var(--ease-bite);
 }
 
-.goodbye-section__next[hidden] {
+.goodbye-stop__travel[hidden] {
   display: none;
 }
 
-.goodbye-section__next svg {
+.goodbye-stop__travel svg {
   inline-size: 42%;
   block-size: auto;
   transition: translate var(--duration-medium) var(--ease-bite);
 }
 
-.goodbye-section__next:active {
+.goodbye-stop__travel:active {
   scale: 0.94;
 }
 
-.goodbye-section__next:focus-visible {
+.goodbye-stop__travel:focus-visible {
   outline: 3px solid var(--color-white);
   outline-offset: 4px;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .goodbye-section__next:hover svg {
+  [data-goodbye-travel='next']:hover svg {
     translate: 12% 0;
+  }
+
+  [data-goodbye-travel='back']:hover svg {
+    translate: -12% 0;
   }
 }
 
 /* ----------------------------------------------------------- phone --- */
 
 @media (max-width: 47.99rem) {
-  .goodbye-slide__title {
+  .goodbye-stop__title {
     font-size: clamp(2rem, 10vw, 3.4rem);
   }
 
   /* Still well above the 44px touch-target minimum. */
-  .goodbye-section__next {
+  .goodbye-stop__travel {
     inline-size: 3.25rem;
+  }
+
+  /* The copy spans the screen here, so the placeholder ring rises above it. */
+  .goodbye-section__mark--ring {
+    inset-block-start: 22%;
   }
 }

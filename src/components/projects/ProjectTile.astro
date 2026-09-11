@@ -12,10 +12,12 @@ const { project } = Astro.props;
 {
   /*
   One piece of the home rail: the image is the whole tile. The title is always
-  in the DOM - it names the link - and is revealed visually by a cream cut-out
-  on hover, on keyboard focus, and permanently on screens without hover. The
-  cover is decorative here because the visible title already says where the
-  link goes; the case study page carries its full alternative text.
+  in the DOM - it names the link - and is revealed visually by a page-coloured
+  cut-out on hover, on keyboard focus, and permanently on screens without
+  hover. The cover is decorative here because the visible title already says
+  where the link goes; the case study page carries its full alternative text.
+  The surface is what a fine pointer presses (`ProjectTilePress.ts`); the
+  label sits outside it so the dent never clips the title.
 */
 }
 <a
@@ -24,11 +26,13 @@ const { project } = Astro.props;
   data-cursor-label="Abrir"
 >
   <div class="project-tile__frame">
-    <ProjectMedia
-      media={project.cover}
-      class="project-tile__media"
-      decorative
-    />
+    <div class="project-tile__surface" data-tile-surface>
+      <ProjectMedia
+        media={project.cover}
+        class="project-tile__media"
+        decorative
+      />
+    </div>
     <div class="project-tile__label">
       <h3 class="project-tile__title">{project.title}</h3>
       <span class="project-tile__arrow" aria-hidden="true">↗</span>

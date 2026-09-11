@@ -152,16 +152,25 @@
   text-decoration: none;
 }
 
+/* The frame is the tile's fixed geometry; it never moves, scales or reshapes. */
 .project-tile__frame {
   position: absolute;
   inset: 0;
   overflow: hidden;
   isolation: isolate;
   border-radius: var(--tile-radius);
+}
+
+/*
+ * What the pointer presses. `ProjectTilePress.ts` bends the edge nearest a
+ * fine pointer inwards with a `clip-path` on this layer only, so the page
+ * shows through the dent while the frame keeps its size. It carries the
+ * loading ground itself, so no second colour can appear in the bite.
+ */
+.project-tile__surface {
+  position: absolute;
+  inset: 0;
   background: var(--color-brand-cream-deep);
-  transition:
-    transform 560ms var(--ease-bite),
-    border-radius 560ms var(--ease-bite);
 }
 
 .project-tile .project-tile__media {
@@ -173,7 +182,6 @@
   border: 0;
   border-radius: 0;
   object-fit: cover;
-  transition: transform 760ms var(--ease-bite);
 }
 
 /*
@@ -245,26 +253,11 @@
 }
 
 /*
- * Hover is pressure: the frame gives a little and bites its top corner, the
- * picture pushes against it, and the cut-out rises with the name. Leaving
- * plays the same transitions back.
+ * Hover is pressure: the edge under a fine pointer gives (script-driven, see
+ * the surface above) while the cut-out rises with the name. Nothing scales.
+ * Leaving plays the same transitions back.
  */
 @media (hover: hover) {
-  .project-tile__link:hover .project-tile__frame {
-    border-radius: var(--tile-radius) calc(var(--tile-radius) * 2.6)
-      var(--tile-radius) var(--tile-radius);
-    transform: scale(0.982);
-  }
-
-  .project-tile__link:hover .project-tile__media {
-    transform: scale(1.06);
-  }
-
-  .project-tile__link:active .project-tile__frame {
-    transform: scale(0.962);
-    transition-duration: 160ms;
-  }
-
   .project-tile__link:hover .project-tile__label {
     transform: none;
   }
