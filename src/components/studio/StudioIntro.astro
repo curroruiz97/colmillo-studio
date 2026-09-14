@@ -2,68 +2,76 @@
 /**
  * /studio/ — 02 "Somos Colmillo"
  *
- * An asymmetric spread: the headline takes a little over half the width, the
- * text sits in a narrower column to the right and lower down, and nothing is
- * boxed. The only colour is the orange full stop, a short orange rule and the
- * accent at the end of the lede.
+ * On the page's shared editorial grid (the same container and columns as
+ * "Cómo hacemos las cosas"): a short orange rule and the heading in the list's
+ * column with, beside them in the picture's column, a thin orange ring with a
+ * small dot; the text under them spans the section's full width. Every paragraph has the same treatment, so the
+ * text reads as one piece; the only colour inside it is "provocar algo".
  *
- * The headline lines rise out of their own clips and the text settles in once
- * on entry (`StudioPage.ts`); there is no pin.
+ * The ring slot is also the Colmillo orbit's stop in this section
+ * (`data-orbit-station`). Where the orbit travels (wide screens, motion
+ * allowed) the orbit arrives here and the still ring steps aside; everywhere
+ * else the still ring stays, and a fine pointer nudges it (`StudioOrbit.ts`).
+ *
+ * On entry (`StudioPageMotion.ts`) the rule draws in from the left while the
+ * heading and each paragraph settle upwards in turn and the ring turns in.
  */
-import { splitClosingMark, type StudioIntroCopy } from '@/data/studioPage';
+import StudioRing from '@/components/studio/StudioRing.astro';
+import type { StudioIntroCopy } from '@/data/studioPage';
 
 interface Props {
   intro: StudioIntroCopy;
 }
 
 const { intro } = Astro.props;
+const { lede } = intro;
 ---
 
 <section
   class="studio-intro"
   aria-labelledby="studio-intro-title"
-  data-surface-tone="light"
+  data-surface-tone="dark"
   data-reveal-group
   data-dev-placeholder={intro.placeholder ? '' : undefined}
 >
-  <div class="content-shell studio-intro__grid">
-    <h2 id="studio-intro-title" class="studio-intro__title">
-      {
-        intro.title.map((line) => {
-          const { text, mark } = splitClosingMark(line);
-          return (
-            <span class="studio-line">
-              <span data-reveal-line>
-                {text}
-                {mark && <span class="studio-mark">{mark}</span>}
-              </span>{' '}
-            </span>
-          );
-        })
-      }
-    </h2>
+  <div class="studio-shell studio-intro__inner">
+    <div class="studio-intro__head">
+      <span class="studio-intro__rule" aria-hidden="true" data-reveal-rule
+      ></span>
+      <h2 id="studio-intro-title" class="studio-intro__title" data-reveal-fade>
+        {intro.title}
+      </h2>
+    </div>
 
     <div class="studio-intro__copy">
-      <span class="studio-intro__rule" aria-hidden="true" data-reveal-fade
-      ></span>
-      <p class="studio-intro__lede" data-reveal-fade>
-        {intro.lede.text}
+      <p class="studio-intro__text studio-intro__lede" data-reveal-fade>
+        {lede.text}
         {
-          intro.lede.accent && (
+          lede.accent && (
             <>
               {' '}
-              <span class="studio-intro__accent">{intro.lede.accent}</span>
+              <span class="studio-intro__accent">{lede.accent}</span>
+              {lede.after}
             </>
           )
         }
       </p>
       {
         intro.body.map((paragraph) => (
-          <p class="studio-intro__body" data-reveal-fade>
+          <p class="studio-intro__text studio-intro__body" data-reveal-fade>
             {paragraph}
           </p>
         ))
       }
+    </div>
+
+    <div
+      class="studio-intro__ring"
+      data-orbit-station="intro"
+      data-still-ring
+      data-reveal-ring
+    >
+      <StudioRing class="studio-intro__ring-art" />
     </div>
   </div>
 </section>

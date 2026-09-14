@@ -1,4 +1,5 @@
 import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { bindPressSurface, canPress } from './PressSurface';
 import type { mountStudioPage } from './StudioPageMotion';
 
@@ -33,6 +34,7 @@ export function initStudioPage(): () => void {
       if (!disposed) {
         cleanup = motion.mountStudioPage(page, {
           gsap,
+          ScrollTrigger,
           bindPressSurface,
           canPress,
         });

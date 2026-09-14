@@ -218,8 +218,12 @@ registers ScrollTrigger and initializes/cleans:
 - `ProjectTilePress.ts`: fine-pointer edge dent on the home project tiles,
   through the shared `PressSurface.ts` (also used by the Studio team);
 - `StudioPage.ts`: mounts `StudioPageMotion.ts` (route-only chunk) for the
-  `/studio/` reveals, the principles tab list (hover/focus/tap/keys, picture
-  drift) and the team portraits' dent; the hero entrance there is CSS;
+  `/studio/` reveals, the principles disclosures (one open at a time on
+  hover/focus/tap/keys, picture on the right following the open row), the
+  team portraits' dent and the Colmillo orbit (`StudioOrbit.ts`: one thin
+  orange ring travelling between section stops on wide screens, a still ring
+  elsewhere); the hero entrance there is CSS. Since 2026-09-14 the whole route is charcoal
+  (`#1f1f1f`, scoped in `studio-page.css`);
 - `ContactBite.ts`: loads `ContactBiteMotion.ts` on demand for the home contact
   close (entrance, the soft sculpture's live pose from `ContactSculpture.ts`,
   pressure on "muerda", bite);

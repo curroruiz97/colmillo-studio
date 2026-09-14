@@ -180,17 +180,35 @@
   gap: clamp(1rem, 2.2vw, 2.25rem);
 }
 
+/*
+ * Three lines at most, no word split: the type is capped by the width left
+ * beside the 3.25rem arrow and its 1rem gap, divided by 7.3em (see the wide
+ * rule below).
+ */
 .goodbye-start__title {
   min-inline-size: 0;
   max-inline-size: 14ch;
   margin: 0;
-  font-size: clamp(2rem, 10vw, 3.4rem);
+  font-size: clamp(
+    1.25rem,
+    min(
+      10vw,
+      calc(
+        (
+            100vw - 2 * var(--page-gutter) - var(--edge-rail-clearance) -
+              4.25rem
+          ) /
+          7.3
+      )
+    ),
+    3.4rem
+  );
   font-weight: 850;
   letter-spacing: -0.045em;
   line-height: 0.98;
   text-wrap: balance;
   overflow-wrap: break-word;
-  hyphens: auto;
+  hyphens: manual;
 }
 
 .goodbye-start__body {
@@ -398,6 +416,7 @@
 @media (aspect-ratio >= 5/4) {
   .goodbye-section[data-goodbye-enhanced] {
     --goodbye-w-max: 200cqw;
+    --goodbye-travel-size: clamp(3.5rem, min(5.4cqw, 11cqh), 6rem);
 
     grid-template-rows: none;
     block-size: 100svh;
@@ -429,12 +448,35 @@
     max-inline-size: none;
   }
 
+  /*
+   * Three lines at most. The column is cut to the black field, so the type
+   * follows the width left beside the arrow: its widest line ("ideas
+   * necesitan") measures about 6.9em, and 7.3em leaves room for wider system
+   * faces. The low floor lets landscape phones keep the rule too, and since
+   * every word fits, no word is hyphenated. Retune the divisor if the
+   * headline changes.
+   */
   [data-goodbye-enhanced] .goodbye-start__title {
-    font-size: clamp(2.2rem, min(5.6cqw, 10cqh), 6.5rem);
+    font-size: clamp(
+      1.25rem,
+      min(
+        5.6cqw,
+        10cqh,
+        calc(
+          (
+              var(--goodbye-w) * 0.26 - var(--page-gutter) -
+                var(--goodbye-travel-size) - clamp(1rem, 2.2vw, 2.25rem)
+            ) /
+            7.3
+        )
+      ),
+      6.5rem
+    );
+    hyphens: manual;
   }
 
   [data-goodbye-enhanced] .goodbye-travel {
-    inline-size: clamp(3.5rem, min(5.4cqw, 11cqh), 6rem);
+    inline-size: var(--goodbye-travel-size);
   }
 
   /* Side B fills the stage; its pieces are placed on the photograph. */

@@ -1,7 +1,7 @@
 ---
 /**
  * /studio/ — hero, "Somos Colmillo", the four principles, the team and one
- * closing call to action.
+ * closing call to action, with the Colmillo orbit travelling through them.
  *
  * Content lives in `src/data/studioPage.ts` and the hero loop slot in
  * `src/config/assets.ts`. Blocks whose copy is still provisional resolve to
@@ -12,6 +12,7 @@ import StudioCTA from '@/components/studio/StudioCTA.astro';
 import StudioHero from '@/components/studio/StudioHero.astro';
 import StudioIntro from '@/components/studio/StudioIntro.astro';
 import StudioPrinciples from '@/components/studio/StudioPrinciples.astro';
+import StudioRing from '@/components/studio/StudioRing.astro';
 import StudioTeam from '@/components/studio/StudioTeam.astro';
 import {
   studioClose,
@@ -28,6 +29,11 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
     aria-labelledby="studio-page-title"
     data-studio-page
   >
+    <!-- The Colmillo orbit: one ring that travels the page behind the content
+         (`StudioOrbit.ts`). Hidden until the script sends it on its way. -->
+    <div class="studio-orbit" aria-hidden="true" data-studio-orbit>
+      <StudioRing />
+    </div>
     <StudioHero />
     {studioIntro && <StudioIntro intro={studioIntro} />}
     {studioPrinciples && <StudioPrinciples principles={studioPrinciples} />}

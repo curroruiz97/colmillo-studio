@@ -22,30 +22,39 @@ export interface StudioImage {
   height: number;
 }
 
-/** A sentence whose closing words are set in the accessible orange. */
+/**
+ * A sentence with a few words set in orange: `text`, then `accent`, then
+ * `after` (usually the closing punctuation, kept out of the colour).
+ */
 export interface StudioAccentLine {
   text: string;
   accent?: string | undefined;
+  after?: string | undefined;
 }
 
 export interface StudioIntroCopy {
-  /** Headline lines; the break is designed. A closing "." turns orange. */
-  title: string[];
+  /** Sentence case, one moderate heading. */
+  title: string;
+  /** First paragraph; its accent is orange. */
   lede: StudioAccentLine;
+  /** Further paragraphs, set exactly like the lede (one editorial piece). */
   body: string[];
   placeholder: boolean;
 }
 
 /** Which abstract composition stands in until the principle's image exists. */
-export type StudioPrincipleArt = 'look' | 'stretch' | 'bite' | 'release';
+export type StudioPrincipleArt = 'look' | 'think' | 'make' | 'launch';
 
 export interface StudioPrinciple {
   /** Anchor slug: `#principio-<id>`. */
   id: string;
-  index: string;
   name: string;
   description: string;
-  /** Approved image for the stage, or null while the placeholder stands in. */
+  /**
+   * Approved picture for the right-hand column, or null while the placeholder
+   * stands in. It is a decorative companion of the text (rendered with empty
+   * alternative text), so its `alt` is not published. 4:5 or taller.
+   */
   image: StudioImage | null;
   art: StudioPrincipleArt;
 }
@@ -76,6 +85,11 @@ export interface StudioCloseCopy {
   /** A closing "?" is set in orange. */
   title: string;
   action: { label: string; href: string };
+  /**
+   * The section's photograph: a black field on the left for the copy and the
+   * sculpture on the right. Decorative (empty alternative text).
+   */
+  image: StudioImage;
 }
 
 export const studioHero = { title: 'Studio' } as const;
@@ -87,10 +101,11 @@ const approvedIntro: StudioIntroCopy | null = null;
 
 /** Provisional copy supplied by the user on 2026-09-11 — NOT APPROVED. */
 const demoIntro: StudioIntroCopy = {
-  title: ['Somos', 'Colmillo.'],
+  title: 'Somos Colmillo',
   lede: {
     text: 'Un estudio creativo nacido con una idea sencilla: las marcas no deberían limitarse a estar ahí. Deberían',
-    accent: 'provocar algo.',
+    accent: 'provocar algo',
+    after: '.',
   },
   body: [
     'Trabajamos entre estrategia, identidad, diseño y digital para construir marcas con una voz propia y una forma reconocible de estar en el mundo.',
@@ -107,48 +122,45 @@ export const studioIntro: StudioIntroCopy | null =
 const approvedPrinciples: StudioPrinciplesCopy | null = null;
 
 /**
- * Provisional principles supplied by the user on 2026-09-11 — NOT APPROVED.
- * Each `image` is the slot for its final picture (mirar, tensar, morder,
- * soltar); until then `art` picks the abstract placeholder.
+ * Provisional principles — NOT APPROVED. Structure supplied by the user on
+ * 2026-09-11; the four steps renamed and their temporary copy supplied on
+ * 2026-09-14 (Mirar, Pensar, Crear, Lanzar). Each `image` is the slot for its
+ * final picture; until then `art` picks the abstract placeholder.
  */
 const demoPrinciples: StudioPrinciplesCopy = {
   title: 'Cómo hacemos las cosas',
   items: [
     {
       id: 'mirar',
-      index: '01',
       name: 'Mirar',
       description:
-        'Entender antes de tocar. Leer el contexto, hacer preguntas y encontrar aquello que merece nuestra atención.',
+        'Entender el contexto, escuchar, preguntar y encontrar dónde está realmente el problema.',
       image: null,
       art: 'look',
     },
     {
-      id: 'tensar',
-      index: '02',
-      name: 'Tensar',
+      id: 'pensar',
+      name: 'Pensar',
       description:
-        'Llevar la idea un poco más lejos. Sacarla de lo cómodo hasta encontrar algo que tenga carácter.',
+        'Convertir lo aprendido en una dirección clara antes de empezar a diseñar.',
       image: null,
-      art: 'stretch',
+      art: 'think',
     },
     {
-      id: 'morder',
-      index: '03',
-      name: 'Morder',
+      id: 'crear',
+      name: 'Crear',
       description:
-        'Convertir la intención en una forma reconocible. Clara, propia y difícil de ignorar.',
+        'Dar forma a la idea y construir una identidad, pieza o experiencia con personalidad propia.',
       image: null,
-      art: 'bite',
+      art: 'make',
     },
     {
-      id: 'soltar',
-      index: '04',
-      name: 'Soltar',
+      id: 'lanzar',
+      name: 'Lanzar',
       description:
-        'Construir algo capaz de vivir, moverse y crecer cuando deja nuestras manos.',
+        'Ponerla en movimiento, hacerla vivir y seguir afinándola cuando entra en contacto con el mundo.',
       image: null,
-      art: 'release',
+      art: 'launch',
     },
   ],
   placeholder: true,
@@ -174,7 +186,7 @@ const placeholderMember: StudioMember = {
 };
 
 const demoTeam: StudioTeamCopy = {
-  title: 'Los que muerden',
+  title: 'Equipo',
   lede: 'Las personas detrás de Colmillo.',
   members: Array.from({ length: 6 }, () => ({ ...placeholderMember })),
   placeholder: true,
@@ -188,6 +200,14 @@ export const studioTeam: StudioTeamCopy | null =
 export const studioClose: StudioCloseCopy = {
   title: '¿Hacemos algo juntos?',
   action: { label: 'Hablemos', href: '/contacto/' },
+  // Supplied by the user on 2026-09-14 for this section
+  // (`bg cta studio.png`); WebP derivative, 2048x768.
+  image: {
+    src: '/assets/motion/studio/studio-cta.webp',
+    alt: '',
+    width: 2048,
+    height: 768,
+  },
 };
 
 /** Splits a closing ".", "?" or "!" off a line so it can be set in orange. */

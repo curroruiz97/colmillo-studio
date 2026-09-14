@@ -43,24 +43,29 @@ export const brandWordmark: {
 /**
  * Official hero loop supplied by the client.
  *
- * Derived from `media-src/WEB.webm` by `scripts/prepare-hero-media.mjs`.
- * The WebM carries a real alpha channel; the MP4 is the same picture already
- * flattened over `--color-white` for decoders without WebM alpha. Both
- * therefore render identically over the white hero surface. The unsuffixed
- * cream set beside them is the original delivery, kept and unpublished.
+ * Final delivery of 2026-09-14, derived from the untouched
+ * `public/assets/motion/hero/animacion hero final.webm` (3840x2160, opaque).
+ * The master has no alpha, so these files are opaque with the paper baked as
+ * `--color-white`. Two defects of the master were removed, nothing else:
+ * its first 5.4 s sit on #fbfbfb (lifted to #fff, the ink untouched after
+ * that point), and from 5.43 s a ~3 px black frame line runs round all four
+ * edges (cropped). The crop is 2832x2124 at (504, 18): 4:3, every drawn pixel
+ * of the loop inside it, so it fits the existing 4:3 hero frame unchanged.
+ * Audio dropped. The earlier `hero-*-white` loop files stay beside them,
+ * unpublished. Exact commands in `docs/EXECUTION_STATE.md` (2026-09-14).
  */
 export const heroMedia: MotionMedia = {
   desktop: {
-    webm: '/assets/motion/hero/hero-desktop-white.webm',
-    mp4: '/assets/motion/hero/hero-desktop-white.mp4',
+    webm: '/assets/motion/hero/hero-final-desktop-white.webm',
+    mp4: '/assets/motion/hero/hero-final-desktop-white.mp4',
   },
   mobile: {
-    webm: '/assets/motion/hero/hero-mobile-white.webm',
-    mp4: '/assets/motion/hero/hero-mobile-white.mp4',
+    webm: '/assets/motion/hero/hero-final-mobile-white.webm',
+    mp4: '/assets/motion/hero/hero-final-mobile-white.mp4',
   },
-  poster: '/assets/motion/hero/hero-poster-white.webp',
-  width: 1920,
-  height: 1440,
+  poster: '/assets/motion/hero/hero-final-poster-white.webp',
+  width: 1440,
+  height: 1080,
 };
 
 export interface LoopMedia extends MotionMediaSource {
@@ -181,16 +186,25 @@ export const servicesContentIllustration: BrandImage = {
 };
 
 /**
- * `/studio/` hero loop. NOT SUPPLIED YET (`docs/CONTENT_NEEDED.md`).
+ * `/studio/` hero loop supplied by the client on 2026-09-14.
  *
- * The container is final: a disc with one round bite out of its top-right
- * shoulder, playing `autoplay muted loop playsinline` with no controls, paused
- * off screen, in a background tab and under reduced motion. While this slot
- * is `null` the disc shows a plain geometric placeholder instead.
+ * It sits in a 4:3 frame on the right of the charcoal hero, fitted with
+ * `object-fit: contain`, playing `autoplay muted loop playsinline` with no
+ * controls, paused off screen, in a background tab and under reduced motion.
+ * `null` restores the plain surface.
  *
- * To publish the loop, add a square-ish WebM + MP4 pair (subject centred: the
- * mask is a circle, filled with `object-fit: cover`) and a WebP poster of its
- * first frame under `public/assets/motion/studio-page/`, then fill this in.
+ * Derived from the untouched `public/assets/motion/studio/video hero
+ * studio.mp4` (1280x720, 24 fps, 144 frames). Three things only: a 960x720
+ * crop at x=192, 4:3 like the frame, with every drawn pixel of every frame
+ * inside it (the ink spans x 259-1086, y 106-654), so the drawing fills the
+ * frame instead of floating in the file's side margins; a seam, because the
+ * last pose of the master is not its first: frames 9-136 play as they are and
+ * the last eight frames dissolve into the first eight, so the wrap has no
+ * jump (136 frames, 5.67 s); and a black-level lift, because the master's flat
+ * ground (#161616) read as a darker box on the page: `v + 9.85 * (1 - v/255)`
+ * per channel puts it on the route's #1f1f1f and leaves the cream strokes
+ * (240 -> 241) as they are. Audio dropped. The poster is the loop's first
+ * frame.
  */
 export interface StudioHeroMedia extends MotionMediaSource {
   poster: string;
@@ -198,4 +212,10 @@ export interface StudioHeroMedia extends MotionMediaSource {
   height: number;
 }
 
-export const studioHeroMedia: StudioHeroMedia | null = null;
+export const studioHeroMedia: StudioHeroMedia | null = {
+  webm: '/assets/motion/studio-page/studio-hero-loop.webm',
+  mp4: '/assets/motion/studio-page/studio-hero-loop.mp4',
+  poster: '/assets/motion/studio-page/studio-hero-poster.webp',
+  width: 960,
+  height: 720,
+};

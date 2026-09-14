@@ -2,24 +2,26 @@
 /**
  * /studio/ — 01 Hero
  *
- * An editorial cover: the word "Studio" and one audiovisual piece, with a lot
- * of white around both. The piece sits in a disc with one round bite out of
- * its top-right shoulder, so it reads as a Colmillo form rather than a video
- * in a box.
+ * Two pieces on the page's charcoal: the title on the left, centred
+ * vertically in the first screen by the grid itself, and one audiovisual
+ * frame on the right, clear of the right edge. Nothing decorative besides the
+ * orange full stop. Portrait screens stack the title over the frame.
  *
- * `studioHeroMedia` (src/config/assets.ts) is the slot for the final loop.
- * While it is `null` the disc holds a plain geometric placeholder; in
- * development and `build:demo` a small note under it says so. The loop and
- * the placeholder are decorative, so both are hidden from assistive
- * technology.
+ * `studioHeroMedia` (src/config/assets.ts) is the slot for the final loop,
+ * played `autoplay muted loop playsinline` without controls and fitted with
+ * `object-fit: contain`. While it is `null` the frame holds a plain surface
+ * of the same size and no visible note. Loop and surface are decorative, so
+ * both are hidden from assistive technology.
+ *
+ * The empty space under the title is where the Colmillo orbit starts
+ * (`data-orbit-station`, an empty marker that is never painted).
  */
 import { studioHeroMedia as media } from '@/config/assets';
-import { demoMode } from '@/data/projects';
 import { studioHero } from '@/data/studioPage';
 ---
 
-<header class="studio-hero" data-studio-hero data-surface-tone="light">
-  <div class="content-shell studio-hero__inner">
+<header class="studio-hero" data-studio-hero data-surface-tone="dark">
+  <div class="studio-shell studio-hero__inner">
     <h1 id="studio-page-title" class="studio-hero__title">
       <span class="studio-line">
         <span data-studio-hero-title
@@ -30,7 +32,7 @@ import { studioHero } from '@/data/studioPage';
     </h1>
 
     <div class="studio-hero__media" data-studio-hero-media>
-      <div class="studio-hero__shape">
+      <div class="studio-hero__frame">
         {
           media ? (
             <video
@@ -51,20 +53,15 @@ import { studioHero } from '@/data/studioPage';
               <source src={media.mp4} type="video/mp4" />
             </video>
           ) : (
-            <div class="studio-hero__placeholder" aria-hidden="true">
-              <span class="studio-hero__ph-ring" />
-              <span class="studio-hero__ph-core" />
-            </div>
+            <div class="studio-hero__placeholder" aria-hidden="true" />
           )
         }
       </div>
-      {
-        !media && demoMode && (
-          <p class="studio-hero__pending" data-dev-placeholder>
-            Loop pendiente: aquí va el vídeo final del hero.
-          </p>
-        )
-      }
     </div>
+
+    <span
+      class="studio-orbit-stop studio-orbit-stop--hero"
+      aria-hidden="true"
+      data-orbit-station="hero"></span>
   </div>
 </header>

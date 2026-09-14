@@ -1,0 +1,33 @@
+---
+/**
+ * /studio/ — the Colmillo orbit's drawing: a thin, slightly irregular orange
+ * ring with a small dot on its line. It takes the open ring of the home hero
+ * as its idea, at hairline weight.
+ *
+ * Used twice: once as the still ring of "Somos Colmillo" and once inside the
+ * orbit that travels the page (`StudioOrbit.ts`). The stroke never scales, so
+ * the ring keeps the same line at every size; `[data-ring-dot]` turns around
+ * the ring's centre (60 60). Purely decorative.
+ */
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<svg
+  class:list={['studio-ring', className]}
+  viewBox="0 0 120 120"
+  aria-hidden="true"
+  focusable="false"
+  data-ring
+>
+  <path
+    class="studio-ring__line"
+    d="M60 10C89.1 10 112 30.5 112 58C112 85 90.1 109 61 109C31.9 109 7 88 7 61C7 33 31.4 10 60 10Z"
+  ></path>
+  <g data-ring-dot>
+    <circle class="studio-ring__dot" cx="60" cy="10" r="3.2"></circle>
+  </g>
+</svg>

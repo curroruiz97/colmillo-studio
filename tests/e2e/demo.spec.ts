@@ -137,7 +137,7 @@ test('services, studio and contact are complete demo destinations', async ({
   await expect(
     page.getByRole('heading', { level: 1, name: 'Studio' }),
   ).toBeVisible();
-  await expect(page.locator('[data-principle-trigger]')).toHaveCount(4);
+  await expect(page.locator('[data-principle-item]')).toHaveCount(4);
 
   await page.goto('/contacto/');
   await expect(

@@ -22,6 +22,15 @@ test('the standard build withholds every provisional Studio block', async ({
       '.studio-intro, .studio-principles, .studio-team, .studio-hero__pending, [data-dev-placeholder]',
     ),
   ).toHaveCount(0);
-  // Until the loop is supplied the disc shows its geometric placeholder.
-  await expect(page.locator('.studio-hero__placeholder')).toHaveCount(1);
+  // The supplied loop fills the frame; no placeholder surface is left.
+  await expect(page.locator('.studio-hero__placeholder')).toHaveCount(0);
+  await expect(page.locator('[data-studio-hero-video]')).toHaveCount(1);
+  await expect(page.locator('main')).not.toContainText('Loop pendiente');
+  // The route is one charcoal surface, footer included.
+  for (const selector of ['body', '.site-footer']) {
+    await expect(page.locator(selector)).toHaveCSS(
+      'background-color',
+      'rgb(31, 31, 31)',
+    );
+  }
 });

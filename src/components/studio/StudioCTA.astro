@@ -2,13 +2,26 @@
 /**
  * /studio/ — 05 Close
  *
- * The page's only ink surface, and deliberately small: one question and the
- * shared bite button to Contacto. The closing "?" is the orange detail. On ink
- * the button's offset slab is cream, as in the home services, and pressing
- * sinks the button into it.
+ * The route's cinematic ending: one photograph fills the section, a large
+ * black field on the left and the orange-and-black sculpture on the right.
+ * The question and the shared bite button to Contacto sit in the black field,
+ * never over the sculpture; the closing "?" is orange. Nothing else is added.
  *
- * The reveal lives on the button's wrapper and the magnetic pull on the link,
- * because both drive `transform`.
+ * The photograph is a decorative layer (`<img>` with empty alternative text,
+ * `object-fit: cover`) inside an `overflow: hidden` frame, so every movement is
+ * a transform. Landscape screens keep the sculpture on the right; portrait
+ * screens put the copy on top and the photograph in a band below it.
+ *
+ * Motion (`StudioPageMotion.ts`): as the section comes in, the photograph
+ * rises over the charcoal from the foot (scroll-linked clip) while it settles
+ * from a slight zoom; then the question, then the button. A very small drift
+ * follows the scroll, and a fine pointer over the sculpture moves the picture
+ * a few pixels. Without JavaScript or with reduced motion everything is simply
+ * there.
+ *
+ * The question is not set in a clipping line: every glyph ("¿", "j", "?")
+ * always has room. The reveal lives on the button's wrapper and the magnetic
+ * pull on the link, because both drive `transform`.
  */
 import { splitClosingMark, type StudioCloseCopy } from '@/data/studioPage';
 
@@ -24,25 +37,43 @@ const { text, mark } = splitClosingMark(close.title);
   class="studio-close"
   aria-labelledby="studio-close-title"
   data-surface-tone="dark"
-  data-reveal-group
+  data-studio-close
 >
-  <div class="content-shell studio-close__inner">
-    <h2 id="studio-close-title" class="studio-close__title">
-      <span class="studio-line">
-        <span data-reveal-line>
-          {text}{mark && <span class="studio-close__mark">{mark}</span>}
-        </span>
-      </span>
-    </h2>
-    <div class="studio-close__action" data-reveal-fade>
-      <a
-        class="bite-button studio-close__button"
-        href={close.action.href}
-        data-magnetic
-        data-cursor-label="Hablar"
-      >
-        <span class="studio-close__label">{close.action.label}</span>
-      </a>
+  <div class="studio-close__media" aria-hidden="true" data-close-media>
+    <div class="studio-close__frame" data-close-frame>
+      <img
+        class="studio-close__image"
+        src={close.image.src}
+        alt=""
+        width={close.image.width}
+        height={close.image.height}
+        loading="lazy"
+        decoding="async"
+        data-close-image
+      />
+    </div>
+  </div>
+
+  <span
+    class="studio-orbit-stop studio-orbit-stop--close"
+    aria-hidden="true"
+    data-orbit-station="close"></span>
+
+  <div class="studio-shell studio-close__inner">
+    <div class="studio-close__copy">
+      <h2 id="studio-close-title" class="studio-close__title" data-close-title>
+        {text}{mark && <span class="studio-close__mark">{mark}</span>}
+      </h2>
+      <div class="studio-close__action" data-close-action>
+        <a
+          class="bite-button studio-close__button"
+          href={close.action.href}
+          data-magnetic
+          data-cursor-label="Hablar"
+        >
+          <span class="studio-close__label">{close.action.label}</span>
+        </a>
+      </div>
     </div>
   </div>
 </section>

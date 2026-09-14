@@ -3224,3 +3224,319 @@ Open: the hero loop, the four principle images, the team, and approval of the
 copy and section titles (`CONTENT_NEEDED.md`).
 
 Nothing was committed, pushed or deployed.
+
+## 2026-09-14 Session: Home Hero Loop Replaced By The Client's Final Video
+
+User request: swap only the home hero animation for
+`public/assets/motion/hero/animacion hero final.webm`; no redesign. Run while
+another terminal was editing `/studio/` (its `src/components/studio/*`,
+`src/data/studioPage.ts` and the `studioHeroMedia` comment in `assets.ts` are
+not part of this work).
+
+### The master, measured
+
+VP9 3840x2160 (16:9), 30 fps, 19.883 s, 3,778,945 bytes, bt709 tv range, plus
+an unused Opus track. No alpha (no `alpha_mode`). Two defects, measured per
+frame with ffmpeg `signalstats` and in Chromium: frames 0-5.40 s sit on Y 232
+(`#fafafa`-`#fbfbfb`), frames 5.43-19.88 s on Y 235 (`#ffffff`) with a ~3 px
+black line on all four edges, so the page would show a faint grey box, then a
+frame, and a background jump at every wrap. The user chose a clean derivative
+(original untouched). Drawn content across all frames spans x 690-3086 of 3840
+and the full height (a book falls in from the top edge at ~11.3-12.1 s).
+
+### Derivatives (ffmpeg 9.0.1 essentials, via an earlier scratchpad build)
+
+Master per target (desktop 1440x1080, mobile 768x576):
+`-an -vf crop=2832:2124:504:18,scale=W:H:flags=lanczos,format=rgb24,lutrgb=r|g|b='min(255,val*255/250)':enable='lt(t,5.42)',lutrgb=r|g|b='if(gte(val,248),255,val)',format=yuv420p -c:v ffv1`
+with bt709/tv tags. The crop is 4:3 (fits the existing frame), removes the
+frame line and only blank paper; the lift touches only the grey segment.
+Then WebM `libvpx-vp9 -b:v 0 -crf 40` (mobile 42) `-row-mt 1 -auto-alt-ref 1
+-lag-in-frames 25 -deadline good -cpu-used 1`, MP4 `libx264 -profile:v high
+-crf 23 -preset slow -movflags +faststart`, poster frame 0 `libwebp -quality 86`.
+
+- `hero-final-desktop-white.webm` 975,502 B; `.mp4` 1,332,820 B
+- `hero-final-mobile-white.webm` 452,142 B; `.mp4` 630,456 B
+- `hero-final-poster-white.webp` 24,612 B (1440x1080)
+
+Decoded check on all four files, every frame: left/right strips Y 235
+(#fff) throughout, no dark pixel on any edge except the falling book.
+
+### What changed
+
+- `src/config/assets.ts`: `heroMedia` points at the `hero-final-*-white` set,
+  `width`/`height` 1440x1080 (was 1920x1440, same 4:3), comment rewritten.
+- `tests/e2e/foundations.spec.ts`: expected sources and poster.
+- Not changed: `HeroSection.astro` (autoplay, muted, loop, playsinline, no
+  controls, `preload="metadata"`, poster, `<source media>` switch at 48rem),
+  `hero-section.css` (frame 4:3, `object-fit: contain`, white frame),
+  `HeroMotion.ts` (viewport/tab pause, intro hold), reduced-motion poster.
+  The earlier `hero-*-white` and cream files and the master stay in place.
+
+### Verification (actually run)
+
+- `check:hero` passed (8 files baked for white); Prettier clean on both files;
+  ESLint clean; `astro check` 103 files 0/0/0; `build` 9 pages;
+  `check:production` passed (58 files, 163,444 JS bytes); `build:demo` 14.
+- Playwright: foundations + intro 62 passed / 10 skipped; demo `-g hero`
+  (composition, fixed controls) 6/6.
+- Dev server at 1440x1000, 1920x1080, 834x1112 (touch), 390x844, 320x720:
+  the right source loads (desktop webm / mobile webm), playing and advancing,
+  wraps from 19.6 s to 0.6 s still playing, frame and hero `rgb(255,255,255)`,
+  no border/filter/blend, pixels 3 px inside and outside all four frame edges
+  all 255, CLS 0, overflow 0, no console errors. Frame geometry identical to
+  before the swap under the same conditions. Reduced motion: video hidden,
+  new poster shown. Screenshots inspected at 1440, 390 and reduced motion.
+
+Open: the master (3.8 MB) sits in `public/` and ships in `dist/` unreferenced
+(left there at the user's instruction; `media-src/` is the usual home). The
+animation's last and first frames are different poses, so the wrap is a cut
+in the drawing itself (background now continuous).
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-14 Session: /studio/ Second Design Pass (Dark Editorial)
+
+User request: a second design pass on `/studio/` only (Hello Monday product
+page as tone reference): whole route charcoal, hero corrected, content
+centred, smaller type, "Somos Colmillo" simplified with an entry animation,
+"Cómo hacemos las cosas" redesigned without numbers. Run concurrently with
+the home hero video swap above (another terminal); that work (`heroMedia` in
+`assets.ts`, `foundations.spec.ts`, the `hero-final-*` files and its section
+of this document) was not touched. See `DECISIONS.md` (2026-09-14).
+
+- Changed: `src/components/studio/StudioHero.astro`, `StudioIntro.astro`,
+  `StudioPrinciples.astro` (rewritten), `StudioCTA.astro`, `StudioTeam.astro`
+  (container and tone only), `src/styles/studio-page.css` (rewritten),
+  `src/scripts/motion/StudioPageMotion.ts` (reveal rule, principles as
+  disclosures, drift removed), `src/data/studioPage.ts` (intro title
+  "Somos Colmillo", accent split, principle `index` removed),
+  `src/config/assets.ts` (`studioHeroMedia` comment only),
+  `tests/e2e/studio.demo.spec.ts` (rewritten), `tests/e2e/studio.spec.ts`,
+  `tests/e2e/demo.spec.ts` (one selector), `CLAUDE.md` (one line),
+  `MOTION_SPEC.md`, `CONTENT_NEEDED.md`, `DECISIONS.md`.
+- No shared component, token, layout or other route was modified. The dark
+  document/footer on this route is a scoped `html:has([data-studio-page])`
+  override in `studio-page.css`.
+
+Measured on the demo build (scratch Playwright script, fine pointer at
+landscape sizes, touch at portrait sizes):
+
+| Viewport | Title / frame middle | Frame L-R | h2 | h3 | Principles list / picture |
+| --- | --- | --- | --- | --- | --- |
+| 1920x1080 | 540 / 540 | 960-1760 | 80 | 56 | 668 / 380 px |
+| 1440x900 | 450 / 450 | 720-1373 | 64.8 | 43.2 | 668 / 380 px |
+| 1366x768 | 384 / 384 | 683-1301 | 61.5 | 41 | 668 / 380 px |
+| 1024x1366 | stacked | 83-941 | 46 | 30.7 | 498 / 283 px |
+| 768x1024 | stacked | 75-693 | 40 | 28.8 | 358 / 204 px |
+| 430x932 | stacked | 16-362 | 40 | 28.8 | picture under list, 288 px |
+| 390x844 | stacked | 16-322 | 40 | 28.8 | picture under list, 288 px |
+
+At every size: horizontal overflow 0, console clean, no "Loop pendiente",
+no disc, no 01-04 in the principles, the open description directly under
+its name, the chosen picture in view after hover/tap, and a full-document
+paint sample (two x positions, three heights, every 40% of a screen) found
+only `#1f1f1f`, the placeholder surfaces and the team portrait blocks - no
+light band anywhere, footer included. Keyboard (arrows, End, wrap) and
+reduced motion checked; screenshots inspected at all seven sizes.
+
+Verification (executed): `astro check` 103 files 0/0/0; `npm run lint`
+clean; Prettier applied to every rewritten file and clean on the edited
+ones; `build` 9 pages; `check:production` passed (58 files, 162,421 JS
+bytes); `check:links` passed; `build:demo` 14 pages. Demo Playwright suite
+(all of `demo.spec.ts` + `studio.demo.spec.ts`): 93 passed / 45 skipped.
+Standard suite: 65 passed / 10 skipped / 1 failed - `performance.spec.ts`
+(home), which ran concurrently with the demo suite; rerun alone it passed
+2/2.
+
+Open: the hero loop, the four principle pictures, the team, and approval of
+the provisional copy and section titles (`CONTENT_NEEDED.md`).
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-14 Session: Goodbye Headline Held To Three Lines
+
+User request: on the home, "Las buenas ideas necesitan presión." (goodbye
+stage, side A) must take three lines at most.
+
+Before: 4 lines at 1920x1080, 1366x768, 1280x720 and 844x390 - the wide
+column is cut to the photograph's black field, but the type followed the
+viewport, not that column. At 360 and 320 px wide it kept 3 lines only by
+hyphenating "necesi-tan".
+
+Change (`src/styles/goodbye-section.css` only): both layouts cap the title's
+font size at the width left beside the arrow divided by 7.3em ("ideas
+necesitan", the widest line, measures ~6.9em in the system face), with
+`hyphens: manual`. Wide: `(--goodbye-w * 0.26 - gutter - arrow - gap) / 7.3`,
+the arrow size now shared as `--goodbye-travel-size`; floor lowered to
+1.25rem for landscape phones. Band: `(100vw - 2 gutters - edge clearance -
+4.25rem) / 7.3`. The divisor is tied to this headline; retune it if the copy
+changes. Fonts are smaller where the old size broke the rule (1920: 104 ->
+77 px, 1366: 76 -> 53 px, 390: 39 -> 36 px); unchanged elsewhere.
+
+Verified on the dev server (Playwright, 21 viewports from 2560x1440 to
+320x720, landscape phones included): 3 lines or fewer everywhere (2 on
+tablets), no word split, no horizontal overflow, console clean. Screenshots
+after real scrolling inspected at 1920x1080, 1366x768, 1280x720 (reduced
+motion), 844x390, 740x360, 390x844, 360x740 and 320x720: the copy stays in
+the black field and clear of the arrow. Prettier clean on the file;
+`build:demo` 14 pages; the three goodbye tests in `demo.spec.ts` passed on
+all three demo projects (9/9).
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-14 Session: /studio/ Third Refinement Pass
+
+User request: refine `/studio/` only (alignment, copy, step names, team
+composition, close, one continuous scroll element). Built on the uncommitted
+second pass; the untracked `hero-final-*` home files and other routes were
+not touched. See `DECISIONS.md` (third pass) and `MOTION_SPEC.md`.
+
+- New: `src/components/studio/StudioRing.astro`,
+  `src/scripts/motion/StudioOrbit.ts`.
+- Changed: `src/pages/studio.astro` (orbit element), `StudioHero.astro`,
+  `StudioIntro.astro`, `StudioPrinciples.astro`, `StudioTeam.astro`,
+  `StudioCTA.astro`, `src/data/studioPage.ts`, `src/styles/studio-page.css`,
+  `src/scripts/motion/StudioPage.ts` (passes ScrollTrigger),
+  `StudioPageMotion.ts` (orbit mount, ring/detail reveals, picture follows
+  the open row), `tests/e2e/studio.demo.spec.ts`, `CLAUDE.md`,
+  `MOTION_SPEC.md`, `DECISIONS.md`, `CONTENT_NEEDED.md`.
+
+Measured at 1440x900 (demo, dev server): Somos title/text, principles, team
+and close content all start at x 144 and end at 1296; Somos text 668 px =
+principles list 668 px; team tops 0 / +65 / +29 px; picture 336x420, offset
+-24 px (Mirar) to lower rows; close title one line, 97 px box, no clipping
+ancestor. Orbit sampled every 150 px of scroll from top to bottom: position
+continuous (no step above ~220 px per 150 px scrolled), opacity 0.51-0.85,
+back on the hero stop after fast jumps top/bottom/middle/top; lands on the
+Somos ring within 4 px and on the close dot, then fades to 0. Pointer 60 px
+from the ring leans/stretches it and it settles back. Pixel 7: orbit not
+displayed, still ring shown, overflow 0. Reduced motion: orbit not
+displayed, still ring static. Console clean. Screenshots inspected: hero,
+Somos (rest and in transit), principles, team, close (and zoomed dot and
+title glyphs), pointer response, 390 Somos and close, reduced Somos.
+
+Verification (executed): `astro check` 105 files 0/0/0; ESLint clean on
+the changed scripts, data and spec; Prettier applied to changed files;
+`build` 9 pages; `check:production` passed (58 files, 168,694 JS bytes);
+`check:links` passed; `build:demo` 14 pages; `studio.demo.spec.ts` on the
+three demo projects 29 passed / 22 skipped (desktop-only tests skip on
+touch).
+
+Open: approval of the renamed steps' copy, the "Equipo" title, the orbit as
+a permanent element, and all content still listed in `CONTENT_NEEDED.md`.
+
+Nothing was committed, pushed or deployed.
+
+### Follow-up (same day): Somos Colmillo text at full section width
+
+User request: the "Somos Colmillo" text should be as wide as the section
+below. Its paragraphs now span the whole 72rem container (the width of
+"Cómo hacemos las cosas": title, list and picture), same type as before; the
+still ring (and the orbit's stop) moved up beside the rule and heading, in
+the picture's column. `studio-page.css`, `StudioIntro.astro` comment and the
+container test in `studio.demo.spec.ts` changed.
+Because full-width text sits between the Somos stop and the principles stop,
+the orbit's path must cross it; the orbit now docks at Somos when the ring is
+30% down the screen and fades to 12% wherever its box covers text blocks
+(`TEXT_BLOCKS` in `StudioOrbit.ts`, rects measured on ScrollTrigger refresh,
+no layout reads per frame). Measured with a scroll sweep (every 40 px) at
+1440x900, 1920x1080, 1366x768 and 1100x800.
+
+## 2026-09-14 Session: /studio/ Close Rebuilt On The CTA Photograph
+
+User request: redesign only the Studio close with
+`public/assets/motion/studio/bg cta studio.png`. Parallel-terminal files
+(`FINAL ANIMACION.mp4`, `WEB.mp4`, `hero-final-*`, `goodbye-section.css`,
+`assets.ts`, `foundations.spec.ts`, `demo.spec.ts`) were not touched.
+
+Files: `src/components/studio/StudioCTA.astro` (rewritten),
+`src/data/studioPage.ts` (`image` on the close),
+`src/styles/studio-page.css` (close block rewritten),
+`src/scripts/motion/StudioPageMotion.ts` (`initClose`; unused hairline
+reveal removed), `src/scripts/motion/StudioOrbit.ts` (comment only),
+`tests/e2e/studio.demo.spec.ts`, new
+`public/assets/motion/studio/studio-cta.webp`; docs `MOTION_SPEC.md`,
+`DECISIONS.md`, this file. The PNG master is untouched (it ships in `dist/`
+unreferenced, 2.1 MB; `media-src/` would be its usual home - left for the
+user to decide).
+
+Measured on the dev server (copy left-right / sculpture start / section
+height): 1920x1080 160-850 / 927 / 1024; 1440x900 67-607 / 738 / 900;
+1366x768 65-577 / 678 / 768; 1024x768 55-439 / 568 / 768; iPad Mini and
+Pixel 7 stacked (copy on top, band below). Overflow 0 everywhere, console
+clean, fast scroll top/bottom/middle settles with clip `inset(0%)`, pointer
+shift -2.4/3.2 px over the sculpture and 0 over the copy, reduced motion
+clip `none` and image transform `none`. Screenshots inspected: 1440, 1920,
+1024, entrance at 90% and 60%, title glyph crop, tablet, phone, reduced.
+
+Verification: `astro check` 0/0/0; ESLint and Prettier clean on the changed
+files; `build` 9 pages; `check:production` passed (62 files, 171,024 JS
+bytes); `check:links` passed; `build:demo` 14 pages; Playwright demo
+`studio.demo.spec.ts` + `demo.spec.ts` 105 passed / 57 skipped, standard
+`studio.spec.ts` 2 passed.
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-14 Session: /studio/ Hero Loop Published
+
+The user supplied `public/assets/motion/studio/video hero studio.mp4` (H.264
+1280x720, 24 fps, 144 frames, 6.02 s, with an AAC track) for the `/studio/`
+hero. It is kept untouched. `studioHeroMedia` in `src/config/assets.ts` now
+points at three derivatives in `public/assets/motion/studio-page/`:
+`studio-hero-loop.webm` (VP9, 570 KB), `studio-hero-loop.mp4` (H.264 High,
+faststart, no audio, 592 KB) and `studio-hero-poster.webp` (27 KB), all
+960x720. The component, layout and motion code were already written for the
+slot, so nothing else in the hero changed (`autoplay muted loop playsinline`,
+no controls, `preload="metadata"`, `object-fit: contain`, paused off screen, in
+a hidden tab and under reduced motion by `initHeroLoop`).
+
+What the derivatives change, and why (measured on every frame):
+
+- Crop 960x720 at x=192. The drawing spans x 259-1086, y 106-654 over the whole
+  clip, so a 4:3 crop keeps every drawn pixel with at least 66 px of air and
+  matches the existing 4:3 frame. No `cover`, no scaling of the art.
+- Seam. The master's last pose is not its first: the 144->1 difference was
+  15.4 against a normal frame step of 1.4 (max 3.9), and no frame comes close
+  to frame 1. Frames 9-136 play unchanged and the last eight dissolve into the
+  first eight (a 12-frame dissolve read as a double exposure and was dropped).
+  Encoded wrap difference 3.9, inside the normal step range.
+- Ground. The master's flat ground is #161616 (19-25, no vignette), which read
+  as a darker rounded box on the route's #1f1f1f. A black-level lift
+  `v + 9.85 * (1 - v/255)` per channel puts it at 31; cream strokes go 240 ->
+  241. Screenshots now show edge pixel 31 inside and outside the frame.
+
+Tooling: no ffmpeg on PATH; the ffmpeg binary bundled with the user's Remotion
+project (`@remotion/compositor-win32-x64-msvc`) decoded and encoded, sharp did
+the crop/dissolve/lift on PNG frames. VP9 `-crf 34 -b:v 0 -row-mt 1
+-deadline good -cpu-used 1`; x264 `-preset slow -crf 22 -profile:v high
+-movflags +faststart`; both `-pix_fmt yuv420p -an`, 24 fps.
+
+Why `studio-page/`: `check:hero` treats every `/assets/motion/(hero|studio)/`
+path in `assets.ts` as a white-baked home loop and failed on the charcoal set;
+the slot's own comment had reserved `motion/studio-page/`.
+
+Tried and reverted: widening the hero measure to 110rem so the frame reaches
+~46% of a 1920 screen. It moved the hero's left edge 80 px, which the Studio
+close aligns to (`studio.demo.spec.ts` "the close is a photographic stage"
+failed), so the layout is unchanged: the frame is 45.3% of 1440, 45.2% of
+1366 and 41.7% of 1920 (capped by the 100rem measure).
+
+Measured in Google Chrome on `dist-demo`: playing from `studio-hero-loop.webm`
+at 1920x1080, 1440x900, 1366x768, 1024x1366, 834x1112, 768x1024, 430x932,
+390x844 and 320x720; frame vertically centred on landscape (offset 0), title
+over frame on portrait; overflow 0; no hero placeholder; no 4xx or page
+errors; seeking to 0.5 s before the end continued at 0.26 s still playing;
+reduced motion paused at 0 on the poster.
+
+Verification: `astro check` 0/0/0; ESLint clean on the changed files; `build`
+9 pages and `build:demo` 14 pages; `check:hero` passed (8 files);
+`check:production` passed (66 files, 171,024 JS bytes); Playwright standard
+`studio.spec.ts` 2 passed, demo `studio.demo.spec.ts` 31 passed / 26 skipped.
+Tests updated: both Studio specs now expect the loop (muted, loop, autoplay,
+playsInline, no controls, `aria-hidden`) instead of the placeholder.
+
+Files: `src/config/assets.ts` (`studioHeroMedia`), `tests/e2e/studio.spec.ts`,
+`tests/e2e/studio.demo.spec.ts`, `docs/CONTENT_NEEDED.md` (hero loop item),
+this file; new `public/assets/motion/studio-page/` (3 files). Open for the
+client: approval of the crop, dissolve and lift, or a re-export on #1f1f1f
+with matching first/last poses. Nothing was committed, pushed or deployed.

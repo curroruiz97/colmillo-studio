@@ -134,26 +134,41 @@ Still missing:
   home, and `npm run media:services` already reads from there first. Also a
   confirmation that their opaque near-black clothing is intended (the shared
   illustration's clothing is transparent).
-- `/studio/` page (rebuilt 2026-09-11, fully designed; demo build only for the
-  provisional blocks). Everything below lives in `src/data/studioPage.ts`
-  unless noted; filling an `approved…` record publishes that block:
-  - hero loop: a square-ish WebM + MP4 pair and a WebP poster of the first
-    frame for `studioHeroMedia` in `src/config/assets.ts` (subject centred:
-    it is masked to a disc with a bite out of its top-right shoulder). Until
-    then the disc shows a geometric placeholder;
+- `/studio/` page (rebuilt 2026-09-11, second design pass 2026-09-14: dark
+  charcoal route; demo build only for the provisional blocks). Everything
+  below lives in `src/data/studioPage.ts` unless noted; filling an
+  `approved…` record publishes that block:
+  - hero loop: SUPPLIED 2026-09-14 as
+    `public/assets/motion/studio/video hero studio.mp4` (kept untouched) and
+    published through `studioHeroMedia` as
+    `public/assets/motion/studio-page/studio-hero-loop.{webm,mp4}` +
+    `studio-hero-poster.webp` (charcoal, so outside the white-baked
+    `motion/hero|studio` sets that `check:hero` guards; 4:3 crop, eight-frame seam dissolve, ground
+    lifted from #161616 to the route's #1f1f1f; details in
+    `src/config/assets.ts`). Open: approval of those three derivative changes,
+    and ideally a re-export from the source with a #1f1f1f ground and a first
+    pose equal to the last, which would make the seam dissolve and the lift
+    unnecessary;
   - "Somos Colmillo" copy: approval or replacement of the provisional
-    headline, lede and paragraph supplied on 2026-09-11 (`approvedIntro`);
-  - the four principles (Mirar, Tensar, Morder, Soltar): approval of their
-    provisional descriptions and one image each (`image` on every item; any
-    ratio, cropped with `object-fit: cover` to 4:5 on desktop and 5:4 on
-    phones), with alternative text (`approvedPrinciples`);
+    heading, lede (with "provocar algo" in orange) and paragraph supplied on
+    2026-09-11 (`approvedIntro`). Since 2026-09-14 every paragraph is set
+    alike; two short paragraphs fit the layout, and a single one ("Un estudio
+    creativo nacido con una idea sencilla...") is the agreed fallback if the
+    copy grows;
+  - the four principles (Mirar, Pensar, Crear, Lanzar, renamed 2026-09-14
+    with temporary descriptions): approval of those descriptions and one
+    picture each (`image` on every item;
+    upright 4:5, cropped with `object-fit: cover`, at least 1000 px tall). The
+    pictures are decorative companions of the text on a dark page, rendered
+    with empty alternative text (`approvedPrinciples`). Until then abstract
+    compositions stand in;
   - the team: real names, roles, portraits (4:5 or taller, at least 1200 px
     on the long side), alternative text and optional links
     (`approvedTeam`). The six current entries are structural placeholders and
     set no team size;
   - confirmation of the section titles "Somos Colmillo", "Cómo hacemos las
-    cosas" (or "Nuestra forma de hacer las cosas") and "Los que muerden" (or
-    "El equipo").
+    cosas" and "Equipo" (renamed from "Los que muerden" on 2026-09-14) with
+    its line "Las personas detrás de Colmillo.".
 - Home Studio copy: one editorial headline that sets in at most two lines (about
   18 characters per line) and one supporting sentence of about one line. The section is built and waiting in
   `src/data/studio.ts`; the current demonstration headline ("Tensamos cada idea

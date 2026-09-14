@@ -1907,3 +1907,109 @@ layout or sequence is taken from them.
   `StudioPage.ts` in `MotionController` (the `ContactBite` pattern). Keeping
   it in the shared bundle measured 152,176 bytes against the 150,000-byte
   budget. No pin, scrub, parallax or permanent loop (see `MOTION_SPEC.md`).
+
+## 2026-09-14 - /studio/ Second Pass: A Dark, Calm Editorial Route
+
+Decision (user direction, Hello Monday's product page as a tone reference
+only: no colour, type, code, copy or layout taken): `/studio/` becomes one
+continuous charcoal route, clearly different from the white, playful home.
+The structure of 2026-09-11 is kept; its look and the principles'
+interaction change.
+
+- Surface: `#1f1f1f` everywhere, text `#f5f5f5`, secondary white 65%, rules
+  white 15%, orange `#cd5730` as the only accent. It is scoped in
+  `studio-page.css` through `html:has([data-studio-page])` overriding
+  `--color-background`/`--color-text`, so `html`, `body` and the shared
+  footer are charcoal on this route only and no light band can appear; no
+  shared component or token file changed. Sections are transparent and all
+  declare `data-surface-tone="dark"`. Orange is used for text only at 24 px
+  and up (3.9:1 on the charcoal).
+- Container: a Studio-only `.studio-shell` with symmetric side padding (page
+  gutter plus the edge rail's clearance; phones keep it on the right only)
+  and a measure per section (hero 100rem, principles/team/close 72rem, intro
+  52rem). The shared `.content-shell` is left-anchored on wide screens, which
+  is what pushed the content to the right; it is untouched for other routes.
+- Type: one moderate scale, h2 `clamp(2.5rem, 4.5vw, 5rem)`, principle names
+  `clamp(1.8rem, 3vw, 3.5rem)`, body 18-22 px; only the hero h1 stays large.
+- Hero: the bitten orange disc, its ring/core placeholder and the
+  "Loop pendiente" note are gone. Title left (~40%) and a 4:3 frame right
+  (~50%, `object-fit: contain`), both on the viewport's middle line by grid
+  alignment. The empty slot is a plain surface with no text in both builds.
+- "Somos Colmillo": one centred 52rem column (rule, heading, lede with
+  "provocar algo" in orange, paragraph); the giant two-line headline and the
+  offset right column are gone.
+- Principles: numbers removed. This reverses the 2026-09-11 choice of
+  descriptions on a separate stage: each description now opens directly
+  under its name, as the user asked. The flicker that choice avoided is
+  handled by keeping exactly one row open, so one row closes while another
+  opens in the same 520 ms, the list keeps its height, and a row only grows
+  downwards from under the pointer that opened it. The ARIA tab list became
+  disclosure buttons (`aria-expanded`, closed descriptions `inert`) created
+  inside each heading by the script; without JavaScript every description is
+  open. Picture: ~33% column, 4:5, fading in with a 16 px rise and a light
+  top clip, no zoom; the pointer drift was removed. Pictures are decorative
+  companions of the text and render with empty alternative text.
+- Team and close: container, surface and type only; the close is no longer a
+  separate ink panel with a rounded top.
+
+## 2026-09-14 - /studio/ Third Pass: Alignment, Plainer Steps, Colmillo Orbit
+
+Decision (user direction; no change of visual direction, structure or other
+routes):
+
+- One container: "Somos Colmillo", principles, team and close share the
+  72rem `.studio-shell` measure (the principles' width). Somos uses the
+  principles' grid (58fr text / 9% air / 33fr), so its text column ends
+  exactly where the list does.
+- Somos copy: both paragraphs now share one treatment (colour, size
+  `clamp(1.375rem, 2vw, 2rem)`, weight, measure, leading). Checked visually
+  at 1440 and 390: it breathes, so the second paragraph was kept rather than
+  removed.
+- Principles renamed Mirar / Pensar / Crear / Lanzar with the user's
+  temporary copy (ids `mirar`, `pensar`, `crear`, `lanzar`; placeholder art
+  keys `look`, `think`, `make`, `launch`). Layout and interaction unchanged;
+  the picture is a touch smaller (21rem max, was the full 33% column) so it
+  has room to follow the open row.
+- Team: title "Equipo"; wide-screen steps reduced to about 0 / +65 / +30 px
+  (were 0 / +160 / +65); big placeholder numbers removed, only a quiet
+  "Retrato pendiente".
+- Close: glyph clipping came from the `.studio-line` reveal clip (0.14em
+  foot padding against a 1.04 leading). The close title no longer uses a
+  clipping line (fade-up instead) and sets a 1.12 leading; the shared clip
+  padding grew to 0.14em/0.26em with matching negative margins for the team
+  heading. Title larger, button under it, a hairline ending in an orange dot.
+- Colmillo orbit: a hairline orange ring with a dot (drawn in
+  `StudioRing.astro`, idea from the home hero's open ring, not its
+  component) travels the page on wide screens behind the content, landing on
+  one stop per section and fading out at the close dot. Stops are empty
+  markers placed in CSS, so composition stays in the stylesheet. It is not
+  shown on phones/tablets under 64rem, on touch-only journeys or under
+  reduced motion, where the Somos ring is a still element. ScrollTrigger is
+  passed into the route chunk with GSAP so no library is duplicated.
+
+## 2026-09-14 - /studio/ Close Becomes A Photographic Stage
+
+Decision (user direction; only the close changed): the close uses the
+user-supplied `public/assets/motion/studio/bg cta studio.png` (2048x768,
+black field left, orange/black sculpture right) as a full-bleed photograph.
+
+- Rendered as an `<img>` (`object-fit: cover`) in an `overflow: hidden`
+  layer, not a CSS background, so entrance, drift and pointer shift are GPU
+  transforms. Derivative `studio-cta.webp` (sharp, quality 90, smart
+  subsampling, 176,220 B): quality 80 (95,706 B) showed 16 px macroblocks in
+  the near-black at normal viewing.
+- Landscape (>= 48rem): `min(100svh, 64rem)` tall (at least 36rem),
+  `object-position: 32% 50%`, which keeps the sculpture's left edge at about
+  half the width from 1024 to 1920 px wide (measured 568/1024, 738/1440,
+  678/1366, 927/1920). Portrait and phones: copy on the black at the top and
+  the photograph in a band from 44% down, faded in with a mask from the
+  photo's own black (`#040404`, sampled), focus 60%; no overlay needed.
+- The copy uses the hero's 100rem measure instead of the 72rem editorial
+  grid: on the 72rem grid the copy started at x 384 on a 1920 screen and ran
+  into the sculpture. The route is bookended by its two full-bleed moments
+  on the same left edge.
+- The hairline + orange dot detail was removed (the photograph carries the
+  ending; no added decoration). The orbit's close stop moved to the
+  section's top edge.
+- Button: unchanged shared bite button with the cream slab; hover now
+  presses it part way (`translate 0.18rem`), a click all the way.

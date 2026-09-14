@@ -260,30 +260,37 @@ or permanent loop. Movement follows an interaction or an arrival.
   `src/pages/studio.astro`, and hands it GSAP and `PressSurface`, exactly as
   the home contact close does. The shared bundle stays under its 150 KB
   budget. A chunk that fails leaves the complete static page.
+- Second design pass on 2026-09-14: the route is calmer than the home. The
+  pointer drift on the principles' pictures was removed, and the principles
+  no longer clip or zoom their pictures in from the foot.
 - Hero, once from the first paint, in CSS so it never waits for the chunk:
   the title rises out of its clip (`translateY(108%)` to rest, 1.05 s, GSAP's
-  `power3.out` curve, at 0.1 s), then the disc arrives from `opacity 0,
-  translateY(18px) scale(.94)` (1.3 s, `power2.out` curve, at 0.42 s). When
+  `power3.out` curve, at 0.1 s), then the frame settles from `opacity 0,
+  translateY(18px)` (1.2 s, `power2.out` curve, at 0.36 s); no scale. When
   `studioHeroMedia` is supplied the loop plays only on screen in a visible
   tab. Reduced motion: no entrance; the loop rests on its poster.
-- Reveals: every `[data-reveal-group]` (intro, section headers, close) lifts
-  its `[data-reveal-line]` lines out of their `.studio-line` clips (0.95 s,
-  0.09 stagger) and settles its `[data-reveal-fade]` blocks (`y 18`, opacity,
-  0.75 s, from 0.3 s), once, at `top 78%`. Reduced motion: a 0.45 s opacity
-  fade.
-- Principles (CSS transitions on the states `StudioPage.ts` writes): the
-  active row's rule draws in orange from the left (`scaleX`, 520 ms), its name
-  steps forward 0.4-1 rem (420 ms), its index turns orange and a small bitten
-  mark scales in (360 ms); the other names recede to 44% ink. On the stage the
-  arriving picture is clipped in from its foot (`inset(100% 0 0 0)` to
-  `inset(0)`, 640 ms `--ease-bite`) while its media settles from `scale 1.07,
-  translate 0 4%` (900 ms); its caption fades up after 140 ms. The covered
-  picture is held whole underneath until the next change, so the stage never
-  shows a gap; its caption goes at once. No bounce, no elastic, no 3D tilt.
-- Drift: under a fine pointer the stage's pictures translate at most 12 px by
-  9 px towards the pointer, through two `gsap.quickTo`s on a proxy that write
-  `--drift-x/--drift-y` (0.9 s `power3.out`, on the shared ticker). The
-  section's box is read on the first move and after a scroll or resize.
+- Reveals: every `[data-reveal-group]` draws its `[data-reveal-rule]` in from
+  the left (`scaleX 0`, 0.9 s), lifts its `[data-reveal-line]` lines out of
+  their `.studio-line` clips (0.95 s, 0.09 stagger; the team heading and the
+  close) and settles its `[data-reveal-fade]` blocks (`y 20`, opacity, 0.8 s,
+  0.12 stagger, from 0.08 s, or 0.3 s after lines), once, at `top 78%`, all
+  `power3.out`. "Somos Colmillo": rule and heading together, then the lede,
+  then the paragraph, about 1.1 s in all; no blur, no bounce, no parallax.
+  Reduced motion: one simultaneous 0.45 s opacity fade, no stagger.
+- Principles (CSS transitions on the states `StudioPageMotion.ts` writes):
+  exactly one principle is open. Its name brightens from white 50% to
+  `#f5f5f5` and steps 6 px in (420 ms `--ease-bite`), its top rule draws in
+  orange from the left (`scaleX`, 2 px, 560 ms) and its description opens
+  under it (`grid-template-rows 0fr` to `1fr`, 520 ms, opacity after 120 ms).
+  The row that closes collapses in the same 520 ms, so the list keeps its
+  height and a row only grows downwards from under the pointer that opened
+  it. The closed rows collapse without a transition on the first paint
+  (`data-settling` for two frames). On the right, the arriving picture fades
+  in (420 ms), rises 16 px and opens a light top clip (`inset(10% 0 0 0)` to
+  `inset(0)`) over 720 ms; the leaving one fades out in place (360 ms). No
+  zoom, no tilt, no scroll-jacking. Reduced motion: the same states, changed
+  at once. On a tap, once the rows have settled, a picture under the list that
+  is off screen is scrolled into view with the least movement.
 - Team: each portrait arrives once (`autoAlpha`, `y 56`, 1 s, `top 90%`);
   nothing moves afterwards. Under a fine pointer with motion allowed each
   portrait's surface takes the home rail's dent (`PressSurface.ts`, same
@@ -291,6 +298,41 @@ or permanent loop. Movement follows an interaction or an arrival.
   pictures; reduced motion reveals with opacity only.
 - Close: the shared bite button, cream offset slab on ink, `:active` sinks it
   0.28 rem; the arrow nudges on hover and focus; magnetic pull as elsewhere.
+- Third pass (2026-09-14):
+  - Principles picture: beside the list it slides (`translate`, 720 ms
+    `--ease-bite`) so its middle is level with the open row, clamped to the
+    list's height plus 24 px; changes keep the fade/16 px rise, no zoom.
+  - Close: the question is no longer a clipped line; it settles (`y 20`,
+    opacity), then the button (0.16 s stagger), then the hairline draws out
+    to its orange dot (`clip-path` inset, 0.9 s `power2.inOut`).
+  - "Somos Colmillo" still ring turns in on entry (opacity, `scale 0.82`,
+    `rotation -40`, 1.4 s `power2.out`).
+  - Colmillo orbit (`StudioOrbit.ts`, route chunk): over 64rem with motion
+    allowed, one fixed ring (z-index -1 inside the isolated page, so behind
+    all content; `pointer-events: none`) travels between five stops marked
+    in each section's empty space (`[data-orbit-station]`: under the hero
+    title, the "Somos Colmillo" ring slot, the gutter between list and
+    picture, between "Equipo" and its line, the close dot). Scroll position
+    between two stops blends place, size (90/120/70/100/50 px), tilt,
+    proportion and dot angle with `sine.inOut`, smoothed by `quickTo`
+    (0.6 s); opacity 0.7-0.85, 30% fainter mid-journey, y kept in 8-92% of
+    the viewport. It appears after the hero entrance (1.2 s delay, 1.4 s)
+    and, once landed around the close dot, fades out (0.7 s delay, 1.2 s).
+    At "Somos Colmillo" it lands exactly on the still ring, which hides
+    (docked when the ring is 30% down the screen, beside the heading and
+    above the full-width text). Where its box covers text (Somos paragraphs,
+    principles title and list, the "Equipo" glyphs and line, the close
+    title; transform-free document boxes measured on refresh) it fades to
+    12% of its opacity (0.2 s) once a sixth of its box is over text, so a
+    crossing never competes with the copy.
+    Fine pointer within 110 px of its line: leans up to 12 px, stretches 7%
+    along / squeezes 4.5% across the pointer direction, tilts up to 6° and
+    slides its dot up to 24°, with 0.9 s `power2.out` inertia, and settles
+    back. One matrix transform, one opacity and one dot angle per frame from
+    a ticker that sleeps when idle; no layout reads on pointer moves (stops
+    are measured on ScrollTrigger refresh). Narrower screens: no travel, the
+    still ring stays and a fine pointer bends it the same way. Touch: still
+    ring only. Reduced motion: no orbit, no response, still ring.
 - Cleanup: every listener, observer, tween and ScrollTrigger is released; the
   tab roles and ARIA state are removed and rebuilt on a motion-preference
   restart, which keeps the principle that was on stage.
@@ -489,3 +531,21 @@ or permanent loop. Movement follows an interaction or an arrival.
 - Failure: without JavaScript the overlay is `display: none`. If the module
   never claims the head script's attribute, a 4 s timer returns the page; the
   module has a 9 s guard; a CSS animation hides the overlay after 7 s.
+- Close as a photographic stage (2026-09-14, supersedes the close bullets
+  above: no hairline or dot any more). `initClose` in `StudioPageMotion.ts`:
+  - transition from the team: the media layer's `clip-path` goes from
+    `inset(26% 0 0 0)` to `inset(0)` between `top bottom` and `top 30%`
+    (scrub 0.5), so the photograph's black rises over the charcoal from the
+    foot and follows the scroll both ways;
+  - entrance once at `top 65%`: the image settles from `scale 1.06`, `x 28`
+    (origin 70% 50%, 1.4 s), the question from `y 32`/opacity at 0.3 s
+    (0.9 s), the button from `y 22`/opacity at 0.48 s (0.8 s), `power3.out`;
+  - drift: image `y -16` to `16` px across the section (scrub 0.8); the image
+    is 5rem taller than its frame so no edge shows;
+  - fine pointer: the frame (1rem larger than the section) moves up to 7 px
+    horizontally and 4 px vertically away from the sculpture, only on the
+    sculpture's side (weight 0 left of 45% of the width), `quickTo` 1.1 s;
+    section box read on pointer entry/after scroll, never per move;
+  - the orbit's last stop is the section's top edge; it slips under the
+    rising photograph and fades.
+  Reduced motion and no JavaScript: no clip, scale, drift or pointer shift.

@@ -85,7 +85,10 @@ test('the hero publishes the official loop over a full first screen', async ({
   // The approved client loop, with both responsive sources and a poster.
   const video = page.locator('.hero__media');
   await expect(video).toHaveCount(1);
-  await expect(video).toHaveAttribute('poster', /hero-poster-white\.webp$/);
+  await expect(video).toHaveAttribute(
+    'poster',
+    /hero-final-poster-white\.webp$/,
+  );
   await expect(video).toHaveAttribute('muted', '');
   await expect(video).toHaveAttribute('playsinline', '');
   await expect(video).toHaveAttribute('loop', '');
@@ -94,10 +97,10 @@ test('the hero publishes the official loop over a full first screen', async ({
     .evaluateAll((nodes) => nodes.map((node) => node.getAttribute('src')));
   // The white-paper derivatives, matching the white surface behind them.
   expect(sources).toEqual([
-    '/assets/motion/hero/hero-mobile-white.webm',
-    '/assets/motion/hero/hero-mobile-white.mp4',
-    '/assets/motion/hero/hero-desktop-white.webm',
-    '/assets/motion/hero/hero-desktop-white.mp4',
+    '/assets/motion/hero/hero-final-mobile-white.webm',
+    '/assets/motion/hero/hero-final-mobile-white.mp4',
+    '/assets/motion/hero/hero-final-desktop-white.webm',
+    '/assets/motion/hero/hero-final-desktop-white.mp4',
   ]);
 
   // The loop is decorative: it carries no name into the accessibility tree.

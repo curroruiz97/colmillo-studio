@@ -1,18 +1,24 @@
 ---
 /**
- * /studio/ — 04 "Los que muerden"
+ * /studio/ — 04 "Equipo"
  *
- * An editorial grid of large portraits: three columns with stepped tops on
- * wide screens, two on tablets, one alternating column on phones. No cards:
- * a picture, then a name and a role under it.
+ * An editorial grid of large portraits: three columns on wide screens whose
+ * tops step down a little (0, then about 65 px, then about 30 px) so the row
+ * reads as a spread without looking accidental; two on tablets, one
+ * alternating column on phones. No cards: a picture, then a name and a role
+ * under it.
  *
  * Under a fine pointer each portrait gives where it is pressed, with the same
  * dent as the home project rail (`PressSurface.ts`, bound in `StudioPage.ts`).
  * Only the surface is clipped; the name and the role sit outside it and never
  * deform. Touch, keyboard and reduced motion keep the still picture.
  *
+ * The air between the heading and its line is the Colmillo orbit's stop in
+ * this section (`data-orbit-station`).
+ *
  * Members come from `studioTeam`. Until real people are supplied every entry
- * is an explicit "Nombre" / "Rol" placeholder with a flat portrait.
+ * is an explicit "Nombre" / "Rol" placeholder with a flat portrait that only
+ * says "Retrato pendiente".
  */
 import type { StudioTeamCopy } from '@/data/studioPage';
 
@@ -27,10 +33,10 @@ const tones = ['sand', 'ink', 'orange'] as const;
 <section
   class="studio-team"
   aria-labelledby="studio-team-title"
-  data-surface-tone="light"
+  data-surface-tone="dark"
   data-dev-placeholder={team.placeholder ? '' : undefined}
 >
-  <div class="content-shell">
+  <div class="studio-shell studio-team__inner">
     <header class="studio-team__header" data-reveal-group>
       <h2 id="studio-team-title" class="studio-team__title">
         <span class="studio-line">
@@ -38,6 +44,10 @@ const tones = ['sand', 'ink', 'orange'] as const;
         </span>
       </h2>
       <p class="studio-team__lede" data-reveal-fade>{team.lede}</p>
+      <span
+        class="studio-orbit-stop studio-orbit-stop--team"
+        aria-hidden="true"
+        data-orbit-station="team"></span>
     </header>
 
     <ul class="studio-team__grid" role="list">
@@ -74,9 +84,6 @@ const tones = ['sand', 'ink', 'orange'] as const;
                       >
                         <span class="studio-member__ph-label">
                           Retrato pendiente
-                        </span>
-                        <span class="studio-member__ph-number">
-                          {String(index + 1).padStart(2, '0')}
                         </span>
                       </div>
                     )}
