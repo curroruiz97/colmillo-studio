@@ -353,7 +353,7 @@ test('team portraits give under a fine pointer and never under touch', async ({
 }, testInfo) => {
   await page.goto('/studio/');
   const members = page.locator('[data-team-member]');
-  await expect(members).toHaveCount(6);
+  await expect(members).toHaveCount(3);
 
   const frame = page.locator('[data-press-frame]').first();
   const surface = page.locator('[data-press-surface]').first();
@@ -439,19 +439,21 @@ test('without JavaScript every description is open under its name', async ({
   await context.close();
 });
 
-test('Somos, the principles, the team and the close share one container', async ({
+test('Somos, the principles and the team share the hero container', async ({
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name !== 'fine-1440');
   for (const [width, height] of [
     [1920, 1080],
     [1440, 900],
+    [1366, 768],
     [1100, 800],
   ] as const) {
     await page.setViewportSize({ width, height });
     await page.goto('/studio/');
     const edges = await page.evaluate(() =>
       [
+        '.studio-hero__inner',
         '.studio-intro__inner',
         '.studio-principles__inner',
         '.studio-team__inner',
@@ -468,9 +470,9 @@ test('Somos, the principles, the team and the close share one container', async 
     for (const edge of edges) expect(edge, `${width}`).toEqual(edges[0]);
   }
 
-  // Both paragraphs of Somos Colmillo are set alike, as wide as the section
-  // below.
-  await page.setViewportSize({ width: 1440, height: 900 });
+  // Somos Colmillo starts on the principles' edge; both paragraphs are set
+  // alike, held to the 72rem reading measure.
+  await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto('/studio/');
   const paragraphs = await page
     .locator('.studio-intro__text')
@@ -488,11 +490,27 @@ test('Somos, the principles, the team and the close share one container', async 
     );
   expect(paragraphs).toHaveLength(2);
   expect(paragraphs[1]).toBe(paragraphs[0]);
-  const below = (await page.locator('[data-principles]').boundingBox())!;
+  const [intro, below] = await page.evaluate(() =>
+    ['.studio-intro__inner', '[data-principles]'].map((selector) => {
+      const element = document.querySelector(selector)!;
+      const box = element.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      return {
+        x: box.left + Number.parseFloat(style.paddingLeft),
+        width:
+          box.width -
+          Number.parseFloat(style.paddingLeft) -
+          Number.parseFloat(style.paddingRight),
+      };
+    }),
+  );
+  expect(Math.abs(intro!.x - below!.x)).toBeLessThan(2);
   for (const paragraph of await page.locator('.studio-intro__text').all()) {
     const text = (await paragraph.boundingBox())!;
-    expect(Math.abs(text.x - below.x)).toBeLessThan(2);
-    expect(Math.abs(text.width - below.width)).toBeLessThan(2);
+    expect(Math.abs(text.x - below!.x)).toBeLessThan(2);
+    // 72rem at the default 16 px root size, narrower than the container.
+    expect(text.width).toBeLessThanOrEqual(1153);
+    expect(text.width).toBeLessThan(below!.width - 200);
   }
 });
 
@@ -530,20 +548,65 @@ test('the principles are renamed and their picture follows the open row', async 
   expect(last - first).toBeLessThan(160);
 });
 
-test('team portraits step only a little and carry no numbers', async ({
+test('team portraits are equal landscape pictures that step only a little', async ({
   page,
 }, testInfo) => {
-  test.skip(testInfo.project.name !== 'fine-1440');
   await page.goto('/studio/');
-  const tops = await page
-    .locator('.studio-member')
-    .evaluateAll((members) =>
-      members.slice(0, 3).map((member) => member.getBoundingClientRect().top),
-    );
-  expect(tops[1]! - tops[0]!).toBeGreaterThanOrEqual(40);
-  expect(tops[1]! - tops[0]!).toBeLessThanOrEqual(90);
-  expect(tops[2]! - tops[0]!).toBeGreaterThanOrEqual(15);
-  expect(tops[2]! - tops[0]!).toBeLessThanOrEqual(45);
+  const layout = await page.evaluate(() => {
+    const inner = document.querySelector('.studio-team__inner')!;
+    const style = getComputedStyle(inner);
+    const box = inner.getBoundingClientRect();
+    return {
+      left: box.left + Number.parseFloat(style.paddingLeft),
+      right: box.right - Number.parseFloat(style.paddingRight),
+      members: [...document.querySelectorAll('.studio-member')].map(
+        (member) => {
+          const frame = member
+            .querySelector('.studio-member__frame')!
+            .getBoundingClientRect();
+          const name = member
+            .querySelector('.studio-member__name')!
+            .getBoundingClientRect();
+          return {
+            top: member.getBoundingClientRect().top,
+            left: frame.left,
+            right: frame.right,
+            width: frame.width,
+            height: frame.height,
+            nameLeft: name.left,
+          };
+        },
+      ),
+    };
+  });
+  const members = layout.members;
+  expect(members).toHaveLength(3);
+  for (const member of members) {
+    // Landscape, the same size as the first, name on the picture's left edge.
+    expect(member.width / member.height).toBeGreaterThan(1.3);
+    expect(Math.abs(member.width - members[0]!.width)).toBeLessThan(1);
+    expect(Math.abs(member.height - members[0]!.height)).toBeLessThan(1);
+    expect(Math.abs(member.nameLeft - member.left)).toBeLessThan(1);
+  }
+
+  if (testInfo.project.name === 'fine-1440') {
+    // Three columns across the whole section.
+    expect(Math.abs(members[0]!.left - layout.left)).toBeLessThan(1);
+    expect(Math.abs(members[2]!.right - layout.right)).toBeLessThan(1);
+    // First a little lower, second highest, third in between.
+    expect(members[0]!.top - members[1]!.top).toBeGreaterThanOrEqual(40);
+    expect(members[0]!.top - members[1]!.top).toBeLessThanOrEqual(90);
+    expect(members[2]!.top - members[1]!.top).toBeGreaterThanOrEqual(20);
+    expect(members[2]!.top).toBeLessThan(members[0]!.top);
+  } else if (testInfo.project.name === 'touch-834') {
+    // Two columns, a small step only.
+    expect(members[1]!.left).toBeGreaterThan(members[0]!.right);
+    expect(Math.abs(members[1]!.top - members[0]!.top)).toBeLessThanOrEqual(50);
+  } else {
+    // One column, no alternation.
+    for (const member of members)
+      expect(Math.abs(member.left - members[0]!.left)).toBeLessThan(1);
+  }
   await expect(page.locator('.studio-team')).not.toContainText(/\b0[1-6]\b/);
   await expect(page.locator('.studio-member__ph-label').first()).toHaveText(
     'Retrato pendiente',

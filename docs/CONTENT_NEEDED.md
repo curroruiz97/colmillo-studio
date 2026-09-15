@@ -122,10 +122,35 @@ Still missing:
   short description each, then enable `contentAvailability.services`. Each
   service can also carry a real destination and a related project when those
   exist. The design has no slot for a second accent line, so do not budget one.
-- Services page. Since 2026-09-11 `/servicios/` exists (another session,
-  in `primaryNavigation`) and the home section's `Abrir servicios ↗` CTA,
-  beside the heading, points at it through `servicesPage.href` in
-  `src/data/services.ts`. The page's own copy is still provisional.
+- Services page (`/servicios/`, rebuilt 2026-09-14 as a stack of layers). The
+  home section's `Abrir servicios ↗` CTA points at it through
+  `servicesPage.href` in `src/data/services.ts`. Everything below lives in
+  `src/data/servicesPage.ts` unless noted; filling `approvedServices`
+  publishes the four service layers:
+  - approval or replacement of the provisional claims, descriptions and
+    capabilities supplied by the user on 2026-09-14 for Estrategia,
+    Identidad, Digital and Contenido, and of the small "Capacidades" label;
+  - one media piece per service (`media`: an image, or a silent loop with its
+    poster). Until then each layer shows the client's service illustration
+    (the home set) on a dark plate: confirmation that this use is wanted, or
+    the final media;
+  - the hero piece: received 2026-09-15 (`public/assets/services/video hero
+    servicios.mp4`, 1280x720 loop, published untouched in both builds through
+    `servicesHeroMedia`). Still open: whether the small cut where each 6 s
+    pass wraps is acceptable or a seamless master will follow; the file also
+    carries an audio track the page never plays;
+  - optional per-service button destinations and related project slugs once
+    case studies exist (`cta`, `relatedProjects`); none is rendered now and no
+    placeholder link exists;
+  - confirmation of the close's wording, "Ahora toca verlo en acción.", and of
+    its labels "Ver proyectos" and "Hablemos", which ship in both builds;
+  - the close's scene: SUPPLIED 2026-09-15 as
+    `public/assets/services/img cta servicios.png` (2206x713, kept untouched)
+    and published as `servicios-cta.webp` in both builds. Open: the PNG master
+    sits in `public/` (1.8 MB copied into `dist/` though unreferenced;
+    `media-src/` is the recommended home), and a larger master (about 4400 px
+    wide) would stay sharp: at full screen height the picture is drawn about
+    2800-3350 CSS px wide, so it is upscaled on every desktop.
 - Per-service illustrations: received 2026-09-11 for Identidad, Digital and
   Contenido and live in the home sequence (Estrategia keeps the shared art).
   Still open: where the three 1600x900 PNG masters should live. They sit in

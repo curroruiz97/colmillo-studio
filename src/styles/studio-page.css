@@ -72,10 +72,10 @@ html:has([data-studio-page]) .site-footer__brand {
 }
 
 /*
- * The route's editorial container. "Somos Colmillo", the principles, the team
- * and the close all use the same 72rem measure, so their edges sit on one
- * line; only the hero sets a wider one. The shared `.content-shell`
- * (left-anchored on wide screens) is not used here.
+ * The route's editorial container. "Somos Colmillo" keeps the 72rem measure;
+ * the hero, the principles, the team and the close set the wider 100rem one,
+ * so those edges sit on one panoramic line (2026-09-15). The shared
+ * `.content-shell` (left-anchored on wide screens) is not used here.
  */
 .studio-shell {
   box-sizing: border-box;
@@ -260,11 +260,14 @@ html:has([data-studio-page]) .site-footer__brand {
 }
 
 /*
- * The principles' grid: the heading in the list's column (58%) with the still
- * ring centred beside it in the picture's column (33%), the same 9% of air
- * between them, and the text across the full width of the section below.
+ * The principles' grid, on their container (the hero's 100rem measure), so
+ * the section starts on the same edge as the next one: the heading in the
+ * list's column (58%) with the still ring centred beside it in the picture's
+ * column (33%), the same 9% of air between them, and the text below from the
+ * same edge, held to the former 72rem reading measure (2026-09-15).
  */
 .studio-intro__inner {
+  --studio-measure: 100rem;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
 }
@@ -284,6 +287,7 @@ html:has([data-studio-page]) .site-footer__brand {
 .studio-intro__copy {
   display: grid;
   gap: clamp(1.25rem, 2vw, 1.75rem);
+  max-inline-size: 72rem;
 }
 
 /* Every paragraph alike: one colour, one size, one measure, one leading. */
@@ -341,8 +345,10 @@ html:has([data-studio-page]) .site-footer__brand {
   padding-block: var(--studio-space);
 }
 
+/* The hero's measure: the list and the picture column widen together, the
+   picture keeps its cap and gains air. */
 .studio-principles__inner {
-  --studio-measure: 72rem;
+  --studio-measure: 100rem;
 }
 
 .studio-principles__header {
@@ -688,9 +694,10 @@ html:has([data-studio-page]) .site-footer__brand {
   padding-block: var(--studio-space);
 }
 
-/* The same measure as the principles and the close, so their edges align. */
+/* The same measure as the hero, the principles and the close, so their edges
+   align. */
 .studio-team__inner {
-  --studio-measure: 72rem;
+  --studio-measure: 100rem;
 }
 
 .studio-team__header {
@@ -721,16 +728,6 @@ html:has([data-studio-page]) .site-footer__brand {
   list-style: none;
 }
 
-/* Narrower than the column on phones, so the alternation reads. */
-.studio-member {
-  inline-size: min(86%, 22rem);
-}
-
-/* Phones: one column that alternates sides. */
-.studio-member:nth-child(even) {
-  justify-self: end;
-}
-
 /* A keyboard user can reach a linked portrait before its reveal has run. */
 .studio-member:focus-within {
   opacity: 1 !important;
@@ -740,19 +737,24 @@ html:has([data-studio-page]) .site-footer__brand {
 
 .studio-member__body {
   display: grid;
-  gap: 0.3rem;
+  gap: 0.35rem;
   color: inherit;
   text-decoration: none;
 }
 
-/* The frame is fixed geometry; only the surface inside it is ever clipped. */
+/*
+ * The frame is fixed geometry; only the surface inside it is ever clipped.
+ * Landscape (7:5, about 560x400) and every portrait the same size. A barely
+ * rounded corner, so it reads as a photograph on the page, not a card; the
+ * press dent (`PressSurface.ts`) scales from the short side and follows it.
+ */
 .studio-member__frame {
   position: relative;
-  aspect-ratio: 4 / 5;
-  margin-block-end: 0.85rem;
+  aspect-ratio: 7 / 5;
+  margin-block-end: clamp(1.1rem, 1.6vw, 1.6rem);
   overflow: hidden;
   isolation: isolate;
-  border-radius: var(--studio-radius);
+  border-radius: 0.25rem;
 }
 
 .studio-member__surface {
@@ -815,19 +817,16 @@ a.studio-member__body:is(:hover, :focus-visible) .studio-member__name {
   color: var(--color-brand-orange);
 }
 
+/* Tablets: two columns, the second a small step lower. Phones keep one plain
+   column with no step. */
 @media (min-width: 40rem) {
   .studio-team__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: clamp(1.5rem, 4vw, 3rem);
-  }
-
-  .studio-member {
-    inline-size: auto;
+    column-gap: clamp(1.25rem, 3vw, 2.5rem);
   }
 
   .studio-member:nth-child(even) {
-    justify-self: stretch;
-    margin-block-start: clamp(2.5rem, 6vw, 4.5rem);
+    margin-block-start: clamp(1.5rem, 3vw, 2.5rem);
   }
 }
 
@@ -840,32 +839,29 @@ a.studio-member__body:is(:hover, :focus-visible) .studio-member__name {
 }
 
 /*
- * Wide screens: three columns in one band whose tops step a little, so the
- * row reads as a spread rather than a table without looking accidental: the
- * first at 0, the middle about 65 px lower and a touch taller, the third
- * about 30 px lower (at 1440 px).
+ * Wide screens: three wide, equal columns across the whole section, with a
+ * narrow gutter, so three large landscape photographs fill the band. Their
+ * tops step very softly so the row reads as a composition, not a table: the
+ * first a little lower (about 65 px at 1440), the second highest, the third
+ * in between (about 35 px).
  */
 @media (min-width: 64.01rem) {
   .studio-team__grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    column-gap: clamp(2rem, 4vw, 5rem);
-    row-gap: clamp(4rem, 8vw, 8rem);
+    column-gap: clamp(1.25rem, 2.2vw, 2.75rem);
+    row-gap: clamp(3rem, 6vw, 6rem);
   }
 
   .studio-member:nth-child(even) {
     margin-block-start: 0;
   }
 
-  .studio-member:nth-child(3n + 2) {
-    margin-block-start: clamp(3rem, 4.5vw, 5rem);
-  }
-
-  .studio-member:nth-child(3n + 2) .studio-member__frame {
-    aspect-ratio: 3 / 4;
+  .studio-member:nth-child(3n + 1) {
+    margin-block-start: clamp(3rem, 4.5vw, 5.5rem);
   }
 
   .studio-member:nth-child(3n) {
-    margin-block-start: clamp(1.25rem, 2vw, 2.5rem);
+    margin-block-start: clamp(1.5rem, 2.4vw, 3rem);
   }
 }
 

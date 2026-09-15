@@ -1,0 +1,86 @@
+---
+/**
+ * One replaceable media slot (`PageMedia`, `src/config/assets.ts`).
+ *
+ * - An image: intrinsic size, lazy below the fold, `object-fit` from `fit`.
+ * - A loop: muted, looped, inline, no controls. `ServicesPageMotion.ts` plays
+ *   it only while it is on screen, uncovered and in a visible tab, and never
+ *   under reduced motion (where its poster is the picture). Below the fold it
+ *   fetches nothing until then (`preload="none"`).
+ * - Nothing yet: the frame's own surface plus whatever the caller puts in the
+ *   `placeholder` slot. Never a text note.
+ *
+ * An empty `alt` makes the piece decorative. The frame's size, radius and
+ * ground belong to the caller's class. With `press` the slot is the surface
+ * the shared pressure dent clips (`data-press-surface`, `PressSurface.ts`);
+ * the caller wraps it in the fixed `data-press-frame`.
+ */
+import type { PageMedia } from '@/config/assets';
+
+interface Props {
+  media: PageMedia | null;
+  /** In the first screen: fetched eagerly, and a loop starts at once. */
+  priority?: boolean;
+  /** The surface of a pressure dent. */
+  press?: boolean;
+  class?: string;
+}
+
+const {
+  media,
+  priority = false,
+  press = false,
+  class: className,
+} = Astro.props;
+const decorative = !media || media.alt === '';
+---
+
+<div
+  class:list={['page-media', className]}
+  data-fit={media?.fit ?? 'cover'}
+  data-press-surface={press ? '' : undefined}
+  aria-hidden={decorative ? 'true' : undefined}
+>
+  {
+    media?.kind === 'image' && (
+      <img
+        class="page-media__asset"
+        src={media.src}
+        width={media.width}
+        height={media.height}
+        alt={media.alt}
+        loading={priority ? 'eager' : 'lazy'}
+        fetchpriority={priority ? 'high' : 'auto'}
+        decoding="async"
+      />
+    )
+  }
+  {
+    media?.kind === 'video' && (
+      <video
+        class="page-media__asset"
+        muted
+        loop
+        playsinline
+        autoplay={priority}
+        preload={priority ? 'metadata' : 'none'}
+        poster={media.poster}
+        width={media.width}
+        height={media.height}
+        aria-label={decorative ? undefined : media.alt}
+        tabindex="-1"
+        data-page-video
+      >
+        {media.webm && <source src={media.webm} type="video/webm" />}
+        {media.mp4 && <source src={media.mp4} type="video/mp4" />}
+      </video>
+    )
+  }
+  {
+    !media && (
+      <div class="page-media__placeholder">
+        <slot name="placeholder" />
+      </div>
+    )
+  }
+</div>

@@ -126,11 +126,9 @@ test('services, studio and contact are complete demo destinations', async ({
   await expect(
     page.getByRole('heading', { level: 1, name: 'Servicios' }),
   ).toBeVisible();
+  await expect(page.locator('[data-service-layer]')).toHaveCount(4);
   await expect(
-    page.getByText('DEMO FICTICIA — NO PUBLICAR').first(),
-  ).toBeVisible();
-  await expect(
-    page.getByRole('link', { name: /Siguiente Proyectos/ }),
+    page.getByRole('link', { name: 'Ver proyectos', exact: true }),
   ).toHaveAttribute('href', '/proyectos/');
 
   await page.goto('/studio/');

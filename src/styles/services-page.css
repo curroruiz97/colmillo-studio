@@ -1,0 +1,968 @@
+/*
+ * SERVICES PAGE — /servicios/
+ *
+ * A stack of editorial layers. Each service is a full-screen plate with its
+ * own surface; on wide screens with motion allowed the next plate rises over
+ * the previous one (`SectionStack.ts` and the sticky `.stack-section` in
+ * `layout.css`) while it waits underneath, a little compressed.
+ *
+ *   hero       black     #0d0d0b   "Servicios." (the loop's own ground;
+ *                                  charcoal #1f1f1f while the slot is empty)
+ *   Estrategia white
+ *   Identidad  orange    #cd5730
+ *   Digital    black     #12100f
+ *   Contenido  white
+ *   close      black
+ *
+ * Contrast: ink on white ≈ 18.9:1, ink at 72% on white ≈ 7.4:1, ink on the
+ * orange ≈ 4.5:1 (so the orange layer sets every text in full ink), #f5f5f5 on
+ * black ≈ 18:1, white at 68% on black ≈ 9:1. Brand orange is only used for
+ * marks, rules and large type.
+ *
+ * Sentence case throughout; display type is the system stack until the
+ * licensed faces arrive (`fonts.css`).
+ */
+
+/*
+ * The black reaches the document on this route only, so the footer continues
+ * the close and nothing light can show behind a layer's rounded corners.
+ */
+html:has([data-services-page]) {
+  --color-background: var(--color-brand-ink);
+  --color-text: #f5f5f5;
+}
+
+html:has([data-services-page]) .site-footer {
+  border-block-start: 1px solid rgb(255 255 255 / 0.12);
+  color: rgb(255 255 255 / 0.65);
+}
+
+html:has([data-services-page]) .site-footer__brand {
+  color: #f5f5f5;
+}
+
+/*
+ * Over the orange layer the shared cursor's orange ring would disappear. The
+ * cursor's own rules live in a later cascade layer, hence `!important`.
+ */
+html:has([data-services-page])[data-surface-tone='accent']
+  .custom-cursor__shape {
+  border-color: var(--color-brand-ink) !important;
+}
+
+html:has([data-services-page])[data-surface-tone='accent']
+  .custom-cursor__core {
+  background: var(--color-brand-ink) !important;
+}
+
+.services-page {
+  --sv-charcoal: #1f1f1f;
+  --sv-light: #f5f5f5;
+  --sv-radius: clamp(0.75rem, 1.1vw, 1.25rem);
+  /* How far a layer tucks under the previous one where they do not stick. */
+  --sv-overlap: clamp(1.25rem, 5vw, 2rem);
+  /* How long a layer rests, fully on screen, before the next one rises. */
+  --sv-hold: clamp(8rem, 26svh, 16rem);
+
+  /* One type scale for the route. */
+  --sv-title: clamp(3rem, 5vw, 6rem);
+  --sv-claim: clamp(1.5rem, 2.5vw, 2.5rem);
+  --sv-body: clamp(1.125rem, 1.25vw, 1.375rem);
+
+  /* The page gutter plus the edge menu's rail, on both sides from 48rem so
+     compositions sit around the viewport's centre. */
+  --sv-pad-end: calc(var(--page-gutter) + var(--edge-rail-clearance));
+  --sv-pad-start: var(--page-gutter);
+
+  overflow-x: clip;
+  background: var(--color-brand-ink);
+}
+
+@media (min-width: 48rem) {
+  .services-page {
+    --sv-pad-start: var(--sv-pad-end);
+  }
+}
+
+/* The route's container: one measure per block, centred. */
+.services-shell {
+  box-sizing: border-box;
+  inline-size: 100%;
+  max-inline-size: calc(
+    var(--sv-measure, 88rem) + var(--sv-pad-start) + var(--sv-pad-end)
+  );
+  margin-inline: auto;
+  padding-inline: var(--sv-pad-start) var(--sv-pad-end);
+}
+
+.services-page :focus-visible {
+  outline: 3px solid var(--color-brand-orange);
+  outline-offset: 4px;
+}
+
+.service-layer[data-theme='accent'] :focus-visible {
+  outline-color: var(--color-brand-ink);
+}
+
+/* ---------------------------------------------------------- media slot --- */
+
+.page-media {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.page-media__asset {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  max-inline-size: none;
+  object-fit: cover;
+  transition:
+    translate 560ms var(--ease-bite),
+    scale 560ms var(--ease-bite);
+}
+
+/* An illustration stays whole, standing on the plate's lower edge. */
+.page-media[data-fit='contain'] .page-media__asset {
+  inset: 9% auto auto 8%;
+  inline-size: 84%;
+  block-size: 84%;
+  object-fit: contain;
+  object-position: 50% 100%;
+}
+
+.page-media__placeholder {
+  position: absolute;
+  inset: 0;
+}
+
+/* =============================================================== hero === */
+
+/* The stack's base: never clipped or rounded by the stack's entrance. */
+.services-hero {
+  display: grid;
+  min-block-size: 100vh;
+  min-block-size: 100svh;
+  border-radius: 0 !important;
+  clip-path: none !important;
+  background: var(--sv-charcoal);
+  color: var(--sv-light);
+}
+
+/* Portrait and narrow screens: the title over the frame, the pair centred. */
+.services-hero__inner {
+  --sv-measure: 100rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: center;
+  gap: clamp(2.5rem, 7vw, 4rem);
+  padding-block: clamp(5.5rem, 13svh, 8rem) clamp(4rem, 10svh, 6rem);
+}
+
+/* A line of display type that rises out of its own clip. The padding keeps
+   descenders inside it; the negative margin gives the space back. */
+.services-line {
+  display: block;
+  overflow: clip;
+  padding-block: 0.12em 0.22em;
+  margin-block: -0.12em -0.22em;
+}
+
+.services-line > span {
+  display: inline-block;
+}
+
+.services-hero__title {
+  max-inline-size: none;
+  margin: 0;
+  /* "Servicios." is about 4.9em wide at this tracking: it fits 320px. */
+  font-size: clamp(3rem, 15vw, 8rem);
+  font-weight: 900;
+  letter-spacing: -0.06em;
+  line-height: 0.9;
+  overflow-wrap: normal;
+}
+
+/* The full stop is a small orange disc, as on Studio. */
+.services-hero__dot,
+.services-close__dot {
+  display: inline-block;
+  inline-size: 0.15em;
+  aspect-ratio: 1;
+  margin-inline-start: 0.05em;
+  border-radius: 50%;
+  background: var(--color-brand-orange);
+}
+
+.services-hero__media {
+  inline-size: 100%;
+}
+
+.services-hero__frame {
+  aspect-ratio: 4 / 3;
+  border-radius: var(--sv-radius);
+  background: #292929;
+}
+
+/*
+ * With the loop (`data-hero-media`): the hero's ground is the file's own
+ * black, #0d0d0b as sampled across the clip, so the video has no visible
+ * edge. The frame has no plate, radius or ground; it takes the file's
+ * proportion and the video fills it with `contain`, so no figure is cropped.
+ * A soft mask over the outer 6% of each side, empty ground in every frame
+ * (the drawing keeps at least 13% clear), hides a decoder that lands a level
+ * or two off that black. No filter touches the drawing.
+ */
+.services-hero[data-hero-media] {
+  background: #0d0d0b;
+}
+
+.services-hero[data-hero-media] .services-hero__frame {
+  aspect-ratio: var(--sv-hero-w) / var(--sv-hero-h);
+  border-radius: 0;
+  background: none;
+}
+
+.services-hero[data-hero-media] .page-media__asset {
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: contain;
+  object-position: 50% 50%;
+  mask-image:
+    linear-gradient(to right, transparent, #000 6%, #000 94%, transparent),
+    linear-gradient(to bottom, transparent, #000 6%, #000 94%, transparent);
+  mask-composite: intersect;
+}
+
+/* Portrait phones: the loop spans the screen but the edge menu's rail. */
+@media (max-width: 47.99rem) {
+  .services-hero[data-hero-media] .services-hero__media {
+    inline-size: auto;
+    margin-inline: calc(-1 * var(--sv-pad-start)) calc(-1 * var(--page-gutter));
+  }
+}
+
+/*
+ * The empty slot: four plates stacked at the frame's foot, in the order of
+ * the layers below (white, orange, black, white), each a little lower and
+ * slightly off the one behind it.
+ */
+.services-hero__plate {
+  position: absolute;
+  inset-block-end: -4%;
+  border-radius: var(--sv-radius) var(--sv-radius) 0 0;
+}
+
+.services-hero__plate:nth-child(1) {
+  inset-inline: 18% 12%;
+  block-size: 74%;
+  background: var(--color-white);
+}
+
+.services-hero__plate:nth-child(2) {
+  inset-inline: 13% 17%;
+  block-size: 56%;
+  background: var(--color-brand-orange);
+}
+
+.services-hero__plate:nth-child(3) {
+  inset-inline: 21% 9%;
+  block-size: 38%;
+  background: var(--color-brand-ink);
+  box-shadow: 0 -1px 0 rgb(255 255 255 / 0.08);
+}
+
+.services-hero__plate:nth-child(4) {
+  inset-inline: 15% 19%;
+  block-size: 20%;
+  background: var(--color-white);
+}
+
+/*
+ * Entrance, once, from the first paint and quiet, since the loop carries the
+ * movement: the title fades up a fraction of an em inside its clip and the
+ * media settles from 98% a beat later (GSAP's power3.out and power2.out
+ * curves, under a second each). Opacity and transform only, so nothing
+ * shifts. CSS, so it never waits for the page's chunk. Reduced motion skips
+ * it.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  html:not([data-motion='reduced']) [data-services-hero-title] {
+    animation: services-rise 0.9s cubic-bezier(0.165, 0.84, 0.44, 1) 0.1s both;
+  }
+
+  html:not([data-motion='reduced']) .services-hero__media {
+    animation: services-arrive 1s cubic-bezier(0.215, 0.61, 0.355, 1) 0.25s both;
+  }
+}
+
+@keyframes services-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.16em);
+  }
+}
+
+@keyframes services-arrive {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+
+/* Landscape: title on the left, a frame a little smaller than Studio's on
+   the right, both on the viewport's middle line. */
+@media (min-width: 64.01rem), (min-width: 48rem) and (orientation: landscape) {
+  .services-hero__inner {
+    min-block-size: 100svh;
+    grid-template-columns: minmax(0, 46fr) minmax(0, 44fr);
+    align-content: stretch;
+    align-items: center;
+    column-gap: 10%;
+    padding-block: clamp(4rem, 10svh, 6rem);
+  }
+
+  .services-hero__title {
+    font-size: clamp(3.5rem, 8vw, 10.5rem);
+  }
+
+  .services-hero__media {
+    justify-self: end;
+    inline-size: min(100%, calc((100svh - 16rem) * 4 / 3));
+  }
+
+  /*
+   * The panoramic loop needs width: the title keeps its own width and the
+   * loop takes the rest of the measure (about 60% at 1440 px), capped by the
+   * screen's height. The file's empty margins already hold the drawing away
+   * from the title, so the gap between the columns is small.
+   */
+  .services-hero[data-hero-media] .services-hero__inner {
+    grid-template-columns: max-content minmax(0, 1fr);
+    column-gap: clamp(1.5rem, 4vw, 5rem);
+  }
+
+  .services-hero[data-hero-media] .services-hero__media {
+    inline-size: min(
+      100%,
+      calc((100svh - 12rem) * var(--sv-hero-w) / var(--sv-hero-h))
+    );
+  }
+}
+
+/* ============================================================= layers === */
+
+.service-layer {
+  --layer-bg: var(--color-white);
+  --layer-text: var(--color-brand-ink);
+  --layer-muted: rgb(18 16 15 / 0.72);
+  --layer-line: rgb(18 16 15 / 0.16);
+  --layer-line-strong: rgb(18 16 15 / 0.75);
+  --layer-accent: var(--color-brand-orange);
+  --layer-plate: var(--color-brand-ink);
+  background: var(--layer-bg);
+  color: var(--layer-text);
+}
+
+.service-layer[data-theme='accent'] {
+  --layer-bg: var(--color-brand-orange);
+  --layer-muted: var(--color-brand-ink);
+  --layer-line: rgb(18 16 15 / 0.3);
+  --layer-line-strong: var(--color-brand-ink);
+  --layer-accent: var(--color-brand-ink);
+}
+
+.service-layer[data-theme='dark'] {
+  --layer-bg: var(--color-brand-ink);
+  --layer-text: var(--sv-light);
+  --layer-muted: rgb(255 255 255 / 0.68);
+  --layer-line: rgb(255 255 255 / 0.16);
+  --layer-line-strong: rgb(255 255 255 / 0.75);
+  --layer-plate: var(--sv-charcoal);
+}
+
+/* Read one after another: copy, then the plate under it. */
+.service-layer__inner {
+  --sv-measure: 88rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'copy'
+    'media';
+  align-content: center;
+  row-gap: clamp(3rem, 10vw, 4.5rem);
+  padding-block: clamp(5rem, 16vw, 7rem)
+    calc(clamp(4rem, 14vw, 6rem) + var(--sv-overlap));
+}
+
+.service-layer__copy {
+  grid-area: copy;
+  display: grid;
+  justify-items: start;
+  align-content: center;
+}
+
+.service-layer__rule {
+  display: block;
+  inline-size: 3rem;
+  block-size: 2px;
+  margin-block-end: clamp(1.25rem, 3svh, 2rem);
+  background: var(--layer-accent);
+}
+
+.service-layer__title {
+  max-inline-size: none;
+  margin: 0;
+  font-size: var(--sv-title);
+  font-weight: 850;
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+
+.service-layer__claim {
+  max-inline-size: 17em;
+  margin: clamp(1rem, 2.6svh, 1.75rem) 0 0;
+  font-size: var(--sv-claim);
+  font-weight: 650;
+  letter-spacing: -0.025em;
+  line-height: 1.14;
+  text-wrap: balance;
+}
+
+.service-layer__description {
+  max-inline-size: 34rem;
+  margin: clamp(0.9rem, 2.2svh, 1.5rem) 0 0;
+  color: var(--layer-muted);
+  font-size: var(--sv-body);
+  line-height: 1.5;
+}
+
+/* ------------------------------------------------------- capabilities --- */
+
+.service-layer__capabilities {
+  inline-size: min(100%, 32rem);
+  margin-block-start: clamp(1.75rem, 4.5svh, 3rem);
+}
+
+.service-layer__capabilities-label {
+  margin: 0 0 0.6rem;
+  color: var(--layer-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.service-caps {
+  margin: 0;
+  padding: 0;
+  border-block-end: 1px solid var(--layer-line);
+  list-style: none;
+}
+
+/* A line each: the name on the left, a dot waiting on the right. */
+.service-cap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: clamp(0.6rem, 1.4svh, 0.85rem);
+  border-block-start: 1px solid var(--layer-line);
+  font-size: clamp(1.0625rem, 1.15vw, 1.25rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+/* The row's own rule, drawn in over the quiet one from the left. */
+.service-cap::before {
+  position: absolute;
+  inset-block-start: -1px;
+  inset-inline: 0;
+  block-size: 1px;
+  background: var(--layer-line-strong);
+  content: '';
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 560ms var(--ease-bite);
+}
+
+.service-cap__text {
+  transition: translate 360ms var(--ease-bite);
+}
+
+.service-cap__mark {
+  flex: none;
+  inline-size: 0.5rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--layer-accent);
+  scale: 0;
+  transition: scale 360ms var(--ease-bite);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .service-cap:hover::before {
+    transform: scaleX(1);
+  }
+
+  .service-cap:hover .service-cap__text {
+    translate: 5px 0;
+  }
+
+  .service-cap:hover .service-cap__mark {
+    scale: 1;
+  }
+
+  /* The plate answers, barely: its art lifts, a photograph leans in. */
+  .service-layer:has(.service-cap:hover)
+    .page-media[data-fit='contain']
+    .page-media__asset {
+    translate: 0 -6px;
+  }
+
+  .service-layer:has(.service-cap:hover)
+    .page-media[data-fit='cover']
+    .page-media__asset {
+    scale: 1.02;
+  }
+}
+
+/* ------------------------------------------------------------- button --- */
+
+/* A keyboard user can reach it before its arrival has run. */
+.service-layer__action {
+  margin-block-start: clamp(1.5rem, 4svh, 2.5rem);
+}
+
+.service-layer__action:focus-within {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* The shared bite button. Its slab is ink on the light and orange layers
+   and cream on the black one. */
+.service-layer__button {
+  max-inline-size: min(100%, 24rem);
+  box-shadow: 0 0.4rem 0 var(--color-brand-ink);
+  transition:
+    border-radius var(--duration-medium) var(--ease-bite),
+    box-shadow var(--duration-fast) var(--ease-bite),
+    translate var(--duration-fast) var(--ease-bite);
+}
+
+.service-layer[data-theme='accent'] .service-layer__button {
+  background: var(--color-white);
+}
+
+.service-layer[data-theme='dark'] .service-layer__button {
+  box-shadow: 0 0.4rem 0 var(--color-brand-cream);
+}
+
+.service-layer__button:active {
+  box-shadow: 0 0.12rem 0 var(--color-brand-ink);
+  translate: 0 0.28rem;
+}
+
+.service-layer__label::after {
+  display: inline-block;
+  margin-inline-start: 0.35em;
+  content: '↗';
+  content: '↗' / '';
+  transition: translate var(--duration-medium) var(--ease-bite);
+}
+
+.service-layer__button:is(:hover, :focus-visible) .service-layer__label::after {
+  translate: 0.14em -0.14em;
+}
+
+/* -------------------------------------------------------------- media --- */
+
+.service-layer__media {
+  grid-area: media;
+  display: grid;
+}
+
+/*
+ * The frame is fixed geometry, as on the Studio team portraits; only the
+ * surface inside it (the plate and its art) is ever clipped, by the shared
+ * pressure dent (`PressSurface.ts`) under a fine pointer. The layer's own
+ * surface shows through the bite. Size, radius, proportion and `object-fit`
+ * stay as they were.
+ */
+.service-layer__frame {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: var(--sv-radius);
+}
+
+.service-layer__surface {
+  position: absolute;
+  inset: 0;
+  background: var(--layer-plate);
+}
+
+/* Until a service has its media: an abstract gesture on the plate. */
+.service-layer__ph-disc,
+.service-layer__ph-bar {
+  position: absolute;
+  display: block;
+  background: var(--color-brand-orange);
+}
+
+.service-layer__ph-disc {
+  inset: 22% auto auto 14%;
+  inline-size: 34%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+}
+
+.service-layer__ph-bar {
+  inset: auto 12% 18% 40%;
+  block-size: 12%;
+  border-radius: 999px;
+  background: var(--sv-light);
+}
+
+/*
+ * Two columns on landscape screens, one grid for all four layers: copy about
+ * 5/11, media about 6/11, the same gap and centring, and the same 4:3 plate
+ * held inside the screen's height, so the art has the same presence in every
+ * layer. The layout only swaps sides: Estrategia and Digital put the plate on
+ * the right, Identidad and Contenido on the left.
+ */
+@media (min-width: 64.01rem), (min-width: 48rem) and (orientation: landscape) {
+  .service-layer {
+    min-block-size: 100svh;
+  }
+
+  .service-layer__inner {
+    --sv-pad-block: clamp(3.5rem, 9svh, 7rem);
+    min-block-size: 100svh;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    grid-template-areas: 'copy media';
+    align-items: center;
+    column-gap: clamp(3rem, 7vw, 8rem);
+    padding-block: var(--sv-pad-block);
+  }
+
+  .service-layer__media {
+    justify-items: end;
+  }
+
+  .service-layer__frame {
+    inline-size: min(100%, calc((100svh - 2 * var(--sv-pad-block)) * 4 / 3));
+  }
+
+  .service-layer[data-layout='media-text'] .service-layer__inner {
+    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+    grid-template-areas: 'media copy';
+  }
+
+  .service-layer[data-layout='media-text'] .service-layer__media {
+    justify-items: start;
+  }
+}
+
+/* ============================================================== close === */
+
+/*
+ * The page's last scene. `--close-black` is the picture's own black (about
+ * #0c0c0c, sampled), so the section, the scene and the wings' soft inner
+ * edges are one surface.
+ *
+ * Landscape: each wing is half the screen, the picture inside it at the
+ * section's full height (`cqh` of the scene), anchored to its own edge. At that
+ * height the sculptures reach about 22% of the picture's width into the
+ * screen around the copy's line; a wing is pushed outwards (`--close-shift`)
+ * only as far as keeps `--close-room` clear in the centre, so wide screens
+ * show the sculptures whole and 16:10 screens crop their outer ends.
+ */
+.services-close {
+  --close-black: #0c0c0c;
+  --close-ratio: 3.094; /* 2206 / 713 */
+  /* Portrait: the height of the top and bottom bands. */
+  --close-band: clamp(11rem, 30svh, 22rem);
+  isolation: isolate;
+  display: grid;
+  min-block-size: max(38rem, 100svh);
+  background: var(--close-black);
+  color: var(--sv-light);
+}
+
+.services-close__scene {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  container-type: size;
+  background: var(--close-black);
+  pointer-events: none;
+}
+
+.services-close__wing {
+  --close-img-w: calc(100cqh * var(--close-ratio));
+  --close-depth: calc(var(--close-img-w) * 0.22);
+  --close-room: clamp(34rem, 52cqw, 60rem);
+  --close-reach: clamp(
+    0px,
+    calc((100cqw - var(--close-room)) / 2),
+    var(--close-depth)
+  );
+  --close-shift: calc(var(--close-depth) - var(--close-reach));
+  position: absolute;
+  inset-block: 0;
+  /* Never past the picture's black middle, whatever the screen's shape. */
+  inline-size: min(50cqw, calc(var(--close-img-w) / 2 - var(--close-shift)));
+  overflow: hidden;
+}
+
+.services-close__wing--start {
+  inset-inline-start: 0;
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 8rem), #0000);
+  mask-image: linear-gradient(to right, #000 calc(100% - 8rem), #0000);
+}
+
+.services-close__wing--end {
+  inset-inline-end: 0;
+  -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 8rem), #0000);
+  mask-image: linear-gradient(to left, #000 calc(100% - 8rem), #0000);
+}
+
+.services-close__image {
+  position: absolute;
+  inset-block-start: 0;
+  inline-size: var(--close-img-w);
+  block-size: 100%;
+  max-inline-size: none;
+}
+
+.services-close__wing--start .services-close__image {
+  inset-inline-start: calc(-1 * var(--close-shift));
+}
+
+.services-close__wing--end .services-close__image {
+  inset-inline-end: calc(-1 * var(--close-shift));
+}
+
+/* The copy, centred in the black; a little above the middle, optically. */
+.services-close__inner {
+  --sv-measure: 88rem;
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: clamp(2rem, 5svh, 3.25rem);
+  padding-block: clamp(5rem, 12svh, 8rem) clamp(6rem, 15svh, 10rem);
+  text-align: center;
+}
+
+/* Two lines at most on wide screens, well inside the sculptures. */
+.services-close__title {
+  max-inline-size: 11em;
+  margin: 0;
+  font-size: clamp(2.125rem, 4.4vw, 4.75rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.06;
+  text-wrap: balance;
+}
+
+.services-close__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.25rem 1.5rem;
+  margin: 0;
+  /* Room for the slabs under the buttons. */
+  padding: 0 0 0.4rem;
+  list-style: none;
+}
+
+/* A keyboard user can reach a path before its arrival has run. */
+.services-close__item:focus-within {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/*
+ * The shared bite button, a size up and without a line break: orange with a
+ * cream slab, or light with an orange slab. Its ink border melts into the
+ * black, so the slab draws the edge. Hover and focus press it part of the way
+ * into the slab, a click all the way.
+ */
+.services-close .services-cta {
+  --cta-bg: var(--color-brand-orange);
+  --cta-slab: var(--color-brand-cream);
+  min-block-size: 4.5rem;
+  max-inline-size: none;
+  padding: 1.15rem 2.4rem;
+  background: var(--cta-bg);
+  box-shadow: 0 0.4rem 0 var(--cta-slab);
+  font-size: clamp(1.0625rem, 1.2vw, 1.25rem);
+  white-space: nowrap;
+  cursor: pointer;
+  /* `motion.css` sets the bite button's transition in a later cascade layer,
+     which would drop the press; hence `!important`. */
+  transition:
+    border-radius var(--duration-medium) var(--ease-bite),
+    box-shadow var(--duration-fast) var(--ease-bite),
+    translate var(--duration-fast) var(--ease-bite) !important;
+}
+
+.services-close .services-cta[data-variant='light'] {
+  --cta-bg: var(--sv-light);
+  --cta-slab: var(--color-brand-orange);
+}
+
+.services-cta__label::after {
+  display: inline-block;
+  margin-inline-start: 0.35em;
+  content: '↗';
+  content: '↗' / '';
+  transition: translate var(--duration-medium) var(--ease-bite);
+}
+
+@media (hover: hover) {
+  .services-close .services-cta:hover {
+    box-shadow: 0 0.18rem 0 var(--cta-slab);
+    translate: 0 0.22rem;
+  }
+}
+
+.services-close .services-cta:focus-visible {
+  box-shadow: 0 0.18rem 0 var(--cta-slab);
+  translate: 0 0.22rem;
+}
+
+.services-close .services-cta:active {
+  box-shadow: 0 0 0 var(--cta-slab);
+  translate: 0 0.4rem;
+}
+
+.services-cta:is(:hover, :focus-visible) .services-cta__label::after {
+  translate: 0.14em -0.14em;
+}
+
+/*
+ * Portrait screens and phones: the left wing becomes a band across the top
+ * and the right one a band across the foot, each fading into the black
+ * towards the copy, which sits between them.
+ */
+@media (orientation: portrait), (max-width: 47.99rem) {
+  /* Tablets get a larger band than the height alone would give. */
+  .services-close {
+    --close-band: clamp(11rem, max(30svh, 46vw), 26rem);
+  }
+
+  .services-close__wing {
+    --close-img-w: calc(var(--close-band) * var(--close-ratio));
+    --close-depth: calc(var(--close-img-w) * 0.24);
+    --close-reach: min(var(--close-depth), 42cqw);
+    inset-block: auto;
+    block-size: var(--close-band);
+    inline-size: min(100cqw, calc(var(--close-img-w) / 2 - var(--close-shift)));
+  }
+
+  /* The picture's black is a level or two lighter than the section's near its
+     top, so a band fades on its inner side as well as towards the copy. */
+  .services-close__wing--start {
+    inset-block-start: 0;
+    -webkit-mask-image:
+      linear-gradient(#000 45%, #0000),
+      linear-gradient(to right, #000 calc(100% - 6rem), #0000);
+    mask-image:
+      linear-gradient(#000 45%, #0000),
+      linear-gradient(to right, #000 calc(100% - 6rem), #0000);
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+  }
+
+  .services-close__wing--end {
+    inset-block-end: 0;
+    -webkit-mask-image:
+      linear-gradient(to top, #000 45%, #0000),
+      linear-gradient(to left, #000 calc(100% - 6rem), #0000);
+    mask-image:
+      linear-gradient(to top, #000 45%, #0000),
+      linear-gradient(to left, #000 calc(100% - 6rem), #0000);
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+  }
+
+  /* Centred on the screen, not on the route's uneven phone gutters. */
+  .services-close__inner {
+    padding-block: calc(var(--close-band) * 0.72);
+    padding-inline: calc(var(--page-gutter) + 1.5rem);
+  }
+}
+
+@media (max-width: 29.99rem) {
+  /* The buttons sit level with the edge menu's tab: they clear it. */
+  .services-close__actions {
+    flex-direction: column;
+    align-items: stretch;
+    inline-size: min(
+      100%,
+      18rem,
+      100vw - 2 * (var(--page-gutter) + var(--edge-rail-clearance))
+    );
+  }
+
+  .services-close .services-cta {
+    inline-size: 100%;
+  }
+}
+
+/* ========================================================== the stack === */
+
+/*
+ * Stacked (wide screens, motion allowed): every service rests on screen for
+ * a short stretch of scroll before the next one rises, so it can be read
+ * whole. The scroll is never held: nothing moves while it rests.
+ */
+@media (min-width: 64.01rem) and (min-height: 40rem) and (prefers-reduced-motion: no-preference) {
+  html:not([data-motion='reduced']) .service-layer {
+    margin-block-end: var(--sv-hold);
+  }
+}
+
+/*
+ * Linear (phones, portrait tablets, short windows, reduced motion): the
+ * layers follow one another, each tucked a little under the previous one so
+ * its rounded top shows that surface, never a gap. The stack's entrance band
+ * and compression are for sticky layers only, so they are switched off here
+ * (`SectionStack.ts` writes them inline).
+ */
+@media (max-width: 64rem), (max-height: 39.99rem) {
+  .service-layer,
+  .services-close {
+    margin-block-start: calc(-1 * var(--sv-overlap));
+    border-radius: var(--sv-overlap) var(--sv-overlap) 0 0 !important;
+    clip-path: none !important;
+  }
+
+  .services-page [data-stack-content] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .service-layer,
+  .services-close {
+    margin-block-start: calc(-1 * var(--sv-overlap));
+    border-radius: var(--sv-overlap) var(--sv-overlap) 0 0 !important;
+  }
+}
+
+html[data-motion='reduced'] .service-layer,
+html[data-motion='reduced'] .services-close {
+  margin-block-start: calc(-1 * var(--sv-overlap));
+  border-radius: var(--sv-overlap) var(--sv-overlap) 0 0 !important;
+}

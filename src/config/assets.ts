@@ -219,3 +219,57 @@ export const studioHeroMedia: StudioHeroMedia | null = {
   width: 960,
   height: 720,
 };
+
+/**
+ * One replaceable media slot on an editorial page: an image, or a silent loop
+ * with its poster. An empty `alt` marks the piece decorative (hidden from
+ * assistive technology). `fit` is `cover` for photographs and video, which
+ * fill their frame, and `contain` for illustrations, which stay whole on their
+ * plate. Rendered by `src/components/services/ServiceMedia.astro`.
+ */
+export type PageMedia =
+  | {
+      kind: 'image';
+      src: string;
+      width: number;
+      height: number;
+      alt: string;
+      fit: 'cover' | 'contain';
+    }
+  | {
+      kind: 'video';
+      webm: string | null;
+      mp4: string | null;
+      poster: string;
+      width: number;
+      height: number;
+      alt: string;
+      fit: 'cover' | 'contain';
+    };
+
+/**
+ * `/servicios/` hero loop supplied by the client on 2026-09-15: two figures
+ * building a geometric structure, cream line art on black.
+ *
+ * Published as delivered, untouched and under its own name (the space is
+ * URL-encoded here): H.264, 1280x720, 24 fps, 144 frames (6 s), plus an audio
+ * track the page never plays (the loop is muted). Sampled across the clip in
+ * Chromium, its flat ground decodes to #0d0d0b and the drawing never leaves
+ * x 209-1113, y 112-621, so a 16:9 frame with `object-fit: contain` shows it
+ * whole and the hero's ground is that same black (`services-page.css`). The
+ * last frame is not the first, so each pass wraps with a small cut. The
+ * poster is the loop's first frame, extracted in Chromium. Decorative
+ * (`alt: ''`); it plays only on screen, uncovered, in a visible tab and never
+ * under reduced motion (`ServicesPageMotion.ts`). `null` restores the
+ * abstract plates.
+ */
+export const servicesHeroMedia: PageMedia | null = {
+  kind: 'video',
+  webm: null,
+  mp4: '/assets/services/video%20hero%20servicios.mp4',
+  poster: '/assets/services/servicios-hero-poster.webp',
+  width: 1280,
+  height: 720,
+  alt: '',
+  fit: 'contain',
+};

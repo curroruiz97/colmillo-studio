@@ -188,7 +188,7 @@ const placeholderMember: StudioMember = {
 const demoTeam: StudioTeamCopy = {
   title: 'Equipo',
   lede: 'Las personas detrás de Colmillo.',
-  members: Array.from({ length: 6 }, () => ({ ...placeholderMember })),
+  members: Array.from({ length: 3 }, () => ({ ...placeholderMember })),
   placeholder: true,
 };
 

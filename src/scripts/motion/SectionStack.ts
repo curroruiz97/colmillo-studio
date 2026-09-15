@@ -51,7 +51,11 @@ export function initSectionStack(): () => void {
       );
 
       const nextSection = sections[index + 1];
-      const content = section.querySelector<HTMLElement>('.content-shell');
+      // A layer names what compresses with `data-stack-content`; the home
+      // sections use their `.content-shell`.
+      const content = section.querySelector<HTMLElement>(
+        '[data-stack-content], .content-shell',
+      );
       if (nextSection && content) {
         gsap.to(content, {
           yPercent: -1.8,

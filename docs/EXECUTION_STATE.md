@@ -5,7 +5,7 @@ repository state, not an aspirational roadmap.
 
 ## Last Updated
 
-2026-09-11
+2026-09-14 (latest session at the end of this file)
 
 ## Current Phase
 
@@ -3540,3 +3540,304 @@ Files: `src/config/assets.ts` (`studioHeroMedia`), `tests/e2e/studio.spec.ts`,
 this file; new `public/assets/motion/studio-page/` (3 files). Open for the
 client: approval of the crop, dissolve and lift, or a re-export on #1f1f1f
 with matching first/last poses. Nothing was committed, pushed or deployed.
+
+## 2026-09-14 Session: /servicios/ Rebuilt As A Stack Of Editorial Layers
+
+User request: redesign `/servicios/` completely, keeping the overlapping
+section effect as the page's main mechanic: charcoal hero ("Servicios."),
+Estrategia (white), Identidad (orange), Digital (black), Contenido (white)
+and a black closing decision ("Ahora toca verlo en acción.", "Ver proyectos"
+and "Hablemos"). Working tree was clean at start (HEAD `2853c70`, in sync
+with `origin/main`). A dev server from another terminal was running on
+`localhost:4321`; it was used for QA and left running. See `DECISIONS.md`
+and `MOTION_SPEC.md` ("Services Page").
+
+- New: `src/components/services/ServicesHero.astro`, `ServiceSection.astro`,
+  `ServicesClose.astro`, `ServiceMedia.astro`; `src/data/servicesPage.ts`;
+  `src/scripts/motion/ServicesPage.ts`, `ServicesPageMotion.ts` (route
+  chunk); `src/styles/services-page.css`; `tests/e2e/services.spec.ts`,
+  `tests/e2e/services.demo.spec.ts`.
+- Changed: `src/pages/servicios.astro` (rewritten), `src/config/assets.ts`
+  (`PageMedia` type, `servicesHeroMedia = null`), `src/styles/index.css` (one
+  import), `MotionController.ts` (mounts `initServicesPage`),
+  `SectionStack.ts` (`[data-stack-content]` accepted beside
+  `.content-shell`), `SurfaceTone.ts` (last surface in document order crossing
+  the band, see `DECISIONS.md`), `tests/e2e/demo.spec.ts` (Servicios
+  assertions), `playwright.config.ts` / `playwright.demo.config.ts` (new demo
+  spec registered), `CLAUDE.md`, `MOTION_SPEC.md`, `DECISIONS.md`,
+  `CONTENT_NEEDED.md`, this file.
+- Not touched: other routes' markup/CSS, the home services data, global
+  cursor/menu/Instagram/footer components, Vercel, git history.
+- Standard build: the four layers are provisional copy, so `dist/` renders
+  the hero and the close only (no `data-dev-placeholder`). Demo build and dev
+  render all six layers.
+
+Measured on the dev server (scratch Playwright scripts; landscape sizes with
+a fine pointer, portrait sizes with touch). At 1920x1080, 1440x900 and
+1366x768 all six layers are sticky, each service rests 26svh (234 px at 900)
+before the next rises, content fits the screen (1366x768 included), a hit-test
+sweep every 6% of a screen plus fast jumps bottom/top/middle found no point
+where anything but a layer or the footer is painted, and every layer's content
+is at full opacity after arrival. At 1024x1366, 768x1024, 430x932 and 390x844
+layers are relative and tucked 1.25-2rem under the previous one; same sweep,
+no gap. All seven: horizontal overflow 0, hero height = viewport, h1
+"Servicios", h2 Estrategia/Identidad/Digital/Contenido/close, "Servicios"
+current in the menu, console clean. Surface tone at rest: light, accent, dark,
+light (was "dark" everywhere before the `SurfaceTone.ts` fix); cursor ring ink
+over the orange. Capability hover: text 5 px, dot 1, rule drawn, art -6 px.
+Close hover/focus swap fill and slab. Reload in the middle of Digital and a
+1440->1366 resize mid-page: bands and compression still correct. Reduced
+motion at 1440 and 390: layers relative, no rest margin, no hero entrance,
+nothing hidden, no gap. Home tone sweep (every 450 px at 1440): one 5 px
+window at services/projects where the centre still shows services.
+Screenshots inspected: every layer rising and at rest at 1440, 1920 and 1366,
+tablets and phones, capability hover, close hover and focus, reduced-motion
+boundaries, and the standard build (hero/close) at 1440 and 390.
+
+Verification (executed): `astro check` 114 files 0/0/0; ESLint clean on every
+changed script, data, page, component and spec; Prettier applied to the new
+files and clean on the edited ones (`SectionStack.ts` and `SurfaceTone.ts`
+only differ by their pre-existing CRLF working copy); `build` 9 pages;
+`check:production` passed (68 files, 174,659 JS bytes; shared bundle 147,369
+bytes, route chunk ~3.1 KB); `check:links` passed; `build:demo` 14 pages.
+Playwright, run one suite after the other: standard (all specs, desktop
+Chromium + Pixel 7) 68 passed / 10 skipped; demo (`demo.spec.ts`,
+`studio.demo.spec.ts`, `services.demo.spec.ts` on fine-1440, touch-834 and
+touch-390) 117 passed / 63 skipped / 0 failed. A first run of the new sweep
+test hit the 30 s default while seven workers shared the CPU; it now sets
+90 s and samples every 16% of a screen.
+
+Open for the client (`CONTENT_NEEDED.md`): approval of the service claims,
+descriptions and capabilities; final media per service (the home
+illustrations stand in on dark plates); the hero piece; optional CTAs and
+related projects; the close wording. Now-unused `.editorial-page*` and
+`.manifesto-statement*` rules remain in `layout.css` for a separate clean-up.
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-15 Session: /studio/ Principles And Team On The Hero Measure
+
+User request: widen only "Cómo hacemos las cosas" and "Equipo" on `/studio/`
+so they use the hero's wider grid; no other change to structure, type, motion,
+copy or other sections/routes. The working tree already held the other
+terminal's uncommitted `/servicios/` work (listed above); no Studio file was
+dirty, and none of that work was touched. See `DECISIONS.md`.
+
+- `src/styles/studio-page.css`: `.studio-principles__inner` and
+  `.studio-team__inner` set `--studio-measure: 100rem` (was 72rem), the
+  hero's and the close's value; the side padding is unchanged (page gutter +
+  edge-rail clearance, 65-80 px on desktop). Team wide grid:
+  `repeat(3, minmax(0, 24rem))` with `justify-content: space-between` (the
+  gap stays as a minimum), so portraits reach both edges instead of scaling up.
+  Comments updated. Somos Colmillo stays on 72rem.
+- `tests/e2e/studio.demo.spec.ts`: the shared-container test now checks the
+  hero/principles/team edges at 1920, 1440, 1366 and 1100, and that Somos
+  Colmillo's paragraphs fill its own, narrower container.
+
+Measured on the dev server (content edges, px): 1920 hero/principles/team
+160-1760 (before 384-1536), 1440 67-1373 (before 144-1296), 1366 65-1301
+(before 107-1259). Principles list 928/757/717 px wide (was 668), picture
+still 336 px, h3 size unchanged. Portraits 384/384/376 px wide (was
+333/346/348), columns at 160/768/1376 on 1920, vertical steps unchanged
+(0/80/38 at 1920, 0/65/29 at 1440). Below about 1290 px nothing changes.
+No horizontal overflow, console clean; screenshots inspected at all three
+widths.
+
+Verification (executed): `astro check` 114 files 0/0/0; Prettier and ESLint
+clean on both changed files; `studio.demo.spec.ts` run against the dev server
+on fine-1440/touch-834/touch-390 (temporary scratch config, to avoid
+rebuilding the shared `dist-demo` while another terminal works): 31 passed,
+26 skipped, 0 failed. `build:demo` and the full suites were not re-run.
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-15 Session: /studio/ Team As Landscape Editorial Portraits
+
+User request: only the "Equipo" section, structured like the Mondayteers
+grid on hellomonday.com/about (inspiration only; its lazy grid did not mount
+in headless Chromium, so the user's explicit numbers were followed): three
+members, equal landscape pictures (about 560x400), three wide columns across
+the section, a very soft 40-90 px step, no card look, name/role under each
+picture on its left edge, the existing press dent kept. Nothing else on the
+route or elsewhere changed; the other terminal's `/servicios/` work untouched.
+
+- `src/data/studioPage.ts`: demo team has 3 placeholder members (was 6).
+- `src/styles/studio-page.css` (team only): frame `aspect-ratio: 7 / 5` for
+  every member (the middle 3:4 override is gone), `border-radius: 0.25rem`,
+  more air above the name (`clamp(1.1rem, 1.6vw, 1.6rem)`). Wide screens:
+  `repeat(3, minmax(0, 1fr))`, gap `clamp(1.25rem, 2.2vw, 2.75rem)`; first
+  member `margin-block-start: clamp(3rem, 4.5vw, 5.5rem)`, second 0, third
+  `clamp(1.5rem, 2.4vw, 3rem)`. Tablets (>= 40rem): two columns, the second a
+  `clamp(1.5rem, 3vw, 2.5rem)` step. Phones: one full-width column, the old
+  narrow alternating layout removed.
+- `PressSurface.ts` unchanged: depth and span already scale from the short
+  side (about 22 px deep on a 505x361 picture); inspected on right, top and
+  bottom edges at 1440, no stretching.
+- `StudioTeam.astro`: header comment only.
+- `tests/e2e/studio.demo.spec.ts`: 3 members; the step test now checks equal
+  landscape frames and name alignment on every project, full-width columns
+  and the soft step on fine-1440, two columns on touch-834, one on touch-390.
+
+Measured on the dev server (frame WxH; member tops relative to the second):
+1920 505x361, columns 160/707/1255 to 1760, +86/0/+46; 1440 414x296,
+67 to 1373, +65/0/+35; 1366 392x280, +62/0/+33; 834 two columns 327x234,
+second +25; 390 one column 306x219. Name 23-31 px under its picture, on its
+left edge. No horizontal overflow, console clean.
+
+Verification (executed): `astro check` 0/0/0; Prettier and ESLint clean on
+the changed files; `studio.demo.spec.ts` on the dev server (scratch config):
+33 passed, 24 skipped, 0 failed. `build:demo` and the full suites were not
+re-run.
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-15 Session: /studio/ Somos Colmillo Starts On The Next Section's Edge
+
+User request: align "Somos Colmillo" so its start coincides with the next
+section ("Cómo hacemos las cosas"). Measured first: after the widening
+earlier today it started to the right of it (1920: 384 vs 160; 1440: 144 vs
+67; 1366: 107 vs 65), so the start was moved onto that edge.
+
+- `src/styles/studio-page.css`: `.studio-intro__inner` sets
+  `--studio-measure: 100rem` (the principles' container); `.studio-intro__copy`
+  gets `max-inline-size: 72rem`, so the paragraphs keep their former line
+  length and type. Grid (58/33, 9% gap), rule, heading, ring and motion
+  unchanged.
+- `StudioIntro.astro`: header comment only.
+- `tests/e2e/studio.demo.spec.ts`: the container test includes
+  `.studio-intro__inner` again; paragraphs start on the principles' edge and
+  are at most 72rem wide.
+
+Measured on the dev server: rule/heading/text start at 160 (1920), 67 (1440)
+and 65 (1366), the same as the principles' heading and list; paragraphs 1152
+px wide; the still ring is centred over the principles' picture column (1496
+at 1920, 1157 at 1440). 1100, 834 and 390 identical to before. No overflow,
+console clean; screenshots inspected at 1920, 1440 and 1366.
+
+Verification (executed): `astro check` 0/0/0; Prettier and ESLint clean on
+the changed files; `studio.demo.spec.ts` on the dev server (scratch config):
+33 passed, 24 skipped, 0 failed. `build:demo` and the full suites were not
+re-run.
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-15 Session: /servicios/ Media Unified, Layers Alternate
+
+User request: layout adjustments only on the four service layers. Git was
+checked first: another terminal is working on `/studio/`
+(`studio-page.css`, `studio.demo.spec.ts`, docs); none of its files were
+touched and the doc notes here were appended at the end.
+
+- `src/data/servicesPage.ts`: `mediaScale` removed; Contenido `layout`
+  becomes `media-text`.
+- `src/components/services/ServiceSection.astro`: `data-media-scale`
+  removed (comment updated).
+- `src/styles/services-page.css`: the `bleed` and `compact` rules removed,
+  so every layer uses the shared 4:3 plate; comment updated.
+- `tests/e2e/services.demo.spec.ts`: asserts the alternating layouts and
+  that the four plates share one layout size (`offsetWidth`/`offsetHeight`,
+  because a covered layer is scaled by the stack's compression).
+- `docs/DECISIONS.md` (2026-09-15 entry).
+
+Measured on the dev server with each layer at rest: plates on the right,
+left, right, left; frames 698x524 (1920x1080), 657x493 (1440x900), 622x467
+(1366x768) in all four layers; horizontal overflow 0; no page errors.
+Screenshots inspected at 1920 and 1440 for Estrategia, Identidad, Digital and
+Contenido.
+
+Verification (executed): `astro check` 0/0/0; ESLint and Prettier clean on
+the changed files; `build:demo` 14 pages; `build` 9 pages;
+`check:production` passed (68 files, 174,659 JS bytes);
+`services.demo.spec.ts` on fine-1440/touch-834/touch-390 12 passed / 6
+skipped; `services.spec.ts` 2 passed. The full suites were not re-run.
+
+Nothing was committed, pushed or deployed.
+
+### Follow-up (2026-09-15): Identidad claim in two lines
+
+User request: Identidad's claim should set in two lines like the other
+services, changing the wording if needed. Measured before: 3 lines at
+1920x1080 and 390x844 (63 characters). The provisional claim in
+`src/data/servicesPage.ts` became "Una marca se reconoce antes de leer su
+nombre." (46 characters). Measured after on the dev server: all four claims
+take 2 lines at 1920x1080, 1440x900, 1366x768, 1024x1366, 768x1024, 430x932
+and 390x844. Prettier and ESLint clean. `CONTENT_NEEDED.md` already lists the
+claims as awaiting approval. Nothing was committed, pushed or deployed.
+
+## 2026-09-15 Session: /servicios/ Hero Loop Published
+
+Scope: the /servicios/ hero only (user direction). Service layers, stack,
+close, /studio/, home, navigation, edge menu and cursor untouched.
+
+- Files: `src/config/assets.ts` (`servicesHeroMedia` filled),
+  `src/components/services/ServicesHero.astro`, `src/styles/services-page.css`
+  (hero block only), `public/assets/services/servicios-hero-poster.webp` (new),
+  `tests/e2e/services.demo.spec.ts` (new hero loop test, reduced-motion pause
+  check), `tests/e2e/services.spec.ts` (loop ships in `dist`),
+  `docs/CONTENT_NEEDED.md`, `docs/DECISIONS.md`.
+- Source file kept under its name with spaces; referenced URL-encoded.
+- Verified against the dev server with Playwright at 1440x1000, 1112x834,
+  834x1112, 390x844, 320x720, 1280x640 and reduced motion at 390: MP4 206,
+  playing and advancing, `autoplay loop muted playsinline`, no controls, CLS 0,
+  no horizontal overflow, 16:9 frame inside the viewport, no overlap with the
+  title, no console errors; paused under reduced motion.
+- Open: the loop's wrap is a small cut (last frame differs from the first);
+  the file carries an unused audio track. Both listed in `CONTENT_NEEDED.md`.
+
+## 2026-09-15 Session: /servicios/ Plates Press Like The Studio Team
+
+Scope: hover interaction on the four service plates only.
+
+- Files: `src/components/services/ServiceSection.astro` (fixed frame wrapping
+  the plate surface), `src/components/services/ServiceMedia.astro` (optional
+  `press` prop -> `data-press-surface`), `src/styles/services-page.css`
+  (`.service-layer__frame` / `.service-layer__surface` only),
+  `src/scripts/motion/ServicesPage.ts` and `ServicesPageMotion.ts`
+  (`initPress`), `docs/DECISIONS.md`.
+- Verified on the dev server with Playwright: at 1440 a fine pointer bends the
+  nearest edge on all four plates, frame stays 657x493, clip clears on leave;
+  no dent at 834 touch or under reduced motion; no console errors.
+- Checks: `astro check` 0 errors, ESLint and Prettier clean on the changed
+  files, `build:demo` OK, `services.demo.spec.ts` 18 passed / 6 skipped.
+  Another session is rebuilding the close at the same time; a first run
+  against a build taken mid-way through that work failed three close-related
+  assertions, and the rerun on a fresh build passed.
+
+## 2026-09-15 Session: /servicios/ Close Rebuilt As A Centred Scene
+
+Scope: the /servicios/ close only (user direction). Hero, service layers,
+their images and alternation, stack, /studio/, home, navigation, edge menu
+and cursor untouched. Other terminals were editing the hero, the plates'
+press and docs at the same time; only the close's blocks were edited.
+
+- Files: `src/components/services/ServicesClose.astro` (rewritten),
+  `src/data/servicesPage.ts` (`ServicesCloseCopy.image`, `servicesClose.image`),
+  `src/styles/services-page.css` (close block only),
+  `src/scripts/motion/ServicesPageMotion.ts` (`initClose` and the header
+  bullet), `public/assets/services/servicios-cta.webp` (new),
+  `tests/e2e/services.demo.spec.ts` (hover assertion updated, new close scene
+  test), `docs/MOTION_SPEC.md`, `docs/DECISIONS.md`, `docs/CONTENT_NEEDED.md`.
+- The supplied PNG is kept untouched. Copy and destinations are unchanged.
+- Build: two wings of the same picture anchored to the edges, pushed out only
+  as far as a centred room needs (CSS container units); portrait/phones use a
+  top band and a bottom band. Scrubbed scene (zoom 1.08 -> 1, wings pressing
+  in); heading and buttons play once at `top 55%`. Compact bite buttons; no
+  `data-magnetic` (its GSAP inline `translate: none` cancels the press) and
+  `!important` on their transition (the `motion` layer's `.bite-button`
+  transition otherwise wins).
+- Verified with Playwright on the dev server at 1920x1080, 1440x900, 1366x768,
+  1024x768, 834x1112, 390x844 and 320x720 (screenshots inspected, entry
+  states at 85/60/35/0% on 1440, reduced motion at 1440 and 390): horizontal
+  overflow 0, no console errors, copy centred, two-line heading from 390 up,
+  no seams after the portrait inner fades, hover presses 3.52 px.
+- Checks: `astro check` 0/0/0; ESLint and Prettier clean on the changed files;
+  scratch `build:demo` (14 pages) and `build` (9 pages) in the scratchpad,
+  not `dist*/`; `services.demo.spec.ts` 18 passed / 6 skipped;
+  `services.spec.ts` 2 passed; `check-production` on the scratch `dist`:
+  72 files, 175,513 JS bytes, passed. On the dev server the gap tests fail
+  only on the Astro dev toolbar element; they pass on the build.
+- Open: a larger master for the scene (upscaled on desktop) and moving the
+  PNG out of `public/` (both in `CONTENT_NEEDED.md`); the /studio/ close
+  button likely has the same `data-magnetic`/press conflict (not changed).
+
+Nothing was committed, pushed or deployed.

@@ -1,0 +1,58 @@
+---
+/**
+ * /servicios/ — 01 Hero
+ *
+ * The Studio hero's language, adapted to a panoramic loop: "Servicios." on
+ * the left, with the full stop as the orange disc, and the loop on the right,
+ * both on the viewport's middle line. Portrait screens put the title over the
+ * loop, which then spans the screen but the edge menu's rail.
+ *
+ * It is the base of the page's stack (`data-stack-section`): on wide screens
+ * it stays in place while the first service slides over it.
+ *
+ * `servicesHeroMedia` (src/config/assets.ts) is the slot. With a loop the
+ * frame has no plate, radius or ground of its own: it takes the file's
+ * proportion (`--sv-hero-w` / `--sv-hero-h`) and sits on the file's own black
+ * (`data-hero-media`). While the slot is `null` the frame shows four plates
+ * stacked at its foot, in the order of the layers below: white, orange,
+ * black, white. No text.
+ */
+import ServiceMedia from '@/components/services/ServiceMedia.astro';
+import { servicesHeroMedia as media } from '@/config/assets';
+import { servicesHero } from '@/data/servicesPage';
+
+const proportion = media
+  ? `--sv-hero-w: ${media.width}; --sv-hero-h: ${media.height}`
+  : undefined;
+---
+
+<header
+  class="stack-section services-hero"
+  data-stack-section
+  data-surface-tone="dark"
+  data-services-hero
+  data-hero-media={media?.kind}
+>
+  <div class="services-shell services-hero__inner" data-stack-content>
+    <h1 id="services-page-title" class="services-hero__title">
+      <span class="services-line">
+        <span data-services-hero-title
+          >{servicesHero.title}<span
+            class="services-hero__dot"
+            aria-hidden="true"></span></span
+        >
+      </span>
+    </h1>
+
+    <div class="services-hero__media" style={proportion}>
+      <ServiceMedia media={media} priority class="services-hero__frame">
+        <Fragment slot="placeholder">
+          <span class="services-hero__plate"></span>
+          <span class="services-hero__plate"></span>
+          <span class="services-hero__plate"></span>
+          <span class="services-hero__plate"></span>
+        </Fragment>
+      </ServiceMedia>
+    </div>
+  </div>
+</header>

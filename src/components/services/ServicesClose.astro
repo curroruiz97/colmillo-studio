@@ -1,0 +1,98 @@
+---
+/**
+ * /servicios/ — close: the page's last scene.
+ *
+ * The last layer of the stack. One panoramic picture (black, orange and black
+ * sculptures entering from both sides, an empty black centre) fills the whole
+ * section, and the decision sits in that centre: the heading ("Ahora toca
+ * verlo en acción." with the orange disc) and two compact bite buttons under
+ * it, "Ver proyectos" orange on a cream slab and "Hablemos" light on an orange
+ * slab. Hover and focus press a button into its slab; a click all the way.
+ *
+ * The picture is about 3:1, so a single `cover` layer would crop the
+ * sculptures off a 16:10 screen. It is drawn twice instead, one "wing" per
+ * side (`services-page.css`): each is anchored to its own edge at the
+ * section's full height and pushed outwards only as far as the centre needs
+ * to stay clear for the copy. Portrait screens and phones put the left wing in
+ * a band at the top and the right one at the foot. Both `<img>` share one
+ * file and are decorative.
+ *
+ * Motion (`ServicesPageMotion.ts`, scroll-linked): the scene settles from a
+ * slight zoom while the two wings press in from further out, then the heading
+ * and the buttons arrive in the space they frame. Reduced motion and no
+ * JavaScript show the final composition.
+ *
+ * Both paths are real links with the label as their name; the arrow is
+ * decoration. The reveal lives on the heading and each list item. The links
+ * carry no `data-magnetic`: the shared pull writes an inline `translate: none`
+ * through GSAP, which would cancel the press into the slab.
+ */
+import { splitFullStop, type ServicesCloseCopy } from '@/data/servicesPage';
+
+interface Props {
+  close: ServicesCloseCopy;
+}
+
+const { close } = Astro.props;
+const { text, stop } = splitFullStop(close.title);
+const variants = ['accent', 'light'] as const;
+const cursorLabels = ['Ver', 'Hablar'] as const;
+const wings = ['start', 'end'] as const;
+---
+
+<section
+  class="stack-section services-close"
+  aria-labelledby="services-close-title"
+  data-stack-section
+  data-surface-tone="dark"
+  data-services-close
+>
+  <div class="services-close__scene" aria-hidden="true" data-close-scene>
+    {
+      wings.map((side) => (
+        <div
+          class={`services-close__wing services-close__wing--${side}`}
+          data-close-wing={side}
+        >
+          <img
+            class="services-close__image"
+            src={close.image.src}
+            alt=""
+            width={close.image.width}
+            height={close.image.height}
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+      ))
+    }
+  </div>
+
+  <div class="services-shell services-close__inner" data-stack-content>
+    <h2
+      id="services-close-title"
+      class="services-close__title"
+      data-close-reveal
+      data-close-title
+    >
+      {text}{stop && <span class="services-close__dot" aria-hidden="true" />}
+    </h2>
+
+    <ul class="services-close__actions" role="list">
+      {
+        close.actions.map((action, index) => (
+          <li class="services-close__item" data-close-reveal data-close-action>
+            <a
+              class="bite-button services-cta"
+              href={action.href}
+              data-variant={variants[index]}
+              data-cursor-label={cursorLabels[index]}
+            >
+              <span class="services-cta__label">{action.label}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>

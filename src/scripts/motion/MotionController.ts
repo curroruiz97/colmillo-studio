@@ -15,6 +15,7 @@ import { initMotionPreference } from './MotionPreference';
 import { initProjectTilePress } from './ProjectTilePress';
 import { initSectionStack } from './SectionStack';
 import { initServicesMotion } from './ServicesMotion';
+import { initServicesPage } from './ServicesPage';
 import { initStudioMotion } from './StudioMotion';
 import { initStudioPage } from './StudioPage';
 import { initSurfaceTone } from './SurfaceTone';
@@ -45,6 +46,7 @@ export function initMotion(): void {
     initProjectTilePress(),
     initStudioMotion(),
     initStudioPage(),
+    initServicesPage(),
     initGoodbyePanorama(),
     initContactBite(),
     initMagneticElements(),

@@ -39,6 +39,9 @@ reveal, overlap, tension and release.
 - Maintain DOM reading order.
 - Avoid scroll hijacking that traps the user.
 - Provide a simple stacked layout on small screens if needed.
+- A layer names the part that compresses under the next one with
+  `data-stack-content`; the home sections keep using their `.content-shell`.
+  `/servicios/` is built entirely from stack layers (see "Services Page").
 
 ## Horizontal Projects
 
@@ -337,6 +340,72 @@ or permanent loop. Movement follows an interaction or an arrival.
   tab roles and ARIA state are removed and rebuilt on a motion-preference
   restart, which keeps the principle that was on stage.
 
+## Services Page (/servicios/)
+
+Rebuilt on 2026-09-14 (see `DECISIONS.md`). The page is a stack of editorial
+layers and the shared section stack is its main mechanic. There is no pin,
+scrubbed timeline or scroll interception.
+
+- Layers, in order: hero (charcoal `#1f1f1f`), Estrategia (white), Identidad
+  (orange), Digital (black), Contenido (white), close (black). Every one is a
+  `.stack-section` / `[data-stack-section]` with `data-stack-content` on the
+  part that compresses.
+- Stacked (at least 64.01rem wide and 40rem tall, motion allowed): every layer
+  is sticky (`layout.css`). The next one rises over it with `SectionStack.ts`'s
+  rounded entrance band (clip inset of 7% of the screen, 2.5% at the sides,
+  5rem radius, opening to nothing between `top 92%` and `top 38%`, scrub 0.6)
+  while the covered layer's content compresses (`yPercent -1.8`, `scale
+  0.972`, `opacity 0.84`). Each service layer rests fully on screen for
+  `--sv-hold` (`clamp(8rem, 26svh, 16rem)`, a bottom margin) before the next
+  one rises; nothing moves while it rests. The hero does not rest, so the
+  first scroll starts the first rise, and it is never clipped or rounded.
+- Arrival (`ServicesPageMotion.ts`, a route chunk loaded like Studio's): once a
+  layer's top passes 58% of the screen, its rule draws in (`scaleX`, 0.8 s)
+  with the title, claim and description (`y 24`, opacity, 0.85 s, 0.1 stagger,
+  from 0.04 s), then the capabilities' label, rows and optional button (`y
+  12`, 0.7 s, 0.045 stagger, from 0.32 s), then the plate (`y 28`, opacity and
+  a top clip `inset(14% 0 0 0)` opening, 1 s, from 0.4 s). All `power3.out`,
+  once. No scale, blur or bounce.
+- Linear (narrower or shorter screens, portrait tablets): layers follow one
+  another in normal flow, each tucked `--sv-overlap` (1.25-2rem) under the
+  previous one with that radius on its top corners, so the corners show the
+  previous surface, never a gap. The stack's inline band and compression are
+  overridden in `services-page.css` there. Copy and plate reveal on their own
+  triggers (`top 84%` and `top 90%`).
+- Capabilities (fine pointer only, CSS): the row's name shifts 5 px (360 ms),
+  its rule draws in from the left (560 ms), an accent dot scales in on the
+  right (360 ms) and the plate's art lifts 6 px (a photograph scales 1.02).
+  Rows are plain list items, not links; touch and keyboard lose nothing.
+- Close (rebuilt 2026-09-15 as a full scene): the client's panoramic picture
+  drawn as two wings anchored to the screen's edges, the copy centred in the
+  black between them (`services-page.css`). One scrubbed timeline
+  (`ServicesPageMotion.ts`, `top bottom` to `top 12%`, scrub 0.8, reversible,
+  never holds the scroll): the scene settles from `scale 1.08` and
+  `yPercent 2.5` to rest; the wings travel in from 6.5% of the width further
+  out (`power1.inOut`); the heading rises from `y 36` and opacity 0.06 between
+  40% and 74% of the travel, the two buttons from `y 22` and opacity 0 between
+  56% and 88% (0.06 stagger). Both are complete before the section reaches the
+  top. The stack's own entrance band runs alongside. Buttons: the shared bite
+  button (orange on a cream slab, light on an orange slab); hover and focus
+  press it 0.22rem into its slab, `:active` 0.4rem; the arrow moves 0.14em.
+  No `data-magnetic`: the shared pull writes an inline `translate: none`
+  through GSAP and would cancel the press. Reduced motion and no JavaScript:
+  no timeline, the final composition.
+- Hero: the entrance is CSS, from the first paint: the title rises out of its
+  clip (1 s, `power3.out` curve, at 0.1 s) and the media settles (opacity,
+  18 px, 1.1 s, `power2.out` curve, at 0.3 s).
+- Loops (the hero or a service, once supplied) play only while on screen, not
+  covered by the next layer (a ScrollTrigger on that layer's `top top`) and in
+  a visible tab; never under reduced motion, where the poster is the picture.
+- Tone: layers declare `light`, `accent` or `dark`; over the orange layer the
+  shared cursor's ring and core turn ink (route CSS).
+- Reduced motion: layers are relative, with no rest, band, compression or hero
+  entrance; arrivals are a 0.45 s opacity fade; layers keep the tucked overlap.
+  No JavaScript: the sticky stack still applies where CSS makes it sticky and
+  every element is visible.
+- Cleanup: every tween, trigger, observer and listener is released by the
+  chunk's cleanup on a motion-preference restart.
+
 ## Page Transitions
 
 - Original but restrained.
@@ -450,7 +519,10 @@ or permanent loop. Movement follows an interaction or an arrival.
 - `EditorialMotion.ts` reveals whole editorial blocks and deforms route marks
   by scroll progress; it never splits readable text into animated letters.
 - `SurfaceTone.ts` switches the shared cursor contrast from intersection state
-  rather than sampling layout on every frame.
+  rather than sampling layout on every frame. Since 2026-09-14 the tone is the
+  last surface in document order that crosses the middle band (38-62% of the
+  screen): it is painted above the one before, which a sticky layer keeps
+  intersecting while covered. It no longer compares `intersectionRatio`.
 - The former goodbye fallback (a CSS jaw/letter composition with a
   scroll-driven compression) was removed on 2026-09-10 with its keyframes and
   its `SectionStack.ts` scrub; see "Goodbye" above for the stage that replaced

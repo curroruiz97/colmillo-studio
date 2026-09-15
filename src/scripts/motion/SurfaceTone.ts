@@ -4,15 +4,30 @@ export function initSurfaceTone(): () => void {
   ];
   if (surfaces.length === 0) return () => undefined;
 
-  const visible = new Map<Element, number>();
+  /*
+   * The surface that owns the middle band is the last one in the document
+   * that crosses it: it is painted above the one before (a stack layer rising
+   * over a covered sticky layer, which keeps intersecting) or nested inside
+   * it. Ratios cannot decide this: `intersectionRatio` is relative to the
+   * target, so a full-screen section never passes about 0.24 of the band and
+   * only reports the ratio it had when it entered.
+   */
+  const visible = new Set<Element>();
   const observer = new IntersectionObserver(
     (entries) => {
       for (const entry of entries) {
-        if (entry.isIntersecting)
-          visible.set(entry.target, entry.intersectionRatio);
+        if (entry.isIntersecting) visible.add(entry.target);
         else visible.delete(entry.target);
       }
-      const active = [...visible.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+      const active = [...visible].reduce<Element | undefined>(
+        (last, surface) =>
+          !last ||
+          last.compareDocumentPosition(surface) &
+            Node.DOCUMENT_POSITION_FOLLOWING
+            ? surface
+            : last,
+        undefined,
+      );
       if (active instanceof HTMLElement && active.dataset.surfaceTone) {
         document.documentElement.dataset.surfaceTone =
           active.dataset.surfaceTone;

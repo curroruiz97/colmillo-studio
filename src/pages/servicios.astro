@@ -1,118 +1,58 @@
 ---
-import { demoMode } from '@/data/projects';
+/**
+ * /servicios/ — a stack of editorial layers: the hero, one layer per service
+ * (Estrategia, Identidad, Digital, Contenido) and a closing decision.
+ *
+ * On wide screens with motion allowed every layer is a sticky plate of the
+ * shared section stack (`SectionStack.ts`): the next one rises over it with a
+ * rounded band while it waits, slightly compressed, underneath. Phones,
+ * portrait tablets, short windows, reduced motion and no JavaScript read the
+ * same layers one after another, each tucked a little under the previous one.
+ *
+ * Copy lives in `src/data/servicesPage.ts` and the hero piece's slot in
+ * `src/config/assets.ts`. The service layers are provisional copy, so the
+ * standard build renders the hero and the close only.
+ */
+import ServiceSection from '@/components/services/ServiceSection.astro';
+import ServicesClose from '@/components/services/ServicesClose.astro';
+import ServicesHero from '@/components/services/ServicesHero.astro';
+import { servicesClose, servicesLayers } from '@/data/servicesPage';
 import BaseLayout from '@/layouts/BaseLayout.astro';
+
+const layers = servicesLayers?.layers ?? [];
+const placeholder = servicesLayers?.placeholder ?? false;
 ---
 
 <BaseLayout title="Servicios" description="Servicios de Colmillo Studio.">
   <article
-    class="editorial-page manifesto-page"
-    aria-labelledby="manifesto-page-title"
+    class="services-page"
+    aria-labelledby="services-page-title"
+    data-services-page
   >
-    <header
-      class="editorial-page__hero content-shell"
-      data-surface-tone="light"
-    >
-      <p class="section-index" aria-hidden="true">03 / Servicios</p>
-      <div class="editorial-page__title-block">
-        <p class="section-kicker">Colmillo Studio</p>
-        <h1 id="manifesto-page-title">Servicios</h1>
-      </div>
-      <div class="editorial-page__mark" data-editorial-mark aria-hidden="true">
-        <span>S</span><span>03</span>
-      </div>
-      {
-        demoMode && (
-          <strong class="demo-flag editorial-page__flag">
-            DEMO FICTICIA — NO PUBLICAR
-          </strong>
-        )
-      }
-    </header>
-
+    <ServicesHero />
     {
-      demoMode && (
-        <div class="manifesto-page__body" data-dev-placeholder>
-          <section
-            class="manifesto-statement manifesto-statement--cream"
-            data-stack-section
-            data-surface-tone="light"
-          >
-            <div
-              class="content-shell manifesto-statement__grid"
-              data-reveal-block
-            >
-              <p class="section-index" aria-hidden="true">
-                01
-              </p>
-              <h2>
-                Morder lo <em>previsible.</em>
-              </h2>
-              <p>
-                Texto conceptual ficticio para probar ritmo, jerarquía y
-                lectura. No representa una declaración aprobada del estudio.
-              </p>
-            </div>
-          </section>
-          <section
-            class="manifesto-statement manifesto-statement--orange"
-            data-stack-section
-            data-surface-tone="accent"
-          >
-            <div
-              class="content-shell manifesto-statement__grid"
-              data-reveal-block
-            >
-              <p class="section-index" aria-hidden="true">
-                02
-              </p>
-              <h2>
-                Presionar hasta encontrar una <em>forma propia.</em>
-              </h2>
-              <p>
-                Escena de demostración destinada a comprobar composiciones
-                largas, contraste y adaptación entre pantallas.
-              </p>
-            </div>
-          </section>
-          <section
-            class="manifesto-statement manifesto-statement--ink"
-            data-stack-section
-            data-surface-tone="dark"
-          >
-            <div
-              class="content-shell manifesto-statement__grid"
-              data-reveal-block
-            >
-              <p class="section-index" aria-hidden="true">
-                03
-              </p>
-              <h2>
-                Soltar solo cuando queda <em>marca.</em>
-              </h2>
-              <p>
-                DEMO FICTICIA — NO PUBLICAR. Sustituir todo este bloque por los
-                servicios validados por el cliente.
-              </p>
-            </div>
-          </section>
-        </div>
-      )
+      layers.map((service) => (
+        <ServiceSection service={service} placeholder={placeholder} />
+      ))
     }
-
-    <nav
-      class="editorial-page__next content-shell"
-      aria-label="Continuar el recorrido"
-    >
-      <a href="/proyectos/" data-cursor-label="Ver">
-        <span>Siguiente</span>
-        <strong>Proyectos</strong>
-        <span aria-hidden="true">↘</span>
-      </a>
-      <a href="/contacto/" data-cursor-label="Hablar">
-        <span>Ir a</span>
-        <strong>Contacto</strong>
-        <span aria-hidden="true">↗</span>
-      </a>
-    </nav>
+    <ServicesClose close={servicesClose} />
   </article>
+
+  <script>
+    /*
+     * Only says where the page's motion lives. The dynamic import sits in this
+     * route-only script so the chunk stays out of the shared motion bundle;
+     * `ServicesPage.ts`, run by `MotionController`, mounts, restarts and
+     * cleans it up. It must stay inside the layout's slot: module scripts run
+     * in document order, and this one has to run before the layout's own.
+     */
+    const page = document.querySelector('[data-services-page]');
+    if (page) {
+      Reflect.set(
+        page,
+        'loadServicesPage',
+        () => import('@/scripts/motion/ServicesPageMotion'),
+      );
+    }
+  </script>
 </BaseLayout>

@@ -1,0 +1,118 @@
+---
+/**
+ * /servicios/ — one service layer (Estrategia, Identidad, Digital, Contenido).
+ *
+ * Every service shares this structure: a short orange rule, the title (h2),
+ * the claim, the description, the capabilities and one media plate. The
+ * variations are data (`src/data/servicesPage.ts`): the surface (`theme`)
+ * and the side the copy takes (`layout`). The plate is the same size in all
+ * four.
+ *
+ * The section is a layer of the page's stack (`data-stack-section`,
+ * `SectionStack.ts`): on wide screens it rises over the previous layer with a
+ * rounded band and stays in place while the next one covers it. Its content
+ * arrives in order once it is on screen (`ServicesPageMotion.ts`).
+ *
+ * Capabilities are plain list items, not links: hovering one with a fine
+ * pointer only shifts it, lights its rule and dot and lifts the plate's art a
+ * few pixels. Nothing depends on it.
+ *
+ * Under a fine pointer the plate gives where it is pressed, with the Studio
+ * team portraits' dent (`PressSurface.ts`, bound in `ServicesPageMotion.ts`):
+ * `data-press-frame` is fixed geometry and only the surface inside it is
+ * clipped. Touch, keyboard and reduced motion keep the still plate.
+ */
+import ServiceMedia from '@/components/services/ServiceMedia.astro';
+import type { ServiceLayer } from '@/data/servicesPage';
+
+interface Props {
+  service: ServiceLayer;
+  /** Provisional copy: the layer carries `data-dev-placeholder`. */
+  placeholder: boolean;
+}
+
+const { service, placeholder } = Astro.props;
+// Prefixed: the layout's `<main>` is already `#contenido`, the skip link's
+// target, and the Contenido slug would duplicate it.
+const sectionId = `servicio-${service.slug}`;
+const titleId = `${sectionId}-title`;
+const capabilitiesId = `${sectionId}-capacidades`;
+---
+
+<section
+  id={sectionId}
+  class="stack-section service-layer"
+  aria-labelledby={titleId}
+  data-stack-section
+  data-service-layer
+  data-theme={service.theme}
+  data-layout={service.layout}
+  data-surface-tone={service.theme}
+  {...placeholder ? { 'data-dev-placeholder': true } : {}}
+>
+  <div class="services-shell service-layer__inner" data-stack-content>
+    <div class="service-layer__copy" data-service-copy>
+      <span class="service-layer__rule" aria-hidden="true" data-service-rule
+      ></span>
+      <h2 id={titleId} class="service-layer__title" data-service-reveal>
+        {service.title}
+      </h2>
+      <p class="service-layer__claim" data-service-reveal>{service.claim}</p>
+      <p class="service-layer__description" data-service-reveal>
+        {service.description}
+      </p>
+
+      <div class="service-layer__capabilities">
+        <p
+          id={capabilitiesId}
+          class="service-layer__capabilities-label"
+          data-service-detail
+        >
+          Capacidades
+        </p>
+        <ul class="service-caps" role="list" aria-labelledby={capabilitiesId}>
+          {
+            service.capabilities.map((capability) => (
+              <li class="service-cap" data-service-detail>
+                <span class="service-cap__text">{capability}</span>
+                <span class="service-cap__mark" aria-hidden="true" />
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      {
+        service.cta && (
+          /* The reveal lives on the wrapper and the magnetic pull on the link,
+             because both drive `transform`. */
+          <div class="service-layer__action" data-service-detail>
+            <a
+              class="bite-button service-layer__button"
+              href={service.cta.href}
+              data-magnetic
+              data-cursor-label="Ver"
+            >
+              <span class="service-layer__label">{service.cta.label}</span>
+            </a>
+          </div>
+        )
+      }
+    </div>
+
+    <div class="service-layer__media" data-service-media>
+      <div class="service-layer__frame" data-press-frame>
+        <ServiceMedia
+          media={service.media}
+          press
+          class="service-layer__surface"
+        >
+          <Fragment slot="placeholder">
+            <span class="service-layer__ph-disc"></span>
+            <span class="service-layer__ph-bar"></span>
+          </Fragment>
+        </ServiceMedia>
+      </div>
+    </div>
+  </div>
+</section>

@@ -2013,3 +2013,235 @@ black field left, orange/black sculpture right) as a full-bleed photograph.
   section's top edge.
 - Button: unchanged shared bite button with the cream slab; hover now
   presses it part way (`translate 0.18rem`), a click all the way.
+
+## 2026-09-14 - /servicios/ Becomes A Stack Of Editorial Layers
+
+Decision (user direction): the demonstration Servicios page ("03 /
+Servicios", the "Colmillo Studio" kicker, the S/03 mark, the demo flag, three
+manifesto statements and the "Siguiente / Ir a" cards) is replaced by a hero,
+four service layers and a closing decision. The overlapping-section effect
+that page already used (sticky `.stack-section` plus `SectionStack.ts`) is
+kept, not rewritten, and becomes the page's main mechanic. See
+`MOTION_SPEC.md` ("Services Page").
+
+- Components in `src/components/services/`: `ServicesHero`, `ServiceSection`
+  (one component, rendered four times from data), `ServicesClose` and the
+  shared media slot `ServiceMedia`. Copy lives in `src/data/servicesPage.ts`
+  (`slug`, `title`, `claim`, `description`, `capabilities`, `media`, `cta`,
+  `relatedProjects`, `theme`, `layout`, `mediaScale`); the hero's slot is
+  `servicesHeroMedia` (`PageMedia`: image, or loop with poster) in
+  `src/config/assets.ts`.
+- Isolation: the four layers are provisional copy supplied by the user, so
+  `approvedServices` is null and they render only in development and
+  `build:demo`, carrying `data-dev-placeholder`. The hero title "Servicios."
+  and the close ("Ahora toca verlo en acción.", "Ver proyectos" to
+  `/proyectos/`, "Hablemos" to `/contacto/`) were given as the page's wording
+  and ship in both builds, as on Studio.
+- The page does not reuse the home's `src/data/services.ts`: it needs claims,
+  capabilities and layout variants, and the home section's flagged copy is
+  left untouched. The slugs match, so the two can be merged once approved copy
+  exists.
+- Colour journey: charcoal hero, white, orange, black, white, black close.
+  `html:has([data-services-page])` scopes `--color-background` to the ink, so
+  the footer continues the close and no light can show at a rounded corner.
+- Media: each layer uses the client's service illustration (the shared one
+  for Estrategia), the files the home sequence already shows. They are drawn
+  for an ink ground (cream strokes, orange shapes), so they sit on an ink plate
+  (charcoal on the black layer) and are decorative (empty `alt`). With the hero
+  slot empty the frame shows four plates stacked at its foot in the layers'
+  order, with no text, in both builds (the Studio precedent of a plain surface).
+- Variations inside one grid: Identidad puts the plate first, Digital lets it
+  run to the screen's edge, Contenido makes it smaller and settles it at the
+  foot of the copy.
+- Rest: each service stays whole on screen for `clamp(8rem, 26svh, 16rem)` of
+  scroll before the next one rises. Without it a layer was fully visible for
+  a single instant. The scroll is never intercepted; nothing moves while a
+  layer rests.
+- Linear fallback (phones, portrait tablets, short windows, reduced motion):
+  plain sections tucked under one another with rounded tops. `SectionStack.ts`
+  applies its band and compression at every width, which suits the home but
+  would open a gap between non-sticky layers, so `services-page.css` overrides
+  them there. The home is unchanged.
+- Motion lives in a route chunk (`ServicesPageMotion.ts`, about 3.1 KB)
+  mounted by `ServicesPage.ts`, the Studio pattern, because the shared bundle
+  sits at 147 KB of its 150 KB budget.
+- Section ids are `servicio-<slug>`: `main#contenido` is the skip link's
+  target, and the Contenido slug duplicated it.
+- Shared modules, minimal changes: `SectionStack.ts` also accepts
+  `[data-stack-content]` for what compresses (home sections keep
+  `.content-shell`). `SurfaceTone.ts` now picks the last surface in document
+  order that crosses the middle band instead of the largest
+  `intersectionRatio`. The ratio is relative to the target, so a full-screen
+  section never passes about 0.24 of the band and only reports the ratio it had
+  when it entered: on the new page the tone stayed "dark" on every layer (a
+  cream cursor on white). On the home the tone now changes when the next
+  surface enters the band's lower edge; a sweep every 450 px at 1440x900 found
+  one 5 px window, at the services/projects boundary, where the centre still
+  showed services.
+- Over the orange layer the cursor's ring and core are ink, set in the route's
+  CSS with `!important` because the cursor rules sit in a later cascade layer.
+- Now unused by any route and left for a separate clean-up:
+  `.editorial-page*`, `.manifesto-page__body` and `.manifesto-statement*` in
+  `layout.css`.
+- `demo.spec.ts` ("complete demo destinations") no longer expects the demo
+  flag or the "Siguiente Proyectos" card on `/servicios/`.
+
+## 2026-09-15 - /studio/ Principles And Team Take The Hero Measure
+
+- User direction: the two sections felt boxed in the centre. They now use the
+  hero's `--studio-measure: 100rem` on the same `.studio-shell` padding, so
+  hero, principles, team and close share one panoramic edge. This supersedes
+  the third pass's single 72rem container for these two sections; Somos
+  Colmillo keeps 72rem on purpose (not in scope).
+- The existing padding (page gutter + edge-rail clearance, 65-80 px on
+  desktop) already matches the requested `clamp(32px, 5vw, 80px)` and keeps
+  the edge menu's tab clear, so it was kept rather than replaced.
+- Principles: only the container grows; the 58/33 grid, the 21rem picture
+  cap and the type scale are unchanged, so the list gets longer rules and the
+  picture more air, not more size.
+- Team: three columns capped at 24rem with `space-between`; the spare width
+  becomes space between portraits rather than larger portraits. Steps, frame
+  ratios, name/role placement and the tablet/phone layouts are unchanged.
+  (Superseded the same day by the landscape team below.)
+
+## 2026-09-15 - /studio/ Team Becomes Landscape Editorial Portraits
+
+- User direction, with the Mondayteers grid of hellomonday.com/about as the
+  structural reference (no code, assets or exact layout copied): three equal
+  landscape pictures filling the section, a very soft step, no card look.
+- 7:5 rather than 4:3, to match the user's "about 560x400 / 600x430". On the
+  100rem measure three columns cannot reach 560 px, so they fill the width
+  instead (505 px at 1920, 414 px at 1440).
+- Step order is first lower, second highest, third in between, all set with
+  `margin-block-start` (no transforms, so the reveal and the press dent are
+  unaffected). Differences stay 30-90 px on desktop, 25 px on tablets, none
+  on phones.
+- The corner drops from `--studio-radius` to 0.25rem on these frames only, so
+  they read as photographs; the rest of the route keeps its radius.
+- The demo shows 3 placeholders instead of 6; the approved list will set the
+  real count, and further rows repeat the same 3-column step.
+- `PressSurface.ts` is shared with the home rail and already proportional to
+  the short side, so the dent needed no change for the landscape format.
+
+## 2026-09-15 - /studio/ Somos Colmillo Back On The Shared Grid
+
+- User direction: "Somos Colmillo" should start where the next section
+  starts. The request said "to the right", but the section already started
+  to the right of the principles after the morning's widening, so the start
+  moved left onto their edge; that is the stated goal.
+- The container takes the 100rem measure (hero, principles, team and close
+  now share one edge again), while the paragraphs are held to 72rem: the full
+  1600 px would give lines of about 100 characters at this size.
+- The ring stays in the 33% column, so it now sits over the principles'
+  picture column, as the component's shared-grid intent describes.
+
+## 2026-09-15 - /servicios/ Service Layers Share One Plate And Alternate
+
+Decision (user direction, layout only): the four service layers use one
+media system and a strict alternation. This supersedes the "variations"
+bullet of the 2026-09-14 /servicios/ entry.
+
+- Sides: Estrategia text/plate, Identidad plate/text, Digital text/plate,
+  Contenido plate/text (Contenido was text/plate).
+- One plate for all four, as Estrategia and Identidad already had it: the
+  same 5fr/6fr grid (6fr/5fr when the plate leads), the same gap and vertical
+  centring, a 4:3 frame capped by the screen's height, the same radius, and
+  the illustration contained at 84% inside it. Digital's plate no longer runs
+  to the screen's edge and Contenido's is no longer the smaller 5:4 plate at
+  the foot of the copy.
+- The `mediaScale` field (`regular` / `bleed` / `compact`) and its CSS were
+  removed rather than kept with a single value; `layout` is the only
+  composition variant left. Copy, colours, type, stacking and motion are
+  unchanged.
+- Measured frames, identical in all four layers: 698x524 at 1920x1080,
+  657x493 at 1440x900, 622x467 at 1366x768.
+
+## 2026-09-15 - /servicios/ Hero Carries The Client Loop On Its Own Black
+
+Decision (user direction, hero only): the client's final loop
+(`public/assets/services/video hero servicios.mp4`) fills `servicesHeroMedia`
+and the hero is recomposed around it, following the /studio/ hero without
+copying it. Nothing below the hero changes.
+
+- The file is published as delivered, under its own name; the space is
+  URL-encoded in the slot (`video%20hero%20servicios.mp4`). No derivative,
+  crop, re-encode or colour lift, as asked. The poster
+  (`servicios-hero-poster.webp`) is its first frame, extracted in Chromium.
+- Integration by ground, not by filter: sampled across the clip the file's
+  black decodes to #0d0d0b, far from the route's charcoal #1f1f1f, so the
+  hero's ground becomes #0d0d0b while the slot holds a loop (`data-hero-media`;
+  the empty slot keeps charcoal and its plates). The frame has no radius,
+  plate or ground; a 6% edge mask over empty ground absorbs decoder variance.
+  Rendered at 1440x1000, the loop's edge and the page differ by under one
+  level.
+- Layout: the frame takes the file's 16:9 with `object-fit: contain` (the
+  drawing spans x 209-1113, y 112-621 of 1280x720, so nothing is cropped).
+  Landscape screens: title at its own width, loop taking the rest of the
+  measure (782x440 at 1440x1000, 537x302 at 1112x834), gap
+  `clamp(1.5rem, 4vw, 5rem)`, height cap `(100svh - 12rem) * 16/9`. Portrait
+  and phones: title over the loop, which bleeds to the screen's left edge and
+  stops at the edge menu's rail (338 px at 390, 268 px at 320; 680 px at 834).
+- Entrance, CSS, skipped under reduced motion: title opacity + 0.16em rise
+  (0.9 s), media opacity + scale 0.98 -> 1 (1 s, 0.25 s later). Playback reuses
+  `ServiceMedia.astro` and `ServicesPageMotion.ts` loops: on screen, uncovered,
+  visible tab, never under reduced motion.
+
+## 2026-09-15 - /servicios/ Close Becomes A Centred Scene
+
+Decision (user direction, close only): the close uses the user-supplied
+`public/assets/services/img cta servicios.png` as a full-bleed scene, with the
+copy centred in the picture's empty black, not beside it as on /studio/.
+Nothing above the close changes.
+
+- The picture is 2206x713 (about 3.1:1): sculptures reach 23% of the width
+  from the left and start at 73% from the right (measured with sharp), and
+  its black averages #0c0c0c. A single `cover` layer at screen height would
+  crop the sculptures off any 16:10 screen, and at the picture's own
+  proportion the section would be far shorter than a screen. So it is drawn
+  twice, one "wing" per side, each the section's full height and anchored to
+  its own edge. A wing is pushed outwards only as far as keeps a centred room
+  (`clamp(34rem, 52cqw, 60rem)`) clear, computed in CSS from the scene's
+  container units; the inner edges fade into the section's `#0c0c0c`. Wide
+  screens show the sculptures whole; 16:10 screens crop their outer ends.
+- Portrait screens and phones: the left wing becomes a band across the top
+  and the right one across the foot (`clamp(11rem, max(30svh, 46vw), 26rem)`
+  tall), each faded towards the copy and on its inner side.
+- Motion (the brief's pressure -> framing -> message): scroll-linked, not a
+  fade of the section. The scene zooms out from 1.08 while the wings press in
+  from further out, then the heading and the buttons arrive. Scrubbed both
+  ways; the copy completes before the section reaches the top.
+- Copy kept as it was ("Ahora toca verlo en acción." with the orange disc,
+  `Ver proyectos` -> `/proyectos/`, `Hablemos` -> `/contacto/`). No eyebrow or
+  secondary text was added: none exists. The heading is smaller than the
+  service titles (`clamp(2.125rem, 4.4vw, 4.75rem)`, 11em measure, two lines
+  at 1440 and 1920).
+- The large pebble cards were replaced by two compact shared bite buttons
+  side by side (stacked on phones, equal width and clear of the edge tab). No
+  ring or other decoration was added. `data-magnetic` was tried and removed:
+  `MagneticElements.ts` tweens `x`/`y` with GSAP, which writes an inline
+  `translate: none` and cancels the CSS press into the slab. The /studio/
+  close button carries both and likely has the same conflict (not changed
+  here).
+- Derivative `servicios-cta.webp` (sharp, quality 90, smart subsampling,
+  138,820 B), following the /studio/ close's finding that lower qualities
+  band in near-black.
+
+## 2026-09-15 - /servicios/ Service Plates Take The Studio Team's Press Dent
+
+Decision (user direction, interaction only): the four service plates
+(Estrategia, Identidad, Digital, Contenido) give under a fine pointer with the
+exact dent of the /studio/ team portraits, reusing `PressSurface.ts` rather
+than a new effect.
+
+- Markup mirrors the team cards: `.service-layer__frame` is fixed geometry
+  (`data-press-frame`: 4:3, radius, `overflow: hidden`) and the plate inside
+  it, `.service-layer__surface` (`ServiceMedia` with `press`, carrying
+  `data-press-surface` and the plate colour), is the only thing clipped. The
+  layer's own surface shows through the bite.
+- Bound in `ServicesPageMotion.ts` (`initPress`, same shape as `initTeam`);
+  `ServicesPage.ts` hands over `bindPressSurface` and `canPress` from the
+  shared bundle, so nothing is duplicated.
+- Unchanged: frame size (657x493 at 1440x1000 before, during and after a
+  press), radius, proportion, `object-fit: contain`, the capability hover,
+  stacking, alternation, copy and the close. Touch, coarse pointers, keyboard
+  and reduced motion keep the still plate (`canPress()`).

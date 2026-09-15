@@ -206,7 +206,8 @@ registers ScrollTrigger and initializes/cleans:
 - `CustomCursor.ts`: fine-pointer position, velocity/pressure and labels;
 - `EditorialMotion.ts`: scroll reveals and editorial marks;
 - `HeroMotion.ts`: hero compression and viewport-aware media playback;
-- `SurfaceTone.ts`: visible-surface chrome/cursor tone;
+- `SurfaceTone.ts`: visible-surface chrome/cursor tone (the last surface in
+  document order crossing the middle band, so a rising stack layer wins);
 - `InstagramBadge.ts`: the global Instagram control's hero-to-corner fold;
 - `EdgeMenu.ts`: right-edge navigation states (Y-following tab, auto-collapsing
   close control), focus/inert/Escape behavior, scroll lock and home progress;
@@ -224,6 +225,12 @@ registers ScrollTrigger and initializes/cleans:
   orange ring travelling between section stops on wide screens, a still ring
   elsewhere); the hero entrance there is CSS. Since 2026-09-14 the whole route is charcoal
   (`#1f1f1f`, scoped in `studio-page.css`);
+- `ServicesPage.ts`: mounts `ServicesPageMotion.ts` (route-only chunk) for
+  `/servicios/`: each stack layer's staggered arrival, the close's paths and
+  loops that play only when visible and uncovered. The layers themselves stack
+  through `SectionStack.ts` (sticky, `data-stack-content`); since 2026-09-14
+  the route is a charcoal hero, white/orange/black/white service layers and a
+  black close (`services-page.css`);
 - `ContactBite.ts`: loads `ContactBiteMotion.ts` on demand for the home contact
   close (entrance, the soft sculpture's live pose from `ContactSculpture.ts`,
   pressure on "muerda", bite);
