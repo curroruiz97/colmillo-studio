@@ -1,0 +1,44 @@
+---
+/**
+ * COLMILLO WORDMARK
+ *
+ * One global link home in the top-left corner of every route's first screen,
+ * with the size and the gutter the wordmark has on the home hero
+ * (`--brand-logo-inline`, `--page-gutter`). It is not fixed: it scrolls away
+ * with the first screen. The home hero keeps an empty box of the same size
+ * where the mark used to sit, so its composition is unchanged.
+ *
+ * The route declares the tone of its hero through the layout's `headerTheme`:
+ * a light surface gets the black derivative, a dark one the cream derivative.
+ */
+import { brandWordmark } from '@/config/assets';
+
+export type HeaderTheme = 'light' | 'dark';
+
+interface Props {
+  theme?: HeaderTheme;
+}
+
+const { theme = 'light' } = Astro.props;
+const mark = theme === 'dark' ? brandWordmark.cream : brandWordmark.black;
+const isHome = Astro.url.pathname === '/';
+---
+
+<a
+  class="site-logo"
+  href="/"
+  aria-label="Colmillo Studio, inicio"
+  aria-current={isHome ? 'page' : undefined}
+  data-site-logo
+  data-theme={theme}
+>
+  <img
+    class="site-logo__mark"
+    src={mark.src}
+    width={mark.width}
+    height={mark.height}
+    alt=""
+    decoding="async"
+    fetchpriority="high"
+  />
+</a>

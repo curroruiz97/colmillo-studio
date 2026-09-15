@@ -26,7 +26,7 @@
   /* Widest the 4:3 loop may ever get. Height still wins when it is scarcer. */
   --hero-media-inline: 62vw;
   --hero-gap: clamp(1.25rem, 3.5vh, 2.5rem);
-  --hero-logo-inline: clamp(6.5rem, 9vw, 9rem);
+  --hero-logo-inline: var(--brand-logo-inline);
   /* The 906x242 wordmark, rounded so the budget never under-reserves it. */
   --hero-logo-block: calc(var(--hero-logo-inline) / 3.7);
   /* The dot plus its travel, with a little air underneath. */
@@ -131,15 +131,17 @@
 }
 
 /*
- * The wordmark, at its natural ratio. `.hero__inner` already holds the page
- * gutter on both axes, so the mark only has to stop the grid from stretching
- * it across the row.
+ * The wordmark's box, at its natural ratio. The mark itself is the global
+ * fixed `SiteLogo.astro`, painted at exactly this spot on the first screen;
+ * the hero only keeps the row so the loop, the CTA and the hint stay where
+ * they were. `.hero__inner` already holds the page gutter on both axes, so the
+ * box only has to stop the grid from stretching it across the row.
  */
 .hero__logo {
   justify-self: start;
   align-self: start;
   inline-size: var(--hero-logo-inline);
-  block-size: auto;
+  aspect-ratio: 906 / 242;
 }
 
 /*

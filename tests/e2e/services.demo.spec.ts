@@ -9,7 +9,7 @@ const SERVICES = ['Estrategia', 'Identidad', 'Digital', 'Contenido'];
 
 /** Fixed chrome that sits above the stack on purpose. */
 const CHROME =
-  '.edge-menu, .edge-menu *, [class*="ig-badge"], [class*="ig-badge"] *, [data-instagram], [data-instagram] *, .custom-cursor, .custom-cursor *, .skip-link';
+  '.edge-menu, .edge-menu *, [class*="ig-badge"], [class*="ig-badge"] *, [data-instagram], [data-instagram] *, [data-site-logo], [data-site-logo] *, .custom-cursor, .custom-cursor *, .skip-link';
 
 async function collectErrors(page: Page) {
   const errors: string[] = [];

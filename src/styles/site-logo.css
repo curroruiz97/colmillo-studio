@@ -1,0 +1,32 @@
+/*
+ * COLMILLO WORDMARK
+ *
+ * The global link home in the top-left corner of the first screen. It sits
+ * exactly where the home hero used to place its wordmark - the page gutter
+ * from the top and the left edge, `--brand-logo-inline` wide - and is anchored
+ * to the top of the document, not the viewport, so it leaves with the first
+ * screen as the page scrolls. It shares the Instagram control's layer: above
+ * the hero, under the edge menu, whose scrim covers it while the panel is open.
+ */
+
+.site-logo {
+  position: absolute;
+  z-index: var(--z-social);
+  inset-block-start: var(--page-gutter);
+  inset-inline-start: max(var(--page-gutter), env(safe-area-inset-left, 0px));
+  display: block;
+  inline-size: var(--brand-logo-inline);
+  line-height: 0;
+}
+
+.site-logo__mark {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+}
+
+.site-logo:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 6px;
+  border-radius: 0.25rem;
+}

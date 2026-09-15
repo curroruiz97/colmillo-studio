@@ -17,6 +17,7 @@
 @import './services-page.css' layer(sections);
 @import './edge-menu.css' layer(components);
 @import './instagram-badge.css' layer(components);
+@import './site-logo.css' layer(components);
 @import './utilities.css' layer(utilities);
 @import './motion.css' layer(motion);
 @import './reduced-motion.css' layer(motion);

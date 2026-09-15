@@ -2245,3 +2245,59 @@ than a new effect.
   press), radius, proportion, `object-fit: contain`, the capability hover,
   stacking, alternation, copy and the close. Touch, coarse pointers, keyboard
   and reduced motion keep the still plate (`canPress()`).
+
+## 2026-09-15 - Edge Menu Panel: No Numbers, No Legal Links, Narrower
+
+Decision (user direction, open panel only): the panel drops the route numbers,
+the `01 / 05` readout and the legal links, and is about 13% narrower. The legal
+links live in the footer. Email and Instagram stay the live channels from
+`contactChannels`; Instagram opens in a new tab (`noopener noreferrer`), the
+`mailto:` link does not.
+
+- Width: `min(40vw, 38.5rem)` on fine pointers, `min(63vw, 26.5rem)` on coarse,
+  `min(56vw, 30rem)` up to 68rem, full width on phones as before. The route
+  type rises to `9.2cqi` so its absolute size matches the wider panel.
+- Channel hover is colour plus a hairline drawn from the left and a 0.2rem
+  lean, the same vocabulary as the route rows, never a fill.
+- The navigation is lifted by half of a `5vh` bottom margin, giving the
+  channels more air than the wordmark without changing the panel height.
+- Unchanged: tab, tracking, close control, scrim, panel travel, colours, order,
+  the orange active state with its mark and the no-JavaScript disclosure.
+
+## 2026-09-15 - One Global Wordmark And The Instagram Pill On Every Route
+
+Decision (user direction): the home's top-left wordmark and top-right
+Instagram behaviour become global chrome, one implementation each, in
+`BaseLayout`.
+
+- Wordmark: `SiteLogo.astro` (+ `site-logo.css`), a link home
+  (`aria-label="Colmillo Studio, inicio"`, `aria-current` on the home) at the
+  home hero's exact size and gutter: `--brand-logo-inline` (the former
+  `--hero-logo-inline` value, now a token) at `--page-gutter` from the top and
+  left. It is `position: absolute` against the document, not fixed: it only
+  shows on the first screen and scrolls away with it (user correction the
+  same day; a first fixed version with a scroll-sampled tone was removed
+  together with its `SiteLogo.ts` and `paintedBackground.ts`). It shares
+  `--z-social` with the Instagram control, so it stays above the hero and
+  under the edge menu, whose scrim covers it while the panel is open;
+  `EdgeMenu.ts` adds it to the `inert` outside set.
+- The home hero no longer renders its own `<img>`: `.hero__logo` is an empty
+  `aria-hidden` box of the same size, so the loop, CTA and hint keep their
+  positions and the global mark lands exactly where the old one was.
+  `HomeIntro.ts` waits for the global mark's image instead.
+- Tone: every route declares its hero through `BaseLayout`'s `headerTheme`
+  (`light` default -> `colmillo-wordmark-black.png`; `dark` ->
+  `colmillo-wordmark-cream.png`); only that derivative is rendered.
+  `/studio/` (charcoal) and `/servicios/` (#0d0d0b hero) pass `dark`. `/`,
+  `/proyectos/`, project pages, legal pages and 404 are white. `/contacto/`
+  is orange and stays `light`: ink on #cd5730 is about 4.5:1, cream about
+  3.7:1.
+- Instagram: `InstagramBadge.astro` always renders `data-mode="hero"` and
+  `InstagramBadge.ts` no longer requires `[data-hero]`, so every route starts
+  as the pill (`INSTAGRAM ↗`, same scale steps) and folds into the round glyph
+  control over the same 30% of a viewport. New: on a page that cannot scroll
+  that far (the empty standard `/proyectos/`) the range is the page's own
+  scroll, so the fold still completes. Colours, outline, plate, hover and the
+  menu hand-off are unchanged; orange with the ink outline already reads on
+  white, ink, charcoal and orange.
+

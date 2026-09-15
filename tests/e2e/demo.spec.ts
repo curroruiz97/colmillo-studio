@@ -476,7 +476,6 @@ test('the edge menu keeps Inicio active across the home scenes', async ({
   await page.waitForTimeout(300);
 
   // The active route follows the URL, not the scene in view.
-  await expect(page.locator('[data-edge-position]')).toHaveText('01');
   await expect(
     page.locator('.edge-menu__list a[aria-current="page"]'),
   ).toHaveAttribute('href', '/');
@@ -531,7 +530,7 @@ test('the open panel never hides behind its own close control', async ({
   await expectNoOverlap(
     page.locator('[data-edge-closer]'),
     page.locator(
-      '.edge-menu__head, .edge-menu__list a, .edge-menu__channels a, .edge-menu__legal a',
+      '.edge-menu__head, .edge-menu__list a, .edge-menu__channels a',
     ),
   );
 });

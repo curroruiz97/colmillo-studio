@@ -3,6 +3,7 @@ import Footer from '@/components/layout/Footer.astro';
 import EdgeMenu from '@/components/layout/EdgeMenu.astro';
 import InstagramBadge from '@/components/layout/InstagramBadge.astro';
 import SeoHead from '@/components/layout/SeoHead.astro';
+import SiteLogo, { type HeaderTheme } from '@/components/layout/SiteLogo.astro';
 import '@/styles/index.css';
 
 interface Props {
@@ -10,6 +11,12 @@ interface Props {
   description?: string;
   noindex?: boolean;
   hideNavigation?: boolean;
+  /**
+   * Tone of the route's first screen, for the global wordmark: `light` (white
+   * or orange hero) shows the black mark, `dark` (ink or charcoal) the cream
+   * one.
+   */
+  headerTheme?: HeaderTheme;
   ogImage?: string | undefined;
   ogImageAlt?: string | undefined;
   ogType?: 'website' | 'article';
@@ -20,6 +27,7 @@ const {
   description,
   noindex,
   hideNavigation = false,
+  headerTheme = 'light',
   ogImage,
   ogImageAlt,
   ogType,
@@ -44,6 +52,7 @@ const {
   <body>
     <a class="skip-link" href="#contenido">Saltar al contenido</a>
     <slot name="overlay" />
+    {!hideNavigation && <SiteLogo theme={headerTheme} />}
     {!hideNavigation && <EdgeMenu />}
     {!hideNavigation && <InstagramBadge />}
     <main id="contenido" tabindex="-1">

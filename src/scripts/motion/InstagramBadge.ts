@@ -16,8 +16,9 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
  * The pill and the labels read a single progress value, `--ig-p`, from the
  * stylesheet. Only `transform`, `opacity` and a label clip change.
  *
- * Reduced motion swaps the continuous fold for a single state change halfway
- * through the same range. Routes without the hero are compact from the start.
+ * Every route starts in the hero pose and folds over the same range of scroll,
+ * whatever its first section is. Reduced motion swaps the continuous fold for
+ * a single state change halfway through the same range.
  */
 
 /** Share of the viewport height the page scrolls while the badge folds. */
@@ -32,9 +33,7 @@ export function initInstagramBadge(): () => void {
   const badge = document.querySelector<HTMLElement>('[data-instagram]');
   if (!badge) return () => undefined;
 
-  const heroMode =
-    badge.dataset.mode === 'hero' &&
-    document.querySelector('[data-hero]') !== null;
+  const heroMode = badge.dataset.mode === 'hero';
   const reduced = document.documentElement.dataset.motion === 'reduced';
 
   // `quickSetter` skips the tween parser, so the `scale` shorthand is not
@@ -63,7 +62,17 @@ export function initInstagramBadge(): () => void {
       (cut / Math.max(1, width - height)).toFixed(4),
     );
 
-    pose.range = Math.max(1, window.innerHeight * FOLD_DISTANCE);
+    // A short route (an empty archive, a legal page) may not scroll that far:
+    // the fold then finishes at the bottom of the page instead of halfway.
+    const scrollable =
+      document.documentElement.scrollHeight - window.innerHeight;
+    pose.range = Math.max(
+      1,
+      Math.min(
+        window.innerHeight * FOLD_DISTANCE,
+        scrollable > 0 ? scrollable : Infinity,
+      ),
+    );
     const viewport = document.documentElement.clientWidth;
     pose.scale = !heroMode
       ? 1
@@ -104,7 +113,12 @@ export function initInstagramBadge(): () => void {
   const trigger = heroMode
     ? ScrollTrigger.create({
         start: 0,
-        end: () => pose.range,
+        // Measured here too: the page's height, and so the range, may have
+        // changed since the last refresh.
+        end: () => {
+          measure();
+          return pose.range;
+        },
         onUpdate: (self) => render(self.scroll()),
         onRefresh: (self) => {
           measure();

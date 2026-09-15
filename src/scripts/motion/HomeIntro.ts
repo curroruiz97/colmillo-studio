@@ -293,10 +293,11 @@ export function initHomeIntro(): () => void {
   // The O only opens onto a finished first screen: the wordmark and the
   // hero's first frame decoded. Nothing further down the page is awaited.
   let ready = false;
-  const heroLogo = document.querySelector<HTMLImageElement>('.hero__logo');
   const heroVideo = document.querySelector<HTMLVideoElement>('.hero__media');
   const waits: Array<Promise<unknown>> = [];
-  if (heroLogo) waits.push(heroLogo.decode().catch(noop));
+  document
+    .querySelectorAll<HTMLImageElement>('[data-site-logo] img')
+    .forEach((mark) => waits.push(mark.decode().catch(noop)));
   if (heroVideo?.poster) {
     const poster = new Image();
     poster.src = heroVideo.poster;

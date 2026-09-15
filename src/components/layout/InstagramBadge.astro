@@ -2,11 +2,11 @@
 /**
  * COLMILLO INSTAGRAM
  *
- * One global control anchored to the top-right corner. On the home it starts
- * larger and reads `INSTAGRAM ↗`; `InstagramBadge.ts` folds it, in the same
- * corner, into a round compact control carrying the Instagram glyph as the hero
- * leaves. It is the same element throughout, never swapped for a second one.
- * Every other route shows it compact from the start.
+ * One global control anchored to the top-right corner. On every route it
+ * starts larger and reads `INSTAGRAM ↗`; `InstagramBadge.ts` folds it, in the
+ * same corner, into a round compact control carrying the Instagram glyph over
+ * the first stretch of scroll. It is the same element throughout, never
+ * swapped for a second one.
  *
  * The pill is built from three pieces - two caps and a middle - so it can
  * contract with transforms alone and keep its ink outline whole at every width.
@@ -17,8 +17,6 @@
 import { contactChannels } from '@/config/contact';
 
 const instagram = contactChannels.instagram;
-const isHome = Astro.url.pathname === '/';
-const mode = isHome ? 'hero' : 'compact';
 ---
 
 {
@@ -27,8 +25,8 @@ const mode = isHome ? 'hero' : 'compact';
       class="ig-badge"
       href={instagram.href}
       data-instagram
-      data-mode={mode}
-      data-pose={mode}
+      data-mode="hero"
+      data-pose="hero"
     >
       <span class="ig-badge__plate" aria-hidden="true" />
       <span class="ig-badge__face">

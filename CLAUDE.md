@@ -208,7 +208,8 @@ registers ScrollTrigger and initializes/cleans:
 - `HeroMotion.ts`: hero compression and viewport-aware media playback;
 - `SurfaceTone.ts`: visible-surface chrome/cursor tone (the last surface in
   document order crossing the middle band, so a rising stack layer wins);
-- `InstagramBadge.ts`: the global Instagram control's hero-to-corner fold;
+- `InstagramBadge.ts`: the global Instagram control's pill-to-circle fold, on
+  every route;
 - `EdgeMenu.ts`: right-edge navigation states (Y-following tab, auto-collapsing
   close control), focus/inert/Escape behavior, scroll lock and home progress;
 - `SectionStack.ts`: rounded stack reveal/compression;
@@ -334,7 +335,12 @@ licenses and publication approval before enabling client material.
   2026-09-10 (see `docs/DECISIONS.md`).
 - Global Instagram control: one element in the top-right corner that folds in
   place from `INSTAGRAM ↗` into a round Instagram-glyph control, fed by
-  `contactChannels.instagram`.
+  `contactChannels.instagram`. Since 2026-09-15 every route starts as the pill.
+- Global wordmark (2026-09-15): `SiteLogo.astro` in `BaseLayout`, a link home
+  in the top-left corner of every route's first screen at the home hero's
+  size; not fixed, it scrolls away with the page. Each
+  route passes `headerTheme` (`light` default; `/studio/` and `/servicios/`
+  are `dark`); the home hero keeps an empty `.hero__logo` box of the same size.
 - Surface-aware cursor; the system reduced-motion preference is the only motion
   source (the sticky header and the manual motion toggle were both removed on
   2026-09-10 at the user's request).

@@ -7,12 +7,16 @@
  * under the animation and a hairline scroll hint below it. Navigation belongs
  * to the edge menu, so the hero only has to leave the right edge clear.
  *
+ * The wordmark is the global fixed one (`SiteLogo.astro`, in the layout); the
+ * hero keeps an empty box of its size in the top row so the composition under
+ * it is unchanged.
+ *
  * The loop is decorative — it carries no information that is not already in the
  * page — so it is hidden from assistive technology and every real affordance
- * around it is a genuine link. The wordmark repeats the visually hidden `h1`,
- * and the scroll hint is pure ornament, so both are hidden from the same tree.
+ * around it is a genuine link. The scroll hint is pure ornament, hidden from
+ * the same tree.
  */
-import { brandWordmark, heroMedia } from '@/config/assets';
+import { heroMedia } from '@/config/assets';
 ---
 
 <section
@@ -28,16 +32,7 @@ import { brandWordmark, heroMedia } from '@/config/assets';
   </div>
 
   <div class="hero__inner">
-    <img
-      class="hero__logo"
-      src={brandWordmark.black.src}
-      width={brandWordmark.black.width}
-      height={brandWordmark.black.height}
-      alt=""
-      decoding="async"
-      fetchpriority="high"
-      aria-hidden="true"
-    />
+    <span class="hero__logo" aria-hidden="true"></span>
     <h1 id="hero-title" class="visually-hidden">Colmillo Studio</h1>
 
     <div class="hero__stage">

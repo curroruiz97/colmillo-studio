@@ -515,7 +515,13 @@ scrubbed timeline or scroll interception.
   the word, the arrow and the glyph derive from one `--ig-p` progress value.
   Hovering or focusing the compact control opens it back to the full word.
   Reduced motion swaps the fold for one state change halfway through the
-  range; other routes are compact from the start.
+  range. Since 2026-09-15 every route starts in the hero pose and folds over
+  the same range; on a route too short to scroll 30% of a viewport the range
+  is the page's own scroll, so the fold still completes at the bottom.
+- The global wordmark (`SiteLogo.astro`) has no motion: it sits in the
+  top-left corner of the first screen, anchored to the document, and scrolls
+  away with the page. Its black/cream derivative comes from the route's
+  `headerTheme`.
 - `EditorialMotion.ts` reveals whole editorial blocks and deforms route marks
   by scroll progress; it never splits readable text into animated letters.
 - `SurfaceTone.ts` switches the shared cursor contrast from intersection state
@@ -594,7 +600,7 @@ scrubbed timeline or scroll interception.
   `pause()` also clears the autoplay flag); the hero settles from 1.02 around
   `50% 20%`. `colmillo:introend` follows ~0.1 s later: overlay hidden, the
   `html[data-intro]` scroll lock and cursor hold removed.
-- Readiness: the O only opens after the hero wordmark and the loop's poster
+- Readiness: the O only opens after the global wordmark and the loop's poster
   have decoded, waiting at most 1.2 s more; nothing below the fold is awaited.
 - Input: a key, wheel or touch plays the rest at 3.2× instead of cutting it.
   The overlay is `aria-hidden`, never traps focus and sits under the skip link.

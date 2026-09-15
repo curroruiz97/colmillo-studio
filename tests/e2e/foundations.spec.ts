@@ -417,21 +417,47 @@ test('the active route follows the URL, never the home scroll', async ({
     );
     await page.waitForTimeout(250);
     await expect(current).toHaveAttribute('href', '/');
-    await expect(page.locator('[data-edge-position]')).toHaveText('01');
   }
   await expect(page.locator('.edge-menu__list a[aria-current]')).toHaveCount(1);
 
-  for (const [route, number] of [
-    ['/studio/', '02'],
-    ['/servicios/', '03'],
-    ['/proyectos/', '04'],
-    ['/contacto/', '05'],
+  for (const route of [
+    '/studio/',
+    '/servicios/',
+    '/proyectos/',
+    '/contacto/',
   ] as const) {
     await page.goto(route);
     await expect(current).toHaveCount(1);
     await expect(current).toHaveAttribute('href', route);
-    await expect(page.locator('[data-edge-position]')).toHaveText(number);
   }
+});
+
+test('the edge panel lists routes and channels without numbers or legal links', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const panel = page.locator('[data-edge-panel]');
+
+  // No route numbers, no `01 / 05` readout and no legal line in the panel;
+  // the footer keeps the legal links.
+  await expect(panel.locator('[data-edge-position]')).toHaveCount(0);
+  await expect(panel.locator('.edge-menu__index')).toHaveCount(0);
+  await expect(panel.locator('a[href="/aviso-legal/"]')).toHaveCount(0);
+  await expect(panel.locator('a[href="/privacidad/"]')).toHaveCount(0);
+  await expect(panel.locator('a[href="/cookies/"]')).toHaveCount(0);
+  await expect(
+    page.locator('.site-footer a[href="/aviso-legal/"]'),
+  ).toHaveCount(1);
+
+  const mail = panel.locator('.edge-menu__channels a[href^="mailto:"]');
+  await expect(mail).toHaveAttribute('href', 'mailto:hola@colmillostudio.com');
+  await expect(mail).not.toHaveAttribute('target', /.+/);
+
+  const instagram = panel.locator(
+    '.edge-menu__channels a[href="https://www.instagram.com/colmillo.studio/"]',
+  );
+  await expect(instagram).toHaveAttribute('target', '_blank');
+  await expect(instagram).toHaveAttribute('rel', 'noopener noreferrer');
 });
 
 test('the closed edge menu keeps the panel out of reach', async ({ page }) => {
@@ -837,6 +863,68 @@ test('the Instagram control folds from the hero into the corner', async ({
   await expect(badge).toHaveAttribute('data-pose', 'hero');
 });
 
+test('every route carries one wordmark and one folding Instagram control', async ({
+  page,
+}) => {
+  for (const { path, theme } of [
+    { path: '/', theme: 'light' },
+    { path: '/studio/', theme: 'dark' },
+    { path: '/servicios/', theme: 'dark' },
+    { path: '/proyectos/', theme: 'light' },
+    { path: '/contacto/', theme: 'light' },
+  ]) {
+    await page.goto(path);
+
+    // One wordmark, a link home, in the top-left corner, in the hero's tone.
+    const logo = page.locator('[data-site-logo]');
+    await expect(logo, path).toHaveCount(1);
+    await expect(logo).toHaveAttribute('href', '/');
+    await expect(logo).toHaveAttribute('data-theme', theme);
+    await expect(logo.locator('img')).toHaveCount(1);
+    await expect(logo.locator('img')).toHaveAttribute(
+      'src',
+      theme === 'dark'
+        ? '/assets/brand/colmillo-wordmark-cream.png'
+        : '/assets/brand/colmillo-wordmark-black.png',
+    );
+    const readLogo = () =>
+      logo.evaluate((element) => {
+        const rect = element.getBoundingClientRect();
+        return { top: rect.top, left: rect.left, width: rect.width };
+      });
+    const first = await readLogo();
+    expect(first.top, path).toBeLessThanOrEqual(64);
+    expect(first.left, path).toBeLessThanOrEqual(64);
+    expect(first.width, path).toBeGreaterThan(90);
+
+    // The Instagram control starts as the pill and folds on scroll.
+    const badge = page.locator('[data-instagram]');
+    await expect(badge, path).toHaveCount(1);
+    await expect(badge).toHaveAttribute('data-ready', 'true');
+    await expect(badge).toHaveAttribute('data-pose', 'hero');
+    await page.evaluate(() => window.scrollTo(0, window.innerHeight));
+    await expect(badge, path).toHaveAttribute('data-pose', 'compact');
+
+    // The wordmark belongs to the first screen and scrolls away with it; the
+    // Instagram control stays fixed in its corner.
+    const scrolled = await page.evaluate(() => window.scrollY);
+    expect(scrolled, path).toBeGreaterThan(0);
+    const after = await readLogo();
+    expect(after.top, path).toBeCloseTo(first.top - scrolled, 0);
+    expect(after.left, path).toBe(first.left);
+    await expect(badge).toBeInViewport();
+
+    expect(
+      await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth -
+          document.documentElement.clientWidth,
+      ),
+      path,
+    ).toBeLessThanOrEqual(0);
+  }
+});
+
 test('the Instagram control makes way for the open menu', async ({ page }) => {
   await page.goto('/');
   const badge = page.locator('[data-instagram]');
@@ -849,6 +937,11 @@ test('the Instagram control makes way for the open menu', async ({ page }) => {
   // The panel carries its own Instagram link, so the global one steps back.
   await expect(badge).toHaveJSProperty('inert', true);
   await expect(badge).toBeHidden();
+  // The wordmark stays under the scrim, out of the focus order.
+  await expect(page.locator('[data-site-logo]')).toHaveJSProperty(
+    'inert',
+    true,
+  );
   await expect(
     page.locator(`[data-edge-panel] a[href="${APPROVED_INSTAGRAM}"]`),
   ).toBeVisible();

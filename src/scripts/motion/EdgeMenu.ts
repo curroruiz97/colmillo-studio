@@ -78,6 +78,7 @@ export function initEdgeMenu(): () => void {
   const outside = [
     document.querySelector<HTMLElement>('main'),
     document.querySelector<HTMLElement>('body > footer'),
+    document.querySelector<HTMLElement>('[data-site-logo]'),
     instagram,
   ].filter((element): element is HTMLElement => element !== null);
   const previousInert = new Map<HTMLElement, boolean>();

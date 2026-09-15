@@ -49,8 +49,14 @@
   --duration-medium: 320ms;
   --duration-slow: 720ms;
   /*
-   * Fixed layers. The Instagram control sits under the edge menu, which owns
-   * one slot and orders its own scrim, panel and tab inside it.
+   * The global wordmark: its width in the top-left corner of every route, and
+   * the box the home hero reserves for it.
+   */
+  --brand-logo-inline: clamp(6.5rem, 9vw, 9rem);
+  /*
+   * Fixed layers. The wordmark and the Instagram control share the social slot
+   * under the edge menu, which owns one slot and orders its own scrim, panel
+   * and tab inside it.
    */
   --z-social: 85;
   --z-menu: 90;

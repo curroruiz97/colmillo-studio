@@ -23,21 +23,23 @@
  * that was pressed becomes the close control in the same place.
  */
 import { publishedContactChannels } from '@/config/contact';
-import { legalNavigation, primaryNavigation } from '@/config/navigation';
+import { primaryNavigation } from '@/config/navigation';
 
 const path = Astro.url.pathname;
 const routeIndex = primaryNavigation.findIndex((item) =>
   item.href === '/' ? path === '/' : path.startsWith(item.href),
 );
-const routeNumber =
-  routeIndex >= 0 ? String(routeIndex + 1).padStart(2, '0') : '—';
-const total = String(primaryNavigation.length).padStart(2, '0');
 
 /*
  * The active route is decided here, from the URL, and never changes while the
  * page scrolls: on `/` "Inicio" stays current even when a home section that
  * shares a route's name is in view.
+ *
+ * The panel carries no numbering and no legal links (2026-09-15, client
+ * direction): the routes, the channels and the footer's legal line suffice.
+ * External channels open in a new tab; `mailto:` stays in place.
  */
+const isExternal = (href: string) => /^https?:\/\//.test(href);
 ---
 
 <div class="edge-menu" data-edge-menu data-state="closed">
@@ -73,10 +75,6 @@ const total = String(primaryNavigation.length).padStart(2, '0');
               alt="Colmillo Studio"
               decoding="async"
             />
-            <p class="edge-menu__position">
-              <span data-edge-position>{routeNumber}</span>
-              <span>/{total}</span>
-            </p>
           </header>
 
           <nav class="edge-menu__navigation" aria-label="Navegación principal">
@@ -95,9 +93,6 @@ const total = String(primaryNavigation.length).padStart(2, '0');
                       }
                     >
                       <span class="edge-menu__row">
-                        <span class="edge-menu__index" aria-hidden="true">
-                          {String(index + 1).padStart(2, '0')}
-                        </span>
                         <strong>{item.label}</strong>
                         <span class="edge-menu__mark" aria-hidden="true" />
                       </span>
@@ -112,29 +107,32 @@ const total = String(primaryNavigation.length).padStart(2, '0');
             {
               publishedContactChannels.length > 0 && (
                 <ul class="edge-menu__channels" role="list">
-                  {publishedContactChannels.map((channel) => (
-                    <li>
-                      <a href={channel.href} data-cursor-label="Abrir">
-                        <span>{channel.label}</span>
-                        <strong>{channel.value ?? channel.label}</strong>
-                      </a>
-                    </li>
-                  ))}
+                  {publishedContactChannels.map((channel) => {
+                    const external = isExternal(channel.href);
+                    return (
+                      <li>
+                        <a
+                          href={channel.href}
+                          target={external ? '_blank' : undefined}
+                          rel={external ? 'noopener noreferrer' : undefined}
+                          data-cursor-label="Abrir"
+                        >
+                          <span class="edge-menu__channel-label">
+                            {channel.label}
+                          </span>
+                          <strong>{channel.value ?? channel.label}</strong>
+                          {external && (
+                            <span class="visually-hidden">
+                              (se abre en una pestaña nueva)
+                            </span>
+                          )}
+                        </a>
+                      </li>
+                    );
+                  })}
                 </ul>
               )
             }
-
-            <nav aria-label="Información legal">
-              <ul class="edge-menu__legal" role="list">
-                {
-                  legalNavigation.map((item) => (
-                    <li>
-                      <a href={item.href}>{item.label}</a>
-                    </li>
-                  ))
-                }
-              </ul>
-            </nav>
           </footer>
         </div>
       </div>

@@ -3841,3 +3841,117 @@ press and docs at the same time; only the close's blocks were edited.
   button likely has the same `data-magnetic`/press conflict (not changed).
 
 Nothing was committed, pushed or deployed.
+
+## 2026-09-15 Session: Edge Menu Panel Without Numbers, Narrower, Live Channels
+
+Scope: the global edge menu's open panel only (user direction). Trigger, tab,
+close control, scrim, panel animation, colours, route order, active state,
+logo and page content untouched. Another terminal was editing `EdgeMenu.ts`
+(`paintedBackground`, `SiteLogo` inert), the hero, the tokens and the new
+`SiteLogo` files at the same time; none of that was touched.
+
+- Files: `src/components/layout/EdgeMenu.astro`, `src/styles/edge-menu.css`,
+  `tests/e2e/foundations.spec.ts` (route test no longer reads a number; new
+  test `the edge panel lists routes and channels without numbers or legal
+  links`), `tests/e2e/demo.spec.ts` (number assertion and `.edge-menu__legal`
+  selector removed), `docs/DECISIONS.md`.
+- Removed: route numbers (`.edge-menu__index`), the `01 / 05` readout
+  (`.edge-menu__position`, `data-edge-position`) and the legal links
+  (`.edge-menu__legal`); the footer keeps the legal line.
+- Width about 13% narrower: `min(46vw, 44rem)` -> `min(40vw, 38.5rem)`
+  (662 -> 576 px at 1440); coarse `min(72vw, 30rem)` -> `min(63vw, 26.5rem)`;
+  up to 68rem `min(64vw, 34rem)` -> `min(56vw, 30rem)`; phones stay full width.
+  Start padding `clamp(2.75rem, 5vw, 5rem)`. Route type `8.2cqi` -> `9.2cqi`,
+  so it stays about 53 px at 1440.
+- Channels come from `contactChannels`: `mailto:` stays in place; Instagram
+  (`https://www.instagram.com/colmillo.studio/`, the same source as the global
+  Instagram control) gets `target="_blank"`, `rel="noopener noreferrer"` and
+  a visually hidden "(se abre en una pestaña nueva)". Hover/focus: orange
+  value, a 1 px underline drawn in from the left, a 0.2rem lean; cursor pointer.
+- Vertical rhythm: rows slightly taller (`clamp(0.45rem, 1.6vh, 1.25rem)`) and
+  the navigation carries `margin-block-end: clamp(0rem, 5vh, 3.5rem)`, so the
+  channels get more air than the wordmark; zeroed under `max-height: 34rem`.
+- Verified with Playwright on `dist-demo` (open panel on /servicios/) at
+  1440x1000, 1280x720, 1280x520, 1100x800 fine, 1024x768, 834x1112, 390x844,
+  320x720 touch and 1440 reduced motion, screenshots inspected: no numbers or
+  legal links, no overlap with the close control, no row overflow, no panel
+  scroll, horizontal overflow 0, no console errors.
+- Checks: `astro check` 0/0/0; Prettier and ESLint clean on the changed files;
+  `build` 9 pages, `build:demo` 14 pages; demo edge tests 5 passed / 4 skipped;
+  foundations edge/menu/footer tests 23 passed / 6 skipped after the fix, and
+  `closes from the rail and from outside the panel` passed 3/3 on
+  mobile-chromium in isolation (it failed once in the grouped run, the known
+  scrim-click flake recorded above).
+- Open: the user wrote `hola@colmilloestudio.com`; the approved address in
+  `contactChannels` (and `DECISIONS.md`, `CONTENT_NEEDED.md`) is
+  `hola@colmillostudio.com`. It was kept pending confirmation.
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-15 Session: Global Wordmark And Instagram Pill On Every Route
+
+User request: the home's top-left logo and top-right Instagram behaviour on
+every route, one global implementation, logo tone per hero, nothing else
+touched. Run while another terminal was changing the edge menu panel
+(`EdgeMenu.astro`, `edge-menu.css`, `demo.spec.ts`, panel tests in
+`foundations.spec.ts`); those changes were not touched. See `DECISIONS.md`
+(2026-09-15, "One Global Wordmark...").
+
+- New: `src/components/layout/SiteLogo.astro`, `src/styles/site-logo.css`
+  (imported in `index.css`, layer `components`),
+  `src/scripts/motion/SiteLogo.ts`, `src/scripts/motion/paintedBackground.ts`.
+- Changed: `BaseLayout.astro` (+ `headerTheme` prop, renders `SiteLogo`),
+  `studio.astro` and `servicios.astro` (`headerTheme="dark"`),
+  `HeroSection.astro` (logo `<img>` -> empty `.hero__logo` box),
+  `hero-section.css` (token + `aspect-ratio`), `tokens.css`
+  (`--brand-logo-inline`, z comment), `InstagramBadge.astro` (always hero
+  mode), `InstagramBadge.ts` (no `[data-hero]` requirement; range capped to
+  the page's scroll; `end` measures), `EdgeMenu.ts` (uses
+  `paintedBackground`, logo in the `inert` set), `HomeIntro.ts` (readiness
+  waits on the global mark), `MotionController.ts` (+ `initSiteLogo`),
+  `tests/e2e/foundations.spec.ts` (+ per-route wordmark/Instagram test, logo
+  `inert` with the menu open), `tests/e2e/services.demo.spec.ts` (logo in
+  `CHROME`), `CLAUDE.md`, `MOTION_SPEC.md`, `DECISIONS.md`.
+
+Verified on `dist-demo` with a scratch Playwright script (1440x900 fine,
+834x1112, 390x844 and 320x720 touch; `/`, `/studio/`, `/servicios/`,
+`/proyectos/`, `/contacto/`, a demo project): one wordmark and one Instagram
+control per route, `img.hero__logo` gone, wordmark at 43,43 (1440), 25,25
+(834), 16,16 (390/320), identical to the old hero position; pill on entry,
+compact at 15% of a viewport, same corner; tone light/dark/dark/light/light/
+light on entry and switching over ink, orange and white layers while
+scrolling; overflow 0; console clean. Screenshots inspected. Menu open on
+`/studio/`: scrim on top of the mark, mark `inert`, badge hidden, restored on
+Escape; Tab order skip link -> wordmark; clicking the mark lands on `/` with
+tone light and `aria-current="page"`. Reduced motion on `/servicios/`: one
+state change. No JavaScript: server tone (cream on Studio, black on home) and
+the full pill.
+
+Checks: `astro check` 0/0/0; ESLint clean on changed files; Prettier clean on
+new files (HeroSection/hero-section warnings are the pre-existing line-ending
+mismatch; the remaining `foundations.spec.ts` warning is in the other
+terminal's panel test); `build` 9 pages; `build:demo` 14 pages;
+`check:production` (176,664 JS bytes), `check:links`, `check:brand`,
+`check:hero` passed. Standard Playwright: wordmark/Instagram/reduced-motion
+tests 9 passed / 1 skipped; `intro.spec.ts` + `performance.spec.ts` 19
+passed / 1 skipped. Full `foundations.spec.ts` before the short-page fix:
+44 passed / 9 skipped / 5 failed - the new route test (fixed, then passed)
+and the other terminal's `edge panel lists routes...` (references an
+undefined `approvedMail`) and the known mobile scrim-click flake. Demo
+Playwright (`services.demo.spec.ts` + `demo.spec.ts` fixed-controls, hero,
+320px, 200% text): 36 passed / 12 skipped.
+
+Nothing was committed, pushed or deployed.
+
+### Follow-up (same day): the wordmark is no longer fixed
+
+User correction: the logo must only appear at the start and scroll away, not
+stay pinned. `site-logo.css` now uses `position: absolute` (anchored to the
+document at the same gutter and size), `SiteLogo.astro` renders only the
+derivative chosen by `headerTheme`, and the scroll-sampled tone was removed:
+`SiteLogo.ts` and `paintedBackground.ts` deleted, `EdgeMenu.ts` back to its
+own inline sampling (only the logo stays in its `inert` set),
+`MotionController.ts` no longer mounts it. The Instagram control is unchanged
+(fixed, pill on every route, folds to the circle). `foundations.spec.ts`
+asserts the mark leaves the viewport on scroll. `DECISIONS.md`,
+`MOTION_SPEC.md` and `CLAUDE.md` updated to match.

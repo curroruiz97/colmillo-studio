@@ -27,7 +27,8 @@
   --edge-close-height: 8.75rem;
   /* Wider than half the closed sliver, so the control's centre stays on it. */
   --edge-close-sliver: 0.75rem;
-  --edge-panel-width: min(46vw, 44rem);
+  /* About 13% narrower than the first cut (2026-09-15, client direction). */
+  --edge-panel-width: min(40vw, 38.5rem);
 
   position: fixed;
   z-index: var(--z-menu);
@@ -368,8 +369,8 @@ body {
    * The start side clears the tapered contour and the bite. The end side clears
    * the close control, which stays pinned to the viewport edge while open.
    */
-  padding-inline: clamp(2.75rem, 5.5vw, 5.5rem)
-    calc(var(--edge-close-width) + clamp(1.25rem, 2.5vw, 2.25rem));
+  padding-inline: clamp(2.75rem, 5vw, 5rem)
+    calc(var(--edge-close-width) + clamp(1.25rem, 2.25vw, 2rem));
 }
 
 /* ------------------------------------------------------- panel: header -- */
@@ -377,8 +378,6 @@ body {
 .edge-menu__head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
 }
 
 .edge-menu__wordmark {
@@ -386,26 +385,16 @@ body {
   block-size: auto;
 }
 
-.edge-menu__position {
-  display: flex;
-  gap: 0.2rem;
-  margin: 0;
-  color: var(--color-brand-orange);
-  font-size: var(--font-label);
-  font-weight: 900;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.08em;
-}
-
-.edge-menu__position span:last-child {
-  opacity: 0.55;
-}
-
 /* --------------------------------------------------------- panel: list -- */
 
+/*
+ * Centred between the wordmark and the channels, lifted by half its bottom
+ * margin so the channels get a little more air than the wordmark does.
+ */
 .edge-menu__navigation {
   align-self: center;
   inline-size: 100%;
+  margin-block-end: clamp(0rem, 5vh, 3.5rem);
 }
 
 .edge-menu__list {
@@ -428,7 +417,7 @@ body {
 
 .edge-menu__list a {
   display: block;
-  padding-block: clamp(0.35rem, 1.2vh, 0.9rem);
+  padding-block: clamp(0.45rem, 1.6vh, 1.25rem);
   color: inherit;
   text-decoration: none;
   transition:
@@ -458,17 +447,12 @@ body {
   transform: translateY(0);
 }
 
-.edge-menu__index {
-  flex: 0 0 2.5rem;
-  color: var(--color-brand-orange);
-  font-size: var(--font-label);
-  font-weight: 900;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.04em;
-}
-
+/*
+ * With the route numbers gone the label has the whole row, so the size per
+ * container inch rises to keep the type as large as it was in the wider panel.
+ */
 .edge-menu__list strong {
-  font-size: clamp(1.6rem, 8.2cqi, 4rem);
+  font-size: clamp(1.6rem, 9.2cqi, 4rem);
   font-weight: 850;
   letter-spacing: -0.06em;
   line-height: 0.88;
@@ -504,21 +488,16 @@ body {
   transform: scale(1);
 }
 
-.edge-menu__list a[aria-current] .edge-menu__index {
-  color: inherit;
-}
-
 /* --------------------------------------------------------- panel: foot -- */
 
 .edge-menu__foot {
   display: grid;
-  gap: clamp(1.25rem, 3.2vh, 2.25rem);
   font-size: var(--font-label);
 }
 
 .edge-menu__channels {
   display: grid;
-  gap: 0.65rem;
+  gap: clamp(0.75rem, 1.8vh, 1.1rem);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -526,12 +505,14 @@ body {
 
 .edge-menu__channels a {
   display: grid;
-  gap: 0.1rem;
+  justify-items: start;
+  gap: 0.15rem;
   color: inherit;
   text-decoration: none;
+  cursor: pointer;
 }
 
-.edge-menu__channels span {
+.edge-menu__channel-label {
   color: var(--color-brand-orange);
   font-size: 0.68rem;
   font-weight: 900;
@@ -539,26 +520,31 @@ body {
   text-transform: uppercase;
 }
 
+/*
+ * The value carries a hairline that draws in from the left on hover or focus,
+ * while the text turns orange and leans a few pixels in. Nothing else moves.
+ */
 .edge-menu__channels strong {
+  padding-block-end: 0.15rem;
+  background: linear-gradient(currentColor, currentColor) no-repeat 0 100% / 0
+    1px;
   font-size: clamp(0.95rem, 1.3vw, 1.15rem);
   font-weight: 700;
   overflow-wrap: anywhere;
+  transition:
+    color var(--duration-fast) linear,
+    background-size var(--duration-medium) var(--ease-bite),
+    transform var(--duration-medium) var(--ease-bite);
 }
 
-.edge-menu__legal {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem 1.1rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  font-size: 0.72rem;
-  text-transform: uppercase;
+.edge-menu__channels a:focus-visible {
+  outline: 3px solid var(--color-brand-cream);
+  outline-offset: 4px;
 }
 
-.edge-menu__legal a {
-  color: inherit;
-  opacity: 0.72;
+.edge-menu__channels a:focus-visible strong {
+  color: var(--color-brand-orange);
+  background-size: 100% 1px;
 }
 
 /* ------------------------------------------------------------- pointer -- */
@@ -584,9 +570,10 @@ body {
     transform: translateX(0.85rem);
   }
 
-  .edge-menu__channels a:hover strong,
-  .edge-menu__legal a:hover {
+  .edge-menu__channels a:hover strong {
     color: var(--color-brand-orange);
+    background-size: 100% 1px;
+    transform: translateX(0.2rem);
   }
 }
 
@@ -621,7 +608,7 @@ body {
     --edge-tab-rest: 2.5rem;
     --edge-tab-reach: 2.5rem;
     --edge-tab-height: clamp(5rem, 11vh, 6rem);
-    --edge-panel-width: min(72vw, 30rem);
+    --edge-panel-width: min(63vw, 26.5rem);
   }
 
   .edge-menu__ticks {
@@ -631,7 +618,7 @@ body {
 
 @media (max-width: 68rem) {
   .edge-menu {
-    --edge-panel-width: min(64vw, 34rem);
+    --edge-panel-width: min(56vw, 30rem);
   }
 }
 
@@ -654,10 +641,6 @@ body {
     padding-inline: var(--page-gutter)
       calc(var(--page-gutter) + var(--edge-close-width));
   }
-
-  .edge-menu__index {
-    flex-basis: 2rem;
-  }
 }
 
 /* Short viewports keep every control reachable through the panel's own scroll. */
@@ -673,6 +656,7 @@ body {
 
   .edge-menu__navigation {
     align-self: start;
+    margin-block-end: 0;
   }
 
   .edge-menu__list strong {
