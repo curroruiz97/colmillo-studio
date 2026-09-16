@@ -4754,3 +4754,34 @@ linked the three routes and already rendered `© {new Date().getFullYear()}`.
 - Professional legal review before release.
 
 Nothing was committed, pushed or deployed.
+
+### Committed and pushed (correcting the line above)
+
+At the user's explicit request, immediately after the session above, the whole
+working tree was committed as `10c36c3` and pushed to `origin/main`
+(`60f7baf..10c36c3`). The commit carries this session's legal work together
+with the parallel sessions' `/proyectos/`, case-study and `/contacto/` work,
+because those efforts share files — `src/styles/index.css`, `CLAUDE.md` and the
+three `docs/` records — and could not be split cleanly.
+
+Before committing, the whole tree was revalidated: `astro check` 162 files with
+0 errors, `eslint` clean, `build` 9 pages, `build:demo` 19 pages,
+`check:production` and `check:links` both passing. No build artifact was
+staged; the scratch `.tmp-qa-*.mjs` files and the pending `package-lock.json`
+deletion had already been resolved by the parallel session and were not
+touched.
+
+Release impact: Vercel deploys `main` automatically, and its build command is
+still overridden to `npm run build:demo` with output `dist-demo`, so this push
+updates the temporary, explicitly authorised public demo at
+`https://colmillo-studio.vercel.app/`. That artifact stays `noindex` behind the
+blocking `robots.txt`, and none of the release gates were opened:
+`PUBLIC_SITE_URL`, `PUBLIC_RELEASE_APPROVED` and `PUBLIC_INDEXING_APPROVED` are
+all still unset or false, and `release:check` additionally blocks on the
+outstanding `[PENDIENTE: …]` legal markers.
+
+Verified live after the deployment reported READY: `/aviso-legal/` and
+`/cookies/` return 200 with the correct titles and H1s, the four and zero
+`[PENDIENTE: …]` markers respectively, the footer's three legal links and the
+dynamic `© 2026`. `noindex, nofollow` is present, `robots.txt` still answers
+`Disallow: /`, and the response still sets no cookie.
