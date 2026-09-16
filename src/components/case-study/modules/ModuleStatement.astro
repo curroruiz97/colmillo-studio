@@ -1,0 +1,45 @@
+---
+/**
+ * 07 STATEMENT — one sentence at the size of the screen.
+ *
+ * A break in the rhythm, not a slogan generator: the accent fragment is set in
+ * the project's own accent colour and the rest in its foreground, so the
+ * emphasis belongs to the project and not to a global style.
+ *
+ * The fragment is matched inside the sentence rather than concatenated, so the
+ * text stays one readable string for a screen reader and for search.
+ */
+import type { StatementModule } from '@/data/caseStudy';
+
+interface Props {
+  module: StatementModule;
+}
+
+const { module } = Astro.props;
+const accent = module.accent;
+const at = accent ? module.text.indexOf(accent) : -1;
+const parts =
+  at >= 0 && accent
+    ? {
+        before: module.text.slice(0, at),
+        accent,
+        after: module.text.slice(at + accent.length),
+      }
+    : null;
+---
+
+<div class="cs-shell">
+  <p class="cs-statement" data-cs-line>
+    {
+      parts ? (
+        <>
+          {parts.before}
+          <em class="cs-statement__accent">{parts.accent}</em>
+          {parts.after}
+        </>
+      ) : (
+        module.text
+      )
+    }
+  </p>
+</div>

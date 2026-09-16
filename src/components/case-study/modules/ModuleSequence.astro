@@ -1,0 +1,40 @@
+---
+/**
+ * 14 IMAGE SEQUENCE — frames of one movement, crossfaded by the scroll.
+ *
+ * The frames are ordinary lazy images stacked in one frame. Without the route's
+ * chunk, without motion or without JavaScript only the first one shows, which
+ * is a still of the movement and a complete picture on its own; nothing is
+ * downloaded for the rest until the sequence is enhanced.
+ *
+ * It is the most expensive module in the set. Use a handful of frames, not a
+ * film: a real render belongs in the video module.
+ */
+import CaseStudyMedia from '../CaseStudyMedia.astro';
+import type { SequenceModule } from '@/data/caseStudy';
+
+interface Props {
+  module: SequenceModule;
+}
+
+const { module } = Astro.props;
+---
+
+<div class="cs-shell">
+  {
+    module.title && (
+      <h2 class="cs-heading" data-cs-line>
+        {module.title}
+      </h2>
+    )
+  }
+  <div class="cs-sequence" data-cs-sequence>
+    {
+      module.frames.map((frame, index) => (
+        <div class="cs-sequence__frame" data-cs-frame={index}>
+          <CaseStudyMedia media={frame} priority={index === 0} />
+        </div>
+      ))
+    }
+  </div>
+</div>

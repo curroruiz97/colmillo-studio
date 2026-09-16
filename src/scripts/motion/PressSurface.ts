@@ -1,6 +1,6 @@
 import gsap from 'gsap';
 
-type Edge = 'top' | 'right' | 'bottom' | 'left';
+export type Edge = 'top' | 'right' | 'bottom' | 'left';
 
 interface EdgeState {
   /** How far the edge is pushed in, in CSS pixels. */
@@ -244,6 +244,34 @@ export function bindPressSurface(
     EDGES.forEach((edge) => gsap.killTweensOf(edges[edge]));
     surface.style.clipPath = '';
   };
+}
+
+/**
+ * The same geometry as one deep press, held still: a rounded rectangle with a
+ * single edge pushed `depth` pixels inwards. The case studies animate that
+ * depth from more than the surface's own size down to zero, so the picture is
+ * uncovered by an organic concave wave instead of a wipe — the pressure of the
+ * dent, used once or twice a page as the studio's mark (`CaseStudyPageMotion`).
+ *
+ * It is exported from here rather than copied so both effects can never drift
+ * apart, and it is passed into the route's chunk like the rest of the shared
+ * tools, so this module stays in the shared bundle alone.
+ */
+export function bitePath(
+  box: { width: number; height: number; radius: number; span: number },
+  edge: Edge,
+  depth: number,
+  peak = 0.5,
+): string {
+  const flat: EdgeState = { depth: 0, peak: 0.5 };
+  const edges: Record<Edge, EdgeState> = {
+    top: { ...flat },
+    right: { ...flat },
+    bottom: { ...flat },
+    left: { ...flat },
+  };
+  edges[edge] = { depth, peak };
+  return outline(box, edges);
 }
 
 /**

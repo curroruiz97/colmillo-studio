@@ -273,3 +273,71 @@ export const servicesHeroMedia: PageMedia | null = {
   alt: '',
   fit: 'contain',
 };
+
+/**
+ * `/proyectos/` hero loop supplied by the client on 2026-09-16: two figures
+ * hanging framed pieces on a wall, black line art on a flat pale ground.
+ *
+ * Published as delivered, untouched and under its own name (the space is
+ * URL-encoded here), the way `/servicios/` publishes its own: H.264,
+ * 1280x720, 24 fps, 144 frames (6.02 s), plus an audio track the page never
+ * plays (the loop is muted). Measured across the clip in Chromium: the ground
+ * holds 243-244, 241-242, 237-238 (about #f4f2ee) from the first frame to the
+ * last, and the drawing never leaves the middle 83%, keeping at least 8.1% of
+ * empty ground on every side. So a 16:9 frame with `object-fit: contain`
+ * shows it whole, and the outer 8% can be faded into the page without
+ * touching a drawn pixel — which is what `projects-page.css` does, because
+ * that ground sits a shade under the route's white and would otherwise read
+ * as a pale panel with a hard edge. No filter, tint or blend touches the
+ * drawing.
+ *
+ * Two defects of the master are listed in `docs/CONTENT_NEEDED.md`: its
+ * ground is not the page's white, and its last frame is not its first, so
+ * each pass wraps with a small cut.
+ *
+ * The poster is the loop's first frame, extracted in Chromium and written as
+ * WebP (quality 86). Decorative (`alt: ''`); `ProjectsPageMotion.ts` plays
+ * the loop only while it is on screen and in a visible tab, and never under
+ * reduced motion, where the poster is the whole picture. `null` restores the
+ * plain surface.
+ */
+export const projectsHeroMedia: PageMedia | null = {
+  kind: 'video',
+  webm: null,
+  mp4: '/assets/projects/video%20hero%20proyectos.mp4',
+  poster: '/assets/projects/proyectos-hero-poster.webp',
+  width: 1280,
+  height: 720,
+  alt: '',
+  fit: 'contain',
+};
+
+/**
+ * The scene behind the `/proyectos/` close, supplied by the client on
+ * 2026-09-16 (`public/assets/projects/bg cta proyectos.png`, kept untouched).
+ * Published as a WebP derivative by `npm run media:projects`.
+ *
+ * 2172x724, exactly 3:1: orange-and-metal sculptures enter from both ends and
+ * the middle is empty paper, so the closing copy stands in that gap. Measured
+ * on the derivative: ink reaches 30.3% of the width from the left and starts
+ * again at 68.1% over the full height (24.0% and 74.4% across the middle half,
+ * where the copy sits).
+ *
+ * One treatment, and it is the reason the scene works: the master's paper is
+ * 254,253,251, a hair under the page's own white, so a rectangle of it on this
+ * route's white sheet shows its own edges. The script scales every channel by
+ * 255/251, the same kind of white-point lift the hero master was given, which
+ * clamps the paper to #ffffff and leaves the drawing where it is. The picture
+ * then has no visible boundary on the page — only its sculptures — so the
+ * close can draw each end at the size the composition wants
+ * (`projects-page.css`) with no seam, band or plate anywhere. Approval of that
+ * lift is open (`docs/CONTENT_NEEDED.md`).
+ *
+ * Decorative — the question says everything — so it is rendered with empty
+ * alternative text. `null` restores the plain white close.
+ */
+export const projectsCloseScene: BrandImage | null = {
+  src: '/assets/projects/proyectos-cta.webp',
+  width: 2172,
+  height: 724,
+};

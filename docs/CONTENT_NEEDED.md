@@ -209,18 +209,119 @@ Still missing:
   1600 px on the long side. It is cropped with `object-fit: cover`, so keep the
   subject away from the bottom-left corner, where the title cut-out rises.
 - Project assets under `public/assets/projects/<approved-slug>/`.
+- One category per project for the `/proyectos/` filter, from the studio's own
+  four services: `estrategia`, `identidad`, `digital`, `contenido`. A project
+  may carry several and then appears under each of them. The field is
+  `categories` in `src/content.config.ts`; an entry with none is still listed,
+  under "Todos" only.
+- One format per project for the archive's masonry: `portrait` (4:5),
+  `square` (1:1), `landscape` (3:2) or `wide` (16:9). It is art direction, not
+  the file's own proportion: it decides how many of the twelve columns the
+  piece takes and how tall its card is, so the composition is directed from
+  the data (`format` in `src/content.config.ts`). Supply the cover cropped for
+  the chosen shape, at least 1600 px on the long side. Without it every piece
+  defaults to `landscape` and the grid reads as a table.
+- `/proyectos/` hero loop: SUPPLIED 2026-09-16 as
+  `public/assets/projects/video hero proyectos.mp4` (kept untouched, published
+  under its own name and referenced URL-encoded). Two figures hanging framed
+  pieces on a wall; H.264 1280x720, 24 fps, 144 frames (6.02 s). It fills
+  `projectsHeroMedia` in `src/config/assets.ts`, with its first frame as
+  `proyectos-hero-poster.webp`. Open on the master:
+  - its ground is #f4f2ee, about eleven levels under the route's white, so the
+    hero fades the file's outer 8% into the sheet rather than showing a pale
+    panel with a hard edge (`projects-page.css`). A re-export on pure white —
+    or the same ground lift the home hero master was given — would remove the
+    band entirely;
+  - its last frame is not its first, so every pass wraps with a small cut, the
+    same defect as the `/servicios/` loop;
+  - it carries an audio track the page never plays (the loop is muted);
+  - no WebM was delivered, so the slot ships MP4 only.
+- `/proyectos/` close (rebuilt 2026-09-16 as a scene around the copy). Open:
+  - its picture: SUPPLIED 2026-09-16 as
+    `public/assets/projects/bg cta proyectos.png` (2172x724, kept untouched)
+    and published as `proyectos-cta.webp` in both builds by
+    `npm.cmd run media:projects`. One treatment was applied and needs
+    approval: the master's paper is 254,253,251, a hair under the page's own
+    #ffffff, so a rectangle of it on this route's white sheet shows its own
+    edges — at first it tinted the whole section a visibly warm grey. Every
+    channel is scaled by 255/251, the same kind of white-point lift the hero
+    master was given, which clamps the paper to pure white and leaves the
+    drawing where it is (ink and orange move by one or two levels). A
+    re-export on pure white would make the lift unnecessary;
+  - the 1.8 MB PNG master sits under `public/`, so it is copied into `dist/`
+    although only the WebP is referenced; `media-src/` is the recommended
+    home, as for the `/servicios/` close picture;
+  - a larger master would stay sharp: the picture is drawn about 1630 CSS px
+    wide on every landscape screen, so at 2172 it is barely upscaled at 1x but
+    is upscaled on 2x displays;
+  - approval of the closing copy, all provisional: the question "¿Hacemos el
+    siguiente?", the supporting line "Cuéntanos qué tienes entre manos y
+    encontramos por dónde muerde." (new on 2026-09-16), and the two buttons,
+    "Hablemos" to `/contacto/` and "Ver servicios" to `/servicios/`. The
+    second route mirrors the `/servicios/` close, which offers "Ver
+    proyectos"; linking the archive to itself would have been a dead end.
+- Case studies (`/proyectos/<slug>/`, built 2026-09-16). The system is
+  complete and every project already publishes a page from the archive's own
+  data, so nothing below blocks a launch; each item only makes a project look
+  less like the others. The authoring guide is `docs/CASE_STUDIES.md`.
+  - per project, the `caseStudy:` block: `client` (only if the client agrees to
+    be named), `headline` (the project's idea in one line), `intro` (two to
+    four paragraphs), `deliverables`;
+  - its theme: five hex colours plus `chrome` (`light` or `dark`) for the first
+    screen. Body copy must reach 4.5:1 against the background; the accent is
+    for large type, rules and marks only;
+  - its hero piece: one image or silent loop, 16:9 or wider, that can carry a
+    whole screen with the project's name over its foot;
+  - the modules it wants and in what order (fourteen are available);
+  - media for each module, with approved alternative text and optional
+    captions, cropped for the `ratio` chosen. Until a file exists the slot
+    draws an abstract composition in the project's own palette, so a page is
+    never broken or empty;
+  - only where they are real: a client quotation (`quote`) and verifiable
+    facts (`facts`). Neither is ever written by the studio;
+  - for a `type` module, the name of a typeface the project is licensed to
+    serve on this site. Nothing is downloaded, traced or approximated;
+  - optionally `related`, the slug of the project that should follow this one.
 - Testimonials only if real and approved.
 - Approved default SEO title and description.
 - Approved social sharing image and alternative text.
 
 ## Legal
 
-- Legal business name.
-- CIF/NIF if needed.
-- Registered address if needed.
-- Privacy policy text.
-- Cookie policy text.
-- Terms or legal notice text.
+The three documents were written on 2026-09-16 against the site's actual
+behaviour, not from templates, and are published at `/aviso-legal/`,
+`/privacidad/` and `/cookies/`. The wording lives in `src/data/legalPages.ts`.
+`LEGAL_TODO.md` holds the client-facing request list and the ready-to-send
+template; this section is the summary.
+
+Still missing, and rendered in the pages as unmistakable `[PENDIENTE: …]`
+markers that `npm run release:check` refuses to release:
+
+- Legal business name or full personal name of the holder.
+- CIF/NIF.
+- Registered address. It also decides the jurisdiction clause.
+- Legal form (self-employed or company). Nothing registral is published while
+  this is unknown: no Registro Mercantil, tomo, folio or inscription number was
+  invented.
+- The studio's email provider, which is a processor under art. 28 GDPR.
+- Evidence of the data-processing agreements with the hosting and mail
+  providers, and the transfer safeguard for the US-based host.
+- A concrete retention period for contact correspondence.
+
+Also open:
+
+- Email spelling. `src/config/contact.ts` publishes
+  `hola@colmillostudio.com` (approved 2026-09-09); the user has twice written
+  `hola@colmilloestudio.com`. The legal pages read the address from that config
+  file, so correcting it there fixes every document at once. It was not changed
+  unilaterally.
+- Professional legal review of the three texts before release.
+
+Verified, so it does NOT need to be requested from the client: the site sets no
+cookies, runs no analytics, tag manager, pixel or third-party embed, loads no
+external font, and has no form backend (`contactFormEndpoint` is null). The
+only browser storage is the `colmilloIntroPlayed` sessionStorage key. That is
+why no consent banner was built; see `docs/DECISIONS.md` (2026-09-16).
 
 ## Deployment
 
@@ -234,3 +335,47 @@ Run `npm.cmd run check:assets` after delivery. It reports missing intake items;
 use `REQUIRE_CLIENT_ASSETS=true` in release CI to make the check blocking.
 `npm.cmd run check:brand` separately verifies the dimensions, RGBA alpha and
 transparent clear space of the supplied header wordmarks.
+
+## `/contacto/` (rebuilt 2026-09-16)
+
+The route needs no asset at all — no photograph, loop or illustration — but it
+is waiting on three things:
+
+- **Approval of the page's copy**, which the user supplied as provisional on
+  2026-09-16 and which lives in `src/data/contactPage.ts`: the hero title
+  ("Cuéntanos qué tienes entre manos."), its supporting line, the brief's
+  "Hablemos." and its line, every field label and placeholder, the service
+  options and the hint, and the validation and status messages. It is the
+  studio's own voice, not a client fact, so it ships in both builds exactly as
+  the `/servicios/` hero and close do.
+- **The address.** The page uses the approved `hola@colmillostudio.com` from
+  `src/config/contact.ts` throughout. The request that specified this rebuild
+  wrote `hola@colmilloestudio.com` (with an extra "e"). Nothing was changed on
+  that basis: if the approved address is wrong, correct it in
+  `src/config/contact.ts` and the whole site follows, including this page's
+  left block, its form `action`, the composed draft and the status line.
+- **A decision on how a submitted brief is delivered.** There is no server, API
+  route, server action or mail provider anywhere in this repository
+  (`output: 'static'`, no adapter, no integration) and none was added: that
+  needs explicit authorisation, so no Formspree, Resend, EmailJS or equivalent
+  was introduced. Today the form validates in the browser and then hands the
+  finished brief to the visitor's own mail client as a prepared draft, and says
+  exactly that; with no JavaScript the form's own `action` does the same thing
+  natively. Nothing ever claims the site sent a message.
+
+  To make it a real submission, exactly one change is needed in the page's code:
+  set `contactFormEndpoint` in `src/data/contactPage.ts` to the endpoint's URL.
+  The branch is already written — the brief is POSTed as JSON
+  (`{ name, email, company, service, serviceLabel, message }`), the button is
+  disabled while it is in flight, `contactStatus.sent` is shown only on a
+  response that came back ok and `contactStatus.failed` otherwise. What the
+  client has to supply before that switch is thrown:
+  - the endpoint itself and where it is hosted (a Vercel function on this
+    project, or a third-party form service), which also decides whether the
+    site can stay `output: 'static'`;
+  - the inbox the brief is delivered to, and who may read it;
+  - spam handling. There is no honeypot, rate limit or challenge on the page
+    today, and none was invented: those belong on the endpoint, and a CAPTCHA
+    would need its own approval;
+  - what the form may store, and for how long, so the privacy policy can say so.
+    The page collects a name, an address, an optional company and a message.

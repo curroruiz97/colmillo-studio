@@ -1,0 +1,46 @@
+---
+/**
+ * /contacto/ — the hero's only graphic: an unfinished trajectory.
+ *
+ * One hairline orange line, drawn as an open arc: it enters from the right of
+ * the hero, crosses the empty half of the composition and stops before it can
+ * close, leaving a wide opening at the top left. The curve is deliberately
+ * off-round — every quadrant has a slightly different reach and the control
+ * points do not mirror each other — so it reads as a path something travelled,
+ * not as a decorative circle.
+ *
+ * A small disc sits on the line. `ContactPageMotion.ts` walks it along the
+ * path with `getPointAtLength` and bends the whole arc a few pixels towards a
+ * fine pointer. None of that is needed to see the drawing: `pathLength="1"`
+ * normalises the line so `contact-page.css` can draw it on with one dash
+ * animation at load, and with no JavaScript, on a coarse pointer or under
+ * reduced motion the arc is simply there, still, with its disc at rest.
+ *
+ * Decorative: the hero says everything in text.
+ */
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<svg
+  class:list={['contact-orbit', className]}
+  viewBox="0 0 600 600"
+  fill="none"
+  aria-hidden="true"
+  focusable="false"
+  data-contact-orbit
+>
+  <g data-orbit-bend>
+    <path
+      class="contact-orbit__line"
+      pathLength="1"
+      d="M411 63C505 107 572 196 572 300C572 403 502 490 409 534C341 566 262 559 194 527C111 488 43 415 35 323C26 222 86 131 173 80"
+    ></path>
+    <g data-orbit-dot transform="translate(53.3 211.6)">
+      <circle class="contact-orbit__dot" cx="0" cy="0" r="5.5"></circle>
+    </g>
+  </g>
+</svg>

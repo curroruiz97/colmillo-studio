@@ -63,7 +63,8 @@ reveal, overlap, tension and release.
 
 Rebuilt on 2026-09-11 as a sticky editorial sequence (see `DECISIONS.md`).
 
-- Wide screens with motion allowed (`>= 64.01rem` wide, `>= 40rem` tall): a
+- Wide screens with motion allowed (`>= 64.01rem` wide, `>= 34rem` tall since
+  2026-09-15, so a laptop browser window keeps it): a
   track of `100svh + count x 45svh` (280svh) with one sticky 100svh stage.
   Nothing is pinned, and the section itself is never a sticky stack layer.
 - Composition (2026-09-11 follow-up): the heading, with the `Abrir servicios
@@ -350,8 +351,10 @@ scrubbed timeline or scroll interception.
   (orange), Digital (black), Contenido (white), close (black). Every one is a
   `.stack-section` / `[data-stack-section]` with `data-stack-content` on the
   part that compresses.
-- Stacked (at least 64.01rem wide and 40rem tall, motion allowed): every layer
-  is sticky (`layout.css`). The next one rises over it with `SectionStack.ts`'s
+- Stacked (at least 64.01rem wide and 34rem tall since 2026-09-15, motion
+  allowed): every layer is sticky (`layout.css`); a layer taller than the
+  screen sticks `--stack-overflow` above the top, so its foot is reached before
+  it holds (`SectionStack.ts`). The next one rises over it with `SectionStack.ts`'s
   rounded entrance band (clip inset of 7% of the screen, 2.5% at the sides,
   5rem radius, opening to nothing between `top 92%` and `top 38%`, scrub 0.6)
   while the covered layer's content compresses (`yPercent -1.8`, `scale
@@ -627,3 +630,168 @@ scrubbed timeline or scroll interception.
   - the orbit's last stop is the section's top edge; it slips under the
     rising photograph and fades.
   Reduced motion and no JavaScript: no clip, scale, drift or pointer shift.
+
+## Projects Page (/proyectos/)
+
+The route is one white sheet end to end, with no section painting a field of
+its own (2026-09-16).
+
+`ProjectsPage.ts` mounts the route-only chunk `ProjectsPageMotion.ts`, handed
+GSAP, ScrollTrigger and the press geometry so none of them is duplicated into
+the chunk. The hero's entrance is CSS (`projects-page.css`) and never waits for
+it: the title rises out of its clip (0.95 s, power3.out) and the media frame
+settles from `y 16`/opacity a beat later (1.1 s, power2.out), once, from the
+first paint.
+
+- Hero loop: plays only while on screen in a visible tab, never under reduced
+  motion, where its poster is the picture. The slot is empty today.
+- Reveals: each piece settles from `y 26`, `scale 0.985` and opacity as it
+  enters (0.7 s, power3.out, `top 92%`, once); the close does the same from
+  `y 22` at `top 88%`, 0.08 s apart, in document order — the scene first, then
+  the question, the supporting line and each of the two buttons, so the
+  picture is in place before the decision arrives. The tween runs on the
+  card inside the grid item, never on the item itself, because the filter
+  moves that one — the two can play together without writing over each other.
+  The close needs no chunk of its own: it reuses the route's shared
+  `[data-projects-reveal]`, so it costs no JavaScript beyond what the archive
+  already loads, and a page without it shows the finished composition.
+- Filter: the set changes in one movement of about half a second. Leaving
+  pieces fade and shrink to 0.985 (0.16 s); the grid repacks (`hidden`, so CSS
+  Grid does the layout); every piece that stays is carried from its measured
+  box to its new one (0.42 s, power3.out); arriving pieces fade up from
+  `y 14` (0.28 s, 0.03 s apart). The layout itself is never animated, only the
+  offset between two settled states, and ScrollTrigger is refreshed because
+  the grid's height changed.
+- Press: the shared dent (`PressSurface.ts`), bound to each card's
+  `[data-press-frame]`/`[data-press-surface]` pair. Only the surface is
+  clipped, so the frame, the grid and the name never move. Fine pointer with
+  motion allowed only.
+- Sticky band: a sentinel above the filter sets `data-stuck` through an
+  IntersectionObserver, which draws one hairline. Nothing is measured on
+  scroll.
+- Stack (2026-09-16): the hero and the close carry `data-stack-section`, so
+  the route joins the shared `SectionStack.ts` rather than growing an effect
+  of its own. The close is a whole screen (`max(38rem, 100svh)`) and rides
+  `--pj-cta-lift` up over the section before it, so it opens with the stack's
+  rounded band — measured at about 50 px of radius and a 1.57% side inset
+  mid-reveal — and settles flush. The gallery is deliberately left out of the
+  stack: it is many screens tall and carries its own sticky filter, and
+  `.stack-section`'s `overflow: clip` and sticky positioning would fight both.
+  The hero is in it only because the stack needs two layers to run at all, and
+  the standard build has no gallery between them; its own reveal is a no-op,
+  since its trigger is already past at the first paint (verified: the hero's
+  computed `clip-path` at load is `inset(0px 0%)`, never a clipped flash).
+  On an all-white route the rounded band is legible only because the scene is
+  coloured — the sculptures are clipped by it as the close rises.
+  Under reduced motion `SectionStack.ts` returns before creating any tween, so
+  the close is simply a full screen with no clip, and so it is without
+  JavaScript.
+
+Reduced motion keeps the whole archive and a working filter: the set changes
+instantly, no reveal runs and the dent is off. Without JavaScript every piece
+is listed, linked and still, and the filter is not shown at all.
+
+## Case Study (/proyectos/[slug]/)
+
+Built on 2026-09-16 (see `DECISIONS.md`). Every project shares this behaviour;
+what changes between projects is the palette and which modules are present.
+
+`CaseStudyPage.ts` mounts the route-only chunk `CaseStudyPageMotion.ts`, handed
+GSAP, ScrollTrigger, the press geometry and `bitePath()`, so none of them is
+duplicated into the chunk. The page is finished before any of it runs: no
+loader, or a chunk that fails, leaves the hero, the metadata, every module, the
+approved prose and the next project readable, linked and still.
+
+- Hero, in CSS so it never waits for the chunk: the media settles from
+  `scale(1.06)` and opacity (1.3 s, `power2.out` curve) while the name rises out
+  of its clip (1 s, `power3.out`, at 0.25 s). The chunk then drifts the picture
+  inside the frame to `scale(1.07)` across the first screen (scrub 0.6). It runs
+  on the asset, never on the frame the CSS animation owns, so the two can never
+  fight over one transform.
+- Arrivals: every module's `[data-cs-line]` elements rise (`y 22`, 0.8 s, 0.08
+  stagger) and its pictures settle (`y 26`, 0.9 s), once, at `top 86%`,
+  `power3.out`. Reduced motion: one 0.45 s fade, no travel.
+- **The bite reveal.** The picture arrives behind its own surface pushed
+  inwards from one edge — `bitePath()` in `PressSurface.ts`, the same two
+  tangent cubics as the pressure dent, with the wave's half width at 0.7 of the
+  long side and its depth starting at 0.96 of the crossed side — and the
+  pressure lets go between `top 92%` and `top 38%` (scrub 0.7, reversible).
+  Only the surface is clipped, so the frame, the layout and the type never
+  move. The edge alternates bottom, left, right down the page. At most three
+  per page, budgeted by the renderer; off entirely under reduced motion.
+- Pressure: the shared dent on the pieces a project marked `press`, and on the
+  next project's picture. A surface carrying the bite reveal is skipped,
+  because both write the same clip.
+- Sticky story: on at least 64.01rem wide and 34rem tall with motion allowed,
+  the block is marked `data-enhanced`, which hands the layout to CSS (one held
+  frame of stacked pictures beside the copy) while a trigger per step says
+  which picture shows (`top 55%` to `bottom 45%`). Nothing is pinned. Anywhere
+  else the document's own order — step, picture, step, picture — is what reads.
+- Image sequence: frames crossfade on a scrub between `top 70%` and
+  `bottom 40%`. Only enhanced does the page fetch past the first frame.
+- Chapters: the index is real anchors and needs none of this; the chunk only
+  moves an accent mark down the rail with the page's progress
+  (`--cs-progress`) and sets `aria-current` on the chapter on screen.
+- Next project: its picture grows from `scale(0.86)` to its resting full width
+  between `top bottom` and `top 30%` (scrub 0.8). The resting state — no
+  JavaScript, reduced motion — is the full-width picture.
+- Loops play only on screen in a visible tab and never under reduced motion; a
+  video with `mode: controls` is the visitor's and is never touched.
+- Cleanup: every listener, observer, tween, matchMedia and ScrollTrigger is
+  released by the chunk's cleanup on a motion-preference restart, and every
+  inline `clip-path`, `data-enhanced` and `aria-current` it wrote is removed.
+
+## `/contacto/` — `ContactPage.ts` + `ContactPageMotion.ts` (2026-09-16)
+
+`ContactPage.ts` is the module `MotionController` owns; the behaviour itself is
+a route-only chunk (8.8 KB built) loaded by the dynamic import in
+`src/pages/contacto.astro`, with GSAP and ScrollTrigger passed in so they stay
+in the shared bundle alone.
+
+The route is complete without any of it: the hero's entrance is CSS, the white
+sheet rises on sticky layout, and the form validates natively and hands itself
+to the visitor's mail client through its own `action`.
+
+- **The hero's entrance is CSS** (`contact-page.css`), so it starts with the
+  first paint: the title rises out of its own clip (780 ms), the supporting line
+  follows (700 ms after 260 ms) and the arc draws itself on (880 ms after
+  470 ms) — about 1.35 s end to end. `pathLength="1"` normalises the arc so one
+  dash animation draws all of it. `vector-effect: non-scaling-stroke` must not
+  be used on that path: it moves the dash pattern into screen units, where
+  `pathLength` no longer applies and the hairline renders as a 1 px dotted line.
+- **The unfinished trajectory.** The path is sampled once into 480 points, so no
+  frame ever queries path geometry. One tween walks a disc along it (54 s a
+  pass, `repeat: -1`) and its `onUpdate` renders everything; the disc fades out
+  over the last 7% of the arc and back in over the first 7%, so it slips out of
+  one open end and returns at the other. The tween is paused whenever the hero
+  is off screen (IntersectionObserver) or the tab is hidden, so nothing runs
+  while the drawing cannot be seen.
+- **The arc's response to a fine pointer.** The pointer only sets targets, which
+  GSAP `quickTo` eases: the whole arc leans up to 7 px towards it (1.1 s) and
+  the disc slides about seven degrees forward along the line (1.6 s), both on a
+  smoothstep falloff from the arc's own radius plus 180 px. It never follows the
+  pointer. No layout is read on a pointer move — the SVG's box is measured on
+  resize and scroll — and nothing is written there either; the tween's own frame
+  renders it. Coarse pointers and touch get no response.
+- **The sheet.** Sticky layout does the rising. The only scrubbed thing on the
+  route is `--cn-sheet-radius` going to `0rem` between `top bottom` and
+  `top 12%`, so the sheet lands rather than stopping.
+- **Reveals.** One `from` per block (`[data-contact-reveal]`: the left block,
+  each field, the button) — 22 px and a fade, 0.66 s, a 0.05 s stagger capped at
+  six, `once: true`. Nothing animates on scroll after that.
+- **The contact pulse.** A small orange ring in the margin beside the fields
+  that glides (0.5 s, `power3.out`) to whichever field has focus, on the
+  two-column brief only. It writes a transform and nothing else. A field's place
+  is read once per focus by summing the offset chain up to the form: a single
+  `offsetTop` is wrong here, because the reveal tween leaves a transform on
+  every field, which makes the field its own offset parent — and the chain also
+  ignores transforms, so a field still playing its reveal does not drag the ring
+  with it.
+- **Reduced motion** keeps everything and removes the movement: the arc is drawn
+  and still with its disc at rest, the entrance resolves to its finished state,
+  every block is simply there, the pulse stays where it started and the sheet
+  keeps whatever radius CSS gave it. The form behaves identically — validation,
+  field states and the submit path are not motion and always run.
+- **Cleanup.** Every listener, observer, tween, ScrollTrigger and gsap context
+  is released by the chunk's cleanup on a motion-preference restart, and every
+  attribute it wrote on the arc, the disc and the ring is removed.

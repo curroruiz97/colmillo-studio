@@ -1,0 +1,30 @@
+---
+/**
+ * 03 SPLIT TEXT + MEDIA — one decision with its proof beside it.
+ *
+ * Wide screens put the media on whichever side the project chose; portrait
+ * screens always read the copy first, because the text is what explains the
+ * picture and never the other way round.
+ */
+import CaseStudyBlock from '../CaseStudyBlock.astro';
+import CaseStudyMedia from '../CaseStudyMedia.astro';
+import type { SplitModule } from '@/data/caseStudy';
+
+interface Props {
+  module: SplitModule;
+}
+
+const { module } = Astro.props;
+---
+
+<div class="cs-shell cs-split" data-side={module.side ?? 'end'}>
+  <CaseStudyBlock
+    class="cs-split__copy"
+    eyebrow={module.eyebrow}
+    title={module.title}
+    body={module.body}
+  />
+  <div class="cs-split__media">
+    <CaseStudyMedia media={module.media} press={module.press} />
+  </div>
+</div>

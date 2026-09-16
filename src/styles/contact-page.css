@@ -1,0 +1,794 @@
+/*
+ * CONTACT PAGE — /contacto/
+ *
+ * A conversation that starts (2026-09-16, user direction). Two surfaces and
+ * the shared footer, nothing else:
+ *
+ *   hero    charcoal  #1f1f1f   the question, and the unfinished trajectory
+ *   brief   white     #ffffff   the editorial form, and the direct channels
+ *   footer  white               the shared one, untouched
+ *
+ * The hero is sticky, so the white sheet does not follow it: it rises over it
+ * and takes the screen, like a page laid on the table. That is scroll layout,
+ * so it happens with no JavaScript and under reduced motion as well; the only
+ * thing motion adds is the last of the sheet's top radius flattening out
+ * (`ContactPageMotion.ts`).
+ *
+ * Contrast on the charcoal: #f5f5f5 ≈ 15.9:1, white at 66% ≈ 7.8:1, #cd5730
+ * ≈ 3.9:1 — so brand orange carries the trajectory, the disc and the title's
+ * full stop, never small text. On the white: ink ≈ 18.9:1, ink at 55% ≈ 7.3:1,
+ * #b54d2a ≈ 4.6:1, which is what every orange word (labels in focus, errors,
+ * the status line) uses. Ink on #cd5730 ≈ 4.5:1, so the selected pill and the
+ * submit button set their label in full ink.
+ *
+ * Sentence case throughout; display type is the system stack until the
+ * licensed faces arrive (`fonts.css`). No new palette, no gradient, no card,
+ * no shadow beyond the button's physical slab.
+ */
+
+/*
+ * The charcoal reaches the canvas on this route only, so an overscroll above
+ * the hero shows the hero's own room rather than a white flash. The footer is
+ * given its white back explicitly, because it belongs to the sheet.
+ */
+html:has([data-contact-page]) {
+  background: #1f1f1f;
+}
+
+html:has([data-contact-page]) .site-footer {
+  background: var(--color-white);
+  color: var(--color-brand-ink);
+}
+
+.contact-route {
+  --cn-charcoal: #1f1f1f;
+  --cn-light: #f5f5f5;
+  --cn-muted: rgb(255 255 255 / 0.66);
+  --cn-ink-soft: rgb(18 16 15 / 0.55);
+  --cn-rule: rgb(18 16 15 / 0.22);
+
+  /* One type scale for the route (phones first; widened below). */
+  --cn-title: clamp(2.3rem, 9vw, 3.6rem);
+  --cn-h2: clamp(2.1rem, 8vw, 3rem);
+  --cn-lede: clamp(1.125rem, 4.4vw, 1.4rem);
+  --cn-body: clamp(1rem, 3.6vw, 1.125rem);
+  --cn-input: clamp(1.25rem, 5vw, 1.6rem);
+  --cn-space: clamp(4rem, 12vw, 8rem);
+
+  /* The page gutter plus the edge menu's rail, on both sides from 48rem so
+     the composition sits around the viewport's centre. */
+  --cn-pad-end: calc(var(--page-gutter) + var(--edge-rail-clearance));
+  --cn-pad-start: var(--page-gutter);
+
+  position: relative;
+  overflow-x: clip;
+  background: var(--color-white);
+}
+
+@media (min-width: 48rem) {
+  .contact-route {
+    --cn-pad-start: var(--cn-pad-end);
+  }
+}
+
+/* The route's container: one measure, centred, about 1560 px at its widest. */
+.contact-shell {
+  box-sizing: border-box;
+  inline-size: 100%;
+  max-inline-size: calc(
+    var(--cn-measure, 92rem) + var(--cn-pad-start) + var(--cn-pad-end)
+  );
+  margin-inline: auto;
+  padding-inline: var(--cn-pad-start) var(--cn-pad-end);
+}
+
+.contact-route :focus-visible {
+  outline: 3px solid var(--color-brand-orange);
+  outline-offset: 4px;
+}
+
+/* A line of display type that rises out of its own clip. The padding keeps
+   descenders inside it; the negative margin gives the space back. */
+.contact-line {
+  display: block;
+  overflow: clip;
+  padding-block: 0.12em 0.22em;
+  margin-block: -0.12em -0.22em;
+}
+
+.contact-line > span {
+  display: inline-block;
+}
+
+/* ================================================================ hero === */
+
+/*
+ * Sticky, exactly one screen tall, and never taller: the sheet below has to be
+ * able to cover it completely. It is the lowest layer on the route, so
+ * everything after it paints over it.
+ */
+.contact-hero {
+  position: sticky;
+  z-index: 0;
+  inset-block-start: 0;
+  display: grid;
+  align-content: center;
+  min-block-size: 100vh;
+  min-block-size: 100svh;
+  overflow: clip;
+  background: var(--cn-charcoal);
+  color: var(--cn-light);
+}
+
+.contact-hero__inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: start;
+  gap: clamp(1.5rem, 4vw, 2.25rem);
+  padding-block: clamp(7rem, 18svh, 10rem) clamp(4rem, 12svh, 7rem);
+}
+
+/*
+ * The whole composition is this block and the air around it: no media column,
+ * no pair on the middle line. It keeps well under two thirds of the measure so
+ * the right of the screen stays empty for the trajectory.
+ */
+.contact-hero__title {
+  max-inline-size: 15ch;
+  margin: 0;
+  font-size: var(--cn-title);
+  font-weight: 900;
+  letter-spacing: -0.045em;
+  line-height: 0.95;
+  text-wrap: balance;
+}
+
+/* The full stop is the small orange disc every route uses. */
+.contact-hero__dot,
+.contact-brief__dot {
+  display: inline-block;
+  inline-size: 0.14em;
+  aspect-ratio: 1;
+  margin-inline-start: 0.06em;
+  border-radius: 50%;
+  background: var(--color-brand-orange);
+}
+
+.contact-hero__lede {
+  max-inline-size: 38ch;
+  margin: 0;
+  color: var(--cn-muted);
+  font-size: var(--cn-lede);
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+/* ------------------------------------------------------------- the arc --- */
+
+/*
+ * The route's own graphic: an unfinished trajectory that enters at the foot of
+ * the screen on the right, crosses the empty side of the composition and
+ * leaves the frame again. It is anchored to the bottom-right corner and bleeds
+ * off both edges, so what is on screen is always a fragment of a longer path.
+ *
+ * Decorative and inert: it never takes the pointer, so nothing behind it can
+ * become unclickable.
+ */
+.contact-orbit-slot {
+  position: absolute;
+  z-index: 0;
+  inset: auto -8vw -18% auto;
+  inline-size: clamp(19rem, 46vw, 50rem);
+  pointer-events: none;
+}
+
+.contact-orbit {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  overflow: visible;
+}
+
+.contact-orbit__line {
+  fill: none;
+  stroke: var(--color-brand-orange);
+  /*
+   * In user units, so the line thins with the drawing: about 1.5 px at 1920
+   * and 1.1 px at 1366. `non-scaling-stroke` is deliberately NOT used here —
+   * it moves the dash pattern into screen units, where `pathLength="1"` no
+   * longer applies and the arc renders as a 1 px dotted line instead of a
+   * hairline that draws itself on.
+   */
+  stroke-width: 1.1;
+  stroke-linecap: round;
+  /* `pathLength="1"` normalises the arc, so one dash draws all of it. */
+  stroke-dasharray: 1;
+}
+
+.contact-orbit__dot {
+  fill: var(--color-brand-orange);
+}
+
+/* ------------------------------------------------------- the entrance --- */
+
+/*
+ * Title, then the line under it, then the arc drawing itself on: about 1.35 s
+ * end to end. It is CSS, so it starts with the first paint and never waits for
+ * a script; the reduced-motion rules in `reduced-motion.css` collapse all
+ * three to their finished state.
+ */
+@keyframes cn-rise {
+  from {
+    opacity: 0;
+    translate: 0 0.45em;
+  }
+}
+
+@keyframes cn-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.contact-hero__title .contact-line > span {
+  animation: 780ms var(--ease-bite) both cn-rise;
+}
+
+.contact-hero__lede {
+  animation: 700ms 260ms var(--ease-bite) both cn-rise;
+}
+
+.contact-orbit__line {
+  animation: 880ms 470ms var(--ease-bite) both cn-draw;
+}
+
+/* =============================================================== brief === */
+
+/*
+ * The white sheet. It scrolls over the sticky hero and, once it has taken the
+ * screen, the rest of the route is this one surface down to the footer. The
+ * top radius is deliberately small — the sheet arrives, it is not a card — and
+ * `ContactPageMotion.ts` takes the last of it away as the sheet lands.
+ */
+.contact-brief {
+  --cn-sheet-radius: clamp(0.5rem, 1.4vw, 1.5rem);
+
+  position: relative;
+  z-index: 1;
+  min-block-size: 100svh;
+  border-start-start-radius: var(--cn-sheet-radius);
+  border-start-end-radius: var(--cn-sheet-radius);
+  background: var(--color-white);
+  color: var(--color-brand-ink);
+}
+
+.contact-brief__inner {
+  display: grid;
+  gap: clamp(2.75rem, 8vw, 4rem);
+  padding-block: clamp(4rem, 14vw, 7rem) var(--cn-space);
+}
+
+/* ------------------------------------------------------------ the left --- */
+
+.contact-brief__aside-inner {
+  display: grid;
+  justify-items: start;
+  gap: clamp(1rem, 3vw, 1.5rem);
+}
+
+.contact-brief__title {
+  max-inline-size: none;
+  margin: 0;
+  font-size: var(--cn-h2);
+  font-weight: 900;
+  letter-spacing: -0.045em;
+  line-height: 0.95;
+}
+
+.contact-brief__lede {
+  max-inline-size: 30ch;
+  margin: 0;
+  color: var(--cn-ink-soft);
+  font-size: var(--cn-body);
+  line-height: 1.5;
+}
+
+/* The two approved channels, editorial: a small label over a large link. */
+.contact-brief__channels {
+  display: grid;
+  gap: clamp(1rem, 2.5vw, 1.5rem);
+  margin: clamp(0.75rem, 2.5vw, 1.5rem) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contact-brief__channel {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.contact-brief__channel-label {
+  color: var(--cn-ink-soft);
+  font-size: var(--font-label);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.contact-brief__channel-link {
+  justify-self: start;
+  color: var(--color-brand-ink);
+  font-size: clamp(1.05rem, 1.35vw, 1.3rem);
+  font-weight: 700;
+  text-decoration-color: var(--color-brand-orange);
+  text-underline-offset: 0.24em;
+  transition: color var(--duration-fast) linear;
+}
+
+.contact-brief__channel-link:hover {
+  color: var(--color-accent-text);
+}
+
+/* ------------------------------------------------------------ the form --- */
+
+.contact-form {
+  position: relative;
+  display: grid;
+  gap: clamp(2.25rem, 4.5vw, 3rem);
+}
+
+/*
+ * The contact pulse: a small orange ring in the margin beside the fields that
+ * glides to whichever one has focus (`ContactPageMotion.ts`). It only exists
+ * where there is a margin to put it in — the two-column brief — and it is
+ * decorative: nothing about the form depends on it.
+ */
+.contact-form__pulse {
+  position: absolute;
+  z-index: 1;
+  inset-block-start: 0;
+  inset-inline-start: calc(-1 * clamp(1.5rem, 2.4vw, 2.5rem));
+  display: none;
+  inline-size: 0.8rem;
+  aspect-ratio: 1;
+  border: 2px solid var(--color-brand-orange);
+  border-radius: 50%;
+  opacity: 0.4;
+  transition:
+    opacity var(--duration-medium) linear,
+    scale var(--duration-medium) var(--ease-bite);
+}
+
+.contact-form[data-pulse='active'] .contact-form__pulse {
+  opacity: 1;
+  scale: 1.15;
+}
+
+/* ---------------------------------------------------------- one field --- */
+
+/*
+ * A field is a small label, a large control and a hairline rule. There is no
+ * box anywhere: the rules are what give the column its structure.
+ */
+.contact-field {
+  display: grid;
+  gap: 0.35rem;
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.contact-field__label {
+  display: block;
+  padding: 0;
+  color: var(--cn-ink-soft);
+  font-size: var(--font-label);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition:
+    color var(--duration-medium) linear,
+    translate var(--duration-medium) var(--ease-bite);
+}
+
+.contact-field__required {
+  margin-inline-start: 0.35em;
+  color: var(--color-accent-text);
+}
+
+.contact-field:focus-within .contact-field__label {
+  color: var(--color-accent-text);
+  translate: 0 -3px;
+}
+
+.contact-field__control {
+  inline-size: 100%;
+  min-inline-size: 0;
+  padding: 0.1em 0 0.45em;
+  border: 0;
+  border-radius: 0;
+  appearance: none;
+  background: none;
+  color: var(--color-brand-ink);
+  font: inherit;
+  font-size: var(--cn-input);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+}
+
+.contact-field__control::placeholder {
+  color: rgb(18 16 15 / 0.42);
+  font-weight: 400;
+}
+
+.contact-field__control:focus {
+  outline: none;
+}
+
+.contact-field__control--area {
+  min-block-size: 8.5rem;
+  font-size: clamp(1.125rem, 1.45vw, 1.35rem);
+  line-height: 1.5;
+  resize: vertical;
+}
+
+/*
+ * The rule. Its own box never changes height; the orange line is drawn over it
+ * and grows from the left, so focus costs no layout.
+ */
+.contact-field__rule {
+  position: relative;
+  display: block;
+  block-size: 1px;
+  background: var(--cn-rule);
+}
+
+.contact-field__rule::after {
+  position: absolute;
+  inset-block: -1px;
+  inset-inline: 0;
+  background: var(--color-brand-orange);
+  content: '';
+  scale: 0 1;
+  transform-origin: 0 50%;
+  transition: scale var(--duration-medium) var(--ease-bite);
+}
+
+.contact-field:focus-within .contact-field__rule::after {
+  scale: 1 1;
+}
+
+/* An error uses the route's accessible orange, never a new colour. */
+.contact-field[data-invalid] .contact-field__rule::after {
+  background: var(--color-accent-text);
+  scale: 1 1;
+}
+
+.contact-field__error {
+  display: block;
+  color: var(--color-accent-text);
+  font-size: clamp(0.85rem, 1vw, 0.95rem);
+  line-height: 1.4;
+}
+
+.contact-field[data-invalid] .contact-field__error {
+  margin-block-start: 0.45rem;
+}
+
+.contact-field__hint {
+  max-inline-size: 42ch;
+  margin: 0 0 0.35rem;
+  color: var(--cn-ink-soft);
+  font-size: clamp(0.9rem, 1vw, 1rem);
+  line-height: 1.45;
+}
+
+/* ------------------------------------------------- the service pills --- */
+
+.contact-field--choice {
+  gap: 0.5rem;
+}
+
+.contact-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(0.6rem, 1.2vw, 0.9rem);
+  margin-block-start: 0.35rem;
+}
+
+.contact-choice {
+  display: inline-flex;
+  cursor: pointer;
+}
+
+/*
+ * The pill is the radio's own label; the input is only visually hidden, never
+ * replaced, so the group keeps arrow keys, the tab sequence and its
+ * announcement. The bite radius is the same family the buttons use, at pill
+ * proportions.
+ */
+.contact-choice__pill {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 3rem;
+  padding: 0.55rem 1.4rem;
+  border: var(--border-width) solid var(--color-brand-ink);
+  border-radius: 1.35rem 1.7rem 1.45rem 1.85rem;
+  background: var(--color-white);
+  color: var(--color-brand-ink);
+  font-size: clamp(0.95rem, 1.1vw, 1.0625rem);
+  font-weight: 800;
+  line-height: 1.15;
+  transition:
+    background-color var(--duration-fast) linear,
+    border-radius var(--duration-medium) var(--ease-bite);
+}
+
+.contact-choice__input:checked + .contact-choice__pill {
+  background: var(--color-brand-orange);
+}
+
+.contact-choice__input:focus-visible + .contact-choice__pill {
+  outline: 3px solid var(--color-brand-orange);
+  outline-offset: 4px;
+}
+
+.contact-choice__input:checked:focus-visible + .contact-choice__pill {
+  outline-color: var(--color-brand-ink);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .contact-choice:hover .contact-choice__pill {
+    border-radius: 1.75rem 1.4rem 1.8rem 1.45rem;
+  }
+}
+
+/* ---------------------------------------------------------- the button --- */
+
+.contact-form__send {
+  display: flex;
+  justify-content: flex-start;
+  margin-block-start: clamp(0.5rem, 2vw, 1rem);
+}
+
+/*
+ * The shared bite button on its physical slab, in the language `/servicios/`
+ * uses: hover and focus press it into the slab, a click all the way down.
+ */
+.contact-form__submit {
+  min-block-size: 4.25rem;
+  max-inline-size: none;
+  padding: 1.15rem 2.4rem;
+  box-shadow: 0 0.4rem 0 var(--color-brand-ink);
+  font-size: clamp(1.0625rem, 1.2vw, 1.25rem);
+  white-space: nowrap;
+  cursor: pointer;
+  /* `motion.css` sets the bite button's transition in a later cascade layer,
+     which would drop the press; hence `!important`. */
+  transition:
+    border-radius var(--duration-medium) var(--ease-bite),
+    box-shadow var(--duration-fast) var(--ease-bite),
+    translate var(--duration-fast) var(--ease-bite) !important;
+}
+
+.contact-form__submit-label::after {
+  display: inline-block;
+  margin-inline-start: 0.35em;
+  content: '↗';
+  content: '↗' / '';
+  transition: translate var(--duration-medium) var(--ease-bite);
+}
+
+.contact-form__submit:is(:hover, :focus-visible)
+  .contact-form__submit-label::after {
+  translate: 0.14em -0.14em;
+}
+
+@media (hover: hover) {
+  .contact-form__submit:hover {
+    box-shadow: 0 0.18rem 0 var(--color-brand-ink);
+    translate: 0 0.22rem;
+  }
+}
+
+.contact-form__submit:focus-visible {
+  box-shadow: 0 0.18rem 0 var(--color-brand-ink);
+  translate: 0 0.22rem;
+}
+
+.contact-form__submit:active {
+  box-shadow: 0 0 0 var(--color-brand-ink);
+  translate: 0 0.4rem;
+}
+
+.contact-form__submit[disabled] {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+/* ---------------------------------------------------------- the status --- */
+
+/*
+ * One live line under the button. It is empty until something happens, so it
+ * takes no room, and it never says a message was sent unless one was: see
+ * `contactFormEndpoint` in `src/data/contactPage.ts`.
+ */
+.contact-form__status {
+  max-inline-size: 48ch;
+  margin: 0;
+  color: var(--color-brand-ink);
+  font-size: clamp(0.95rem, 1.1vw, 1.0625rem);
+  line-height: 1.5;
+}
+
+.contact-form[data-state='invalid'] .contact-form__status,
+.contact-form[data-state='error'] .contact-form__status {
+  color: var(--color-accent-text);
+}
+
+.contact-form__status a {
+  color: var(--color-accent-text);
+  font-weight: 700;
+}
+
+/* ========================================================= two columns === */
+
+/*
+ * The brief becomes two columns wherever there is real width for them: a short
+ * sticky block on the left and the form on the right, about 35/65. Laptops are
+ * the design target here — 1366, 1440, 1536 and 1600 all keep the pair — and
+ * only the type, the gap and the arc shrink between them.
+ */
+@media (min-width: 64.01rem) {
+  .contact-route {
+    --cn-title: clamp(3rem, 4.6vw, 5.5rem);
+    --cn-h2: clamp(2.25rem, 3.2vw, 3.5rem);
+    --cn-lede: clamp(1.125rem, 1.4vw, 1.5rem);
+    --cn-body: clamp(1rem, 1.1vw, 1.1875rem);
+    --cn-input: clamp(1.35rem, 1.9vw, 1.9rem);
+  }
+
+  .contact-hero__inner {
+    padding-block: clamp(6rem, 16svh, 9rem) clamp(4rem, 12svh, 7rem);
+  }
+
+  .contact-hero__title {
+    /* About 60% of the measure at every laptop width: two lines, never three,
+       and never so large that the pair leaves the first screen. */
+    max-inline-size: 18ch;
+  }
+
+  .contact-brief__inner {
+    grid-template-columns: minmax(15rem, 34fr) minmax(0, 66fr);
+    column-gap: clamp(3rem, 6vw, 7rem);
+    padding-block: clamp(5rem, 11vw, 8rem) var(--cn-space);
+  }
+
+  /* The block stays with the form while the fields scroll past it. */
+  .contact-brief__aside {
+    position: sticky;
+    inset-block-start: clamp(6rem, 16vh, 9rem);
+    align-self: start;
+  }
+
+  .contact-form {
+    gap: clamp(2.5rem, 3.4vw, 3.5rem);
+  }
+
+  .contact-form__pulse {
+    display: block;
+  }
+}
+
+/*
+ * Short laptop windows (1366x768 and 1440x900 once the browser's own bars are
+ * drawn). The hero gives back vertical padding and a little type rather than
+ * pushing the line off the screen.
+ */
+@media (min-width: 64.01rem) and (max-height: 50rem) {
+  .contact-route {
+    --cn-title: clamp(2.75rem, 4vw, 4.25rem);
+  }
+
+  .contact-hero__inner {
+    padding-block: clamp(5rem, 13svh, 7rem) clamp(3rem, 9svh, 5rem);
+  }
+
+  .contact-orbit-slot {
+    inline-size: clamp(18rem, 40vw, 34rem);
+  }
+}
+
+/* =========================================================== portrait === */
+
+/*
+ * Tablets and phones read the block first and then the form, so the direct
+ * channels are always above the fields, and the arc keeps only as much of the
+ * corner as it can without reaching the copy.
+ */
+@media (max-width: 64rem) {
+  /*
+   * The block sits at the foot of the screen and the trajectory takes the
+   * empty corner above it: the same composition turned on its side, with the
+   * arc never crossing the copy.
+   */
+  .contact-hero {
+    align-content: end;
+  }
+
+  .contact-hero__title {
+    max-inline-size: 13ch;
+  }
+
+  .contact-orbit-slot {
+    inset: 6% -30vw auto auto;
+    inline-size: clamp(15rem, 75vw, 26rem);
+    opacity: 0.9;
+  }
+
+  .contact-brief {
+    min-block-size: auto;
+  }
+}
+
+@media (max-width: 48rem) {
+  .contact-hero__inner {
+    padding-block: clamp(6rem, 22svh, 9rem) clamp(3rem, 10svh, 5rem);
+  }
+
+  .contact-brief__lede,
+  .contact-hero__lede {
+    max-inline-size: none;
+  }
+
+  .contact-field__control--area {
+    min-block-size: 9.5rem;
+  }
+
+  /* A thumb-sized target for every pill, and room to wrap. */
+  .contact-choice__pill {
+    min-block-size: 3.25rem;
+  }
+
+  .contact-form__send {
+    display: grid;
+  }
+
+  .contact-form__submit {
+    inline-size: 100%;
+  }
+}
+
+/* ===================================================== reduced motion === */
+
+/*
+ * Nothing on the route moves: the arc is simply drawn, the entrance resolves
+ * to its finished state (the shared rules collapse every duration), the pulse
+ * does not travel and the sheet keeps whatever radius CSS gave it. The page
+ * reads and works exactly the same.
+ */
+html[data-motion='reduced'] .contact-hero__title .contact-line > span,
+html[data-motion='reduced'] .contact-hero__lede,
+html[data-motion='reduced'] .contact-orbit__line {
+  animation: none;
+  opacity: 1;
+  translate: none;
+  stroke-dashoffset: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contact-hero__title .contact-line > span,
+  .contact-hero__lede,
+  .contact-orbit__line {
+    animation: none;
+    opacity: 1;
+    translate: none;
+    stroke-dashoffset: 0;
+  }
+}

@@ -1,0 +1,82 @@
+---
+/**
+ * The shell every case study shares.
+ *
+ * Its whole job is to turn a project's theme into the surface the page stands
+ * on, so a study's identity is data and never a rule written per pathname:
+ *
+ *   - the six colours are published as custom properties on the article, which
+ *     `case-study.css` reads for every section, module and mark;
+ *   - the same background and foreground are given to the document itself, so
+ *     an overscroll at either end and the shared footer continue the project
+ *     instead of showing the site's white;
+ *   - `theme.chrome` chooses the global wordmark's derivative through
+ *     `headerTheme`, and the surface tone the shared cursor follows.
+ *
+ * Only literal hex values reach that inline rule: `resolveTheme()` has already
+ * refused anything else (`src/data/caseStudy.ts`), because the colours arrive
+ * from client-authored frontmatter.
+ */
+import BaseLayout from './BaseLayout.astro';
+import type { CaseStudy } from '@/data/caseStudy';
+
+interface Props {
+  study: CaseStudy;
+  description: string;
+}
+
+const { study, description } = Astro.props;
+const { theme } = study;
+const dark = theme.chrome === 'dark';
+
+const variables = [
+  `--cs-bg: ${theme.background}`,
+  `--cs-fg: ${theme.foreground}`,
+  `--cs-accent: ${theme.accent}`,
+  `--cs-surface: ${theme.surface}`,
+  `--cs-secondary: ${theme.secondary}`,
+].join('; ');
+
+/* The canvas behind the page and the footer after it. */
+const canvas = `html:has([data-case-study]){background:${theme.background};--color-background:${theme.background};--color-text:${theme.foreground};}`;
+---
+
+<BaseLayout
+  title={study.seo.title ?? study.title}
+  description={study.seo.description ?? description}
+  ogType="article"
+  ogImage={study.seo.image}
+  ogImageAlt={study.seo.imageAlt}
+  headerTheme={dark ? 'dark' : 'light'}
+>
+  <style slot="head" is:inline set:html={canvas}></style>
+
+  <article
+    class="cs-page"
+    aria-labelledby="cs-title"
+    data-case-study
+    data-layout={study.layout}
+    data-chrome={theme.chrome}
+    style={variables}
+  >
+    <slot />
+  </article>
+
+  <script>
+    /*
+     * Only says where the route's motion lives. The dynamic import sits in
+     * this route-only script so the chunk stays out of the shared motion
+     * bundle; `CaseStudyPage.ts`, run by `MotionController`, mounts, restarts
+     * and cleans it up. It must stay inside the layout's slot: module scripts
+     * run in document order, and this one has to run before the layout's own.
+     */
+    const page = document.querySelector('[data-case-study]');
+    if (page) {
+      Reflect.set(
+        page,
+        'loadCaseStudy',
+        () => import('@/scripts/motion/CaseStudyPageMotion'),
+      );
+    }
+  </script>
+</BaseLayout>

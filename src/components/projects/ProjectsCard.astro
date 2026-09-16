@@ -1,0 +1,60 @@
+---
+/**
+ * One piece of the archive's masonry.
+ *
+ * The picture is the card: it takes its columns and its proportion from the
+ * project's `format`, not from the file's own size, so the composition is
+ * directed from the data (`projects-page.css`). Under the picture the name is
+ * always visible — nobody should need a pointer to read it — and the
+ * categories and the arrow are what hover or focus adds. A screen without
+ * hover keeps them open.
+ *
+ * The frame is fixed geometry; the surface inside it is what a fine pointer
+ * presses, with the same dent as the home rail and the Studio portraits
+ * (`PressSurface.ts`, bound in `ProjectsPageMotion.ts`). The name sits
+ * outside the surface, so the dent never clips it.
+ *
+ * The cover is decorative here because the visible title already says where
+ * the link goes; the case study page carries its full alternative text.
+ */
+import ProjectMedia from './ProjectMedia.astro';
+import { categoryLabel, type ProjectRecord } from '@/data/projects';
+
+interface Props {
+  project: ProjectRecord;
+  /** Position in the archive; the first pieces are fetched eagerly. */
+  index: number;
+}
+
+const { project, index } = Astro.props;
+const tags = project.categories.map(categoryLabel).join(' / ');
+---
+
+<li
+  class="projects-item"
+  data-project-item
+  data-format={project.format}
+  data-categories={project.categories.join(' ')}
+>
+  <a
+    class="projects-card"
+    href={`/proyectos/${project.slug}/`}
+    data-cursor-label="Abrir"
+  >
+    <div class="projects-card__frame" data-press-frame>
+      <div class="projects-card__surface" data-press-surface>
+        <ProjectMedia
+          media={project.cover}
+          class="projects-card__cover"
+          eager={index < 2}
+          decorative
+        />
+      </div>
+    </div>
+    <div class="projects-card__meta">
+      <h3 class="projects-card__title">{project.title}</h3>
+      {tags && <p class="projects-card__tags">{tags}</p>}
+      <span class="projects-card__arrow" aria-hidden="true">↗</span>
+    </div>
+  </a>
+</li>

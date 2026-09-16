@@ -1,17 +1,46 @@
 ---
-import { getCollection, render, type CollectionEntry } from 'astro:content';
-import ProjectGallery from '@/components/projects/ProjectGallery.astro';
-import ProjectHero from '@/components/projects/ProjectHero.astro';
-import ProjectNavigation from '@/components/projects/ProjectNavigation.astro';
+/**
+ * /proyectos/[slug]/ — the case study.
+ *
+ * One page for every project, assembled from the project's own data rather
+ * than written per project: hero, metadata and introduction, the modules the
+ * project chose in the order it chose them, and the next project filling the
+ * screen. The model, its fallbacks and the authoring guide are
+ * `src/data/caseStudy.ts` and `docs/CASE_STUDIES.md`.
+ *
+ * Content follows the archive exactly: the standard build publishes approved
+ * entries only, so with none approved this route generates no pages at all and
+ * `/proyectos/<anything>/` is a 404 in `dist/`. Development and `build:demo`
+ * render the ten provisional pieces, two of them with an authored study and
+ * the rest through the automatic fallback — which is exactly what an approved
+ * project looks like on the day its entry lands.
+ *
+ * Previous/next wrap around the published order, so the portfolio has no dead
+ * end, and a project links to its own approved `related` entry first when it
+ * declares one.
+ */
+import CaseStudyChapters from '@/components/case-study/CaseStudyChapters.astro';
+import CaseStudyHero from '@/components/case-study/CaseStudyHero.astro';
+import CaseStudyIntro from '@/components/case-study/CaseStudyIntro.astro';
+import CaseStudyModules from '@/components/case-study/CaseStudyModules.astro';
+import CaseStudyNext from '@/components/case-study/CaseStudyNext.astro';
+import { getCollection, render } from 'astro:content';
 import { contentAvailability } from '@/config/content';
 import {
+  resolveCaseStudy,
+  type CaseStudyChapter,
+  type CaseStudyInput,
+  type CaseStudyMedia,
+} from '@/data/caseStudy';
+import { caseStudies } from '@/data/caseStudies';
+import {
+  DEMO_NOTICE,
   demoMode,
   demoProjects,
   normalizeProject,
   sortProjectEntries,
-  type ProjectRecord,
 } from '@/data/projects';
-import ProjectLayout from '@/layouts/ProjectLayout.astro';
+import CaseStudyLayout from '@/layouts/CaseStudyLayout.astro';
 
 export async function getStaticPaths() {
   const entries =
@@ -22,43 +51,88 @@ export async function getStaticPaths() {
       : [];
   const projects = demoMode ? demoProjects : entries.map(normalizeProject);
 
-  return projects.map((project, index) => ({
-    params: { slug: project.slug },
-    props: {
-      project,
-      entry: entries[index],
-      previous: projects[(index - 1 + projects.length) % projects.length],
-      next: projects[(index + 1) % projects.length],
-    },
-  }));
+  return projects.map((project, index) => {
+    const authored = caseStudies[project.slug];
+    /*
+     * The stage at the end of the page: the project's own first `related`
+     * entry when it declares one and that entry is published, otherwise the
+     * next in the published order. The list wraps, so the archive is a loop
+     * and never ends on a dead end.
+     */
+    const declared = authored?.related?.find((slug) =>
+      projects.some((candidate) => candidate.slug === slug),
+    );
+    const next =
+      projects.find((candidate) => candidate.slug === declared) ??
+      projects[(index + 1) % projects.length];
+
+    return {
+      params: { slug: project.slug },
+      props: { project, entry: entries[index], next },
+    };
+  });
 }
 
-interface Props {
-  entry?: CollectionEntry<'projects'>;
-  next: ProjectRecord;
-  previous: ProjectRecord;
-  project: ProjectRecord;
-}
+/*
+ * The props are inferred from `getStaticPaths` above, so this page declares no
+ * `Props` interface of its own: one source of truth for what a project route
+ * receives. There is no "previous" link by design — the next project fills the
+ * screen and the archive is one click under it (`CaseStudyNext.astro`).
+ */
+const { entry, next, project } = Astro.props;
 
-const { entry, next, previous, project } = Astro.props;
+/*
+ * Approved frontmatter first, then a registered demonstration study, then the
+ * automatic fallback built from the archive's own record.
+ */
+const authored: CaseStudyInput | undefined =
+  (entry?.data.caseStudy as CaseStudyInput | undefined) ??
+  caseStudies[project.slug];
+const study = resolveCaseStudy(project, authored);
+
+/*
+ * The approved Markdown body, if the entry has one. It is the client's own
+ * prose and is rendered after the modules, inside the page's reading measure.
+ */
 const rendered = entry ? await render(entry) : null;
 const Content = rendered?.Content;
+
+const chapters: CaseStudyChapter[] = study.modules
+  .map((module) => module.chapter)
+  .filter((chapter): chapter is CaseStudyChapter => chapter !== undefined);
+
+/** The next project's own hero, when it has one, so the stage is its picture. */
+const nextMedia: CaseStudyMedia | undefined = next
+  ? (caseStudies[next.slug]?.hero?.media ??
+    (next.cover.src
+      ? {
+          kind: 'image',
+          src: next.cover.src,
+          width: next.cover.width,
+          height: next.cover.height,
+          alt: '',
+        }
+      : { kind: 'art', variant: 'layers' }))
+  : undefined;
 ---
 
-<ProjectLayout
-  title={project.title}
-  description={project.summary}
-  image={project.cover.src}
-  imageAlt={project.cover.alt}
->
-  <ProjectHero project={project} />
-  <ProjectGallery project={project} />
+<CaseStudyLayout study={study} description={project.summary}>
+  {study.chapters && <CaseStudyChapters chapters={chapters} />}
+
+  <CaseStudyHero
+    study={study}
+    notice={project.demo ? DEMO_NOTICE : undefined}
+  />
+  <CaseStudyIntro study={study} />
+  <CaseStudyModules modules={study.modules} />
+
   {
     Content && (
-      <div class="project-story__approved">
+      <div class="cs-shell cs-prose">
         <Content />
       </div>
     )
   }
-  <ProjectNavigation previous={previous} next={next} />
-</ProjectLayout>
+
+  {next && nextMedia && <CaseStudyNext next={next} media={nextMedia} />}
+</CaseStudyLayout>

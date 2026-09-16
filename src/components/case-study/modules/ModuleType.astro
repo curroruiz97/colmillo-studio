@@ -1,0 +1,41 @@
+---
+/**
+ * 13 TYPOGRAPHIC SPECIMEN — the project's own type, large.
+ *
+ * It never loads a face. The sample is set in whatever `stack` names, which
+ * must be fonts the project is already licensed to serve on this site; without
+ * one it falls back to the page's own type. Nothing here downloads, traces or
+ * approximates a typeface, and this is never the studio's own display face
+ * (`fonts.css`).
+ *
+ * The stack reaches a style attribute, so it is filtered to the characters a
+ * font stack can contain.
+ */
+import type { TypeModule } from '@/data/caseStudy';
+
+interface Props {
+  module: TypeModule;
+}
+
+const { module } = Astro.props;
+const stack = module.stack?.replace(/[^\w\s,'"-]/g, '').slice(0, 160);
+---
+
+<div class="cs-shell">
+  <div class="cs-specimen">
+    <p
+      class="cs-specimen__sample"
+      style={stack ? `font-family: ${stack}` : undefined}
+      data-cs-line
+    >
+      {module.sample}
+    </p>
+    {
+      module.note && (
+        <p class="cs-specimen__note" data-cs-line>
+          {module.note}
+        </p>
+      )
+    }
+  </div>
+</div>

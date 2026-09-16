@@ -1,0 +1,48 @@
+---
+/**
+ * 09 PROCESS STRIP — a short horizontal sequence inside a vertical page.
+ *
+ * It scrolls sideways natively, with scroll snapping and no interception: the
+ * case study never becomes a horizontal experience, it only holds one strip
+ * that happens to run that way. A keyboard reaches every step because the
+ * strip is a focusable region with a real accessible name.
+ */
+import CaseStudyMedia from '../CaseStudyMedia.astro';
+import type { ProcessModule } from '@/data/caseStudy';
+
+interface Props {
+  module: ProcessModule;
+}
+
+const { module } = Astro.props;
+const label = module.title ?? 'Proceso';
+---
+
+<div class="cs-shell">
+  {
+    module.title && (
+      <h2 class="cs-heading" data-cs-line>
+        {module.title}
+      </h2>
+    )
+  }
+  <ol
+    class="cs-process"
+    role="list"
+    tabindex="0"
+    aria-label={label}
+    data-cs-process
+  >
+    {
+      module.steps.map((step) => (
+        <li class="cs-process__step">
+          <CaseStudyMedia media={step.media} />
+          <p class="cs-process__label">
+            {step.label}
+            {step.note && <span class="cs-process__note">{step.note}</span>}
+          </p>
+        </li>
+      ))
+    }
+  </ol>
+</div>

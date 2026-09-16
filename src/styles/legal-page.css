@@ -1,0 +1,582 @@
+/*
+ * LEGAL PAGES — /aviso-legal/, /privacidad/, /cookies/
+ *
+ * A legal document that still belongs to Colmillo (2026-09-16). One white
+ * sheet from the title to the footer: no card, no panel, no grey box, no
+ * "document" chrome. The route is built out of three things only — a large
+ * title with the orange disc, a narrow reading column, and generous air.
+ *
+ *   hero   white  the title, one line of context and the update date
+ *   body   white  a sticky index on the left, the document on the right
+ *   footer white  the shared one, untouched
+ *
+ * Readability is the whole design brief here, so the type is deliberately
+ * larger than the rest of the site: about 17-19px of body text on a 1.75
+ * line-height, inside a measure of roughly 800px. Nothing is set in the
+ * "small print" size the rest of the web uses for legal text.
+ *
+ * Contrast on the white sheet: ink ≈ 18.9:1; ink at 62% ≈ 6.2:1 for the
+ * supporting lines; #b54d2a ≈ 4.6:1, which is what every orange word and
+ * every link underline uses. Brand orange #cd5730 ≈ 4.1:1 is kept for the
+ * large disc, the rules and the section numbers — marks, never small text.
+ *
+ * The root class is `legal-route`, not `legal-page`: the old `.legal-page`
+ * rule in `layout.css` belongs to the previous `.content-shell` version of
+ * these pages, and leaving it unmatched avoids editing a file another session
+ * has open.
+ *
+ * No motion of its own. These pages carry no reveal, no scrub and no pinned
+ * section — nothing here needs a script, so nothing here waits for one.
+ */
+
+.legal-route {
+  /* One type scale for the three documents (phones first; widened below). */
+  --lg-title: clamp(2.5rem, 10vw, 4rem);
+  --lg-h2: clamp(1.5rem, 5.5vw, 1.95rem);
+  --lg-h3: clamp(1.15rem, 4.2vw, 1.3rem);
+  --lg-lede: clamp(1.125rem, 4.4vw, 1.375rem);
+  --lg-body: clamp(1.0625rem, 3.7vw, 1.1875rem);
+  --lg-space: clamp(3.5rem, 11vw, 6rem);
+
+  /* The reading measure: about 800px of text at the widest. */
+  --lg-measure: 50rem;
+
+  --lg-ink-soft: rgb(18 16 15 / 0.62);
+  --lg-rule: rgb(18 16 15 / 0.14);
+
+  /* The page gutter plus the edge menu's rail, on both sides from 48rem so
+     the column sits around the viewport's centre. */
+  --lg-pad-end: calc(var(--page-gutter) + var(--edge-rail-clearance));
+  --lg-pad-start: var(--page-gutter);
+
+  position: relative;
+  overflow-x: clip;
+  background: var(--color-white);
+  color: var(--color-brand-ink);
+}
+
+@media (min-width: 48rem) {
+  .legal-route {
+    --lg-pad-start: var(--lg-pad-end);
+  }
+}
+
+/* The route's container. Wide enough for the index column beside the text. */
+.legal-shell {
+  box-sizing: border-box;
+  inline-size: 100%;
+  max-inline-size: calc(
+    var(--lg-outer, 76rem) + var(--lg-pad-start) + var(--lg-pad-end)
+  );
+  margin-inline: auto;
+  padding-inline: var(--lg-pad-start) var(--lg-pad-end);
+}
+
+.legal-route :focus-visible {
+  outline: 3px solid var(--color-brand-orange);
+  outline-offset: 4px;
+}
+
+/* =============================================================== hero === */
+
+/*
+ * Deliberately not a full screen: a legal page should start reading
+ * immediately, not after a scroll. The top padding clears the global
+ * wordmark, which is absolutely positioned at the page gutter.
+ */
+.legal-hero__inner {
+  display: grid;
+  justify-items: start;
+  gap: clamp(1.25rem, 3.5vw, 1.75rem);
+  padding-block: clamp(7rem, 20svh, 10rem) clamp(2.5rem, 7vw, 4rem);
+  border-block-end: var(--border-width) solid var(--color-brand-ink);
+}
+
+.legal-hero__title {
+  max-inline-size: 16ch;
+  margin: 0;
+  font-size: var(--lg-title);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  line-height: 0.92;
+  text-wrap: balance;
+}
+
+/* The full stop is the small orange disc every route uses. */
+.legal-hero__dot {
+  display: inline-block;
+  inline-size: 0.14em;
+  aspect-ratio: 1;
+  margin-inline-start: 0.06em;
+  border-radius: 50%;
+  background: var(--color-brand-orange);
+}
+
+.legal-hero__lede {
+  max-inline-size: 46ch;
+  margin: 0;
+  color: var(--lg-ink-soft);
+  font-size: var(--lg-lede);
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.legal-hero__updated {
+  margin: 0;
+  color: var(--lg-ink-soft);
+  font-size: var(--font-label);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.legal-hero__updated time {
+  color: var(--color-accent-text);
+}
+
+/* =============================================================== body === */
+
+.legal-body__inner {
+  display: grid;
+  gap: clamp(2.5rem, 7vw, 3.5rem);
+  padding-block: clamp(2.5rem, 8vw, 4rem) var(--lg-space);
+}
+
+/* --------------------------------------------------------------- index --- */
+
+/*
+ * The document's own contents. It is a real `<nav>` of in-page links, so it
+ * works with no JavaScript and reads correctly to a screen reader. On narrow
+ * screens it sits above the text; from 64rem it becomes a sticky column.
+ */
+.legal-index__label {
+  margin: 0 0 0.85rem;
+  color: var(--lg-ink-soft);
+  font-size: var(--font-label);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.legal-index__list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: legal-index;
+}
+
+.legal-index__item {
+  counter-increment: legal-index;
+}
+
+.legal-index__link {
+  display: grid;
+  grid-template-columns: 2.1rem minmax(0, 1fr);
+  align-items: baseline;
+  color: var(--color-brand-ink);
+  font-size: clamp(0.95rem, 1.05vw, 1.0625rem);
+  font-weight: 600;
+  line-height: 1.35;
+  text-decoration: none;
+  transition: color var(--duration-fast) linear;
+}
+
+.legal-index__link::before {
+  color: var(--color-brand-orange);
+  font-size: var(--font-label);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+  content: counter(legal-index, decimal-leading-zero);
+}
+
+.legal-index__link:hover,
+.legal-index__link:focus-visible {
+  color: var(--color-accent-text);
+  text-decoration: underline;
+  text-decoration-color: var(--color-brand-orange);
+  text-underline-offset: 0.2em;
+}
+
+/* ------------------------------------------------------------ document --- */
+
+.legal-doc {
+  max-inline-size: var(--lg-measure);
+  min-inline-size: 0;
+}
+
+.legal-section + .legal-section {
+  margin-block-start: clamp(2.75rem, 7vw, 4rem);
+}
+
+/*
+ * A section opens with its number over a hairline, then the heading. The
+ * scroll margin keeps a heading clear of the top edge when the in-page index
+ * jumps to it.
+ */
+.legal-section {
+  scroll-margin-block-start: clamp(2rem, 8vh, 5rem);
+}
+
+.legal-section__heading {
+  display: grid;
+  gap: 0.5rem;
+  max-inline-size: 28ch;
+  margin: 0 0 clamp(1rem, 2.5vw, 1.25rem);
+  padding-block-start: clamp(0.85rem, 2vw, 1.15rem);
+  border-block-start: var(--border-width) solid var(--color-brand-ink);
+  font-size: var(--lg-h2);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.legal-section__number {
+  color: var(--color-brand-orange);
+  font-size: var(--font-label);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.12em;
+}
+
+.legal-doc h3 {
+  max-inline-size: 34ch;
+  margin: clamp(1.75rem, 4vw, 2.25rem) 0 0.6rem;
+  font-family: var(--font-body);
+  font-size: var(--lg-h3);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+/*
+ * The reading body. `max-inline-size` is on the column, not on each
+ * paragraph, so the global `p { max-inline-size: var(--reading-width) }` is
+ * overridden here and every block shares one measure.
+ */
+.legal-doc p {
+  max-inline-size: none;
+  margin: 0 0 1.1em;
+  font-size: var(--lg-body);
+  line-height: 1.75;
+  text-wrap: pretty;
+}
+
+.legal-doc p:last-child {
+  margin-block-end: 0;
+}
+
+.legal-list {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0 0 1.4em;
+  padding: 0;
+  list-style: none;
+}
+
+/* The marker is a small orange square: the site's own mark, not a bullet. */
+.legal-list li {
+  position: relative;
+  padding-inline-start: 1.6rem;
+  font-size: var(--lg-body);
+  line-height: 1.7;
+}
+
+.legal-list li::before {
+  position: absolute;
+  inset-block-start: 0.62em;
+  inset-inline-start: 0;
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  background: var(--color-brand-orange);
+  content: '';
+}
+
+/* Links inside the text are underlined, in the accessible orange. */
+.legal-doc a {
+  color: var(--color-accent-text);
+  font-weight: 600;
+  text-decoration-color: var(--color-brand-orange);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.2em;
+  transition: text-decoration-thickness var(--duration-fast) linear;
+}
+
+.legal-doc a:hover {
+  text-decoration-thickness: 0.16em;
+}
+
+/* --------------------------------------------------------------- note --- */
+
+/*
+ * A note is where the document admits something: a datum the client still
+ * owes, or a limit of what can truthfully be stated. It is an aside, marked
+ * by the orange edge, never a decorative callout.
+ */
+.legal-note {
+  margin: 0 0 1.4em;
+  padding: clamp(1rem, 2.5vw, 1.25rem) 0 clamp(1rem, 2.5vw, 1.25rem)
+    clamp(1rem, 2.5vw, 1.35rem);
+  border-inline-start: 0.28rem solid var(--color-brand-orange);
+  color: var(--lg-ink-soft);
+  font-size: clamp(1rem, 3.4vw, 1.0625rem);
+  line-height: 1.65;
+}
+
+.legal-note p {
+  margin: 0;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* ------------------------------------------------------------ pending --- */
+
+/*
+ * Missing client data. It has to be impossible to mistake for a real value,
+ * both on screen and in a printed copy, so it is a boxed, uppercase chip in
+ * the brand red rather than an italic gap. `release-check.mjs` refuses a
+ * release while any of these survive in `dist/`.
+ */
+.legal-pending {
+  display: inline-block;
+  padding: 0.12em 0.45em;
+  border: 2px dashed var(--color-brand-red);
+  border-radius: 0.2rem;
+  background: none;
+  color: var(--color-brand-red);
+  font-size: 0.86em;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+/* --------------------------------------------------------------- table --- */
+
+/*
+ * Tables exist on /cookies/ only, and only because a cookie table is the
+ * clearest way to state what is stored. It scrolls inside its own box so a
+ * narrow screen never scrolls the page sideways.
+ */
+.legal-table-wrap {
+  max-inline-size: 100%;
+  margin: 0 0 1.4em;
+  overflow-x: auto;
+  border-block: var(--border-width) solid var(--color-brand-ink);
+}
+
+.legal-table {
+  inline-size: 100%;
+  min-inline-size: 34rem;
+  border-collapse: collapse;
+  font-size: clamp(0.95rem, 1.05vw, 1.0625rem);
+  text-align: start;
+}
+
+.legal-table caption {
+  padding-block-end: 0.75rem;
+  color: var(--lg-ink-soft);
+  font-size: clamp(0.95rem, 3.2vw, 1rem);
+  line-height: 1.55;
+  text-align: start;
+}
+
+.legal-table th,
+.legal-table td {
+  padding: 0.9rem 1rem 0.9rem 0;
+  border-block-start: 1px solid var(--lg-rule);
+  vertical-align: top;
+  line-height: 1.6;
+}
+
+.legal-table thead th {
+  border-block-start: 0;
+  color: var(--lg-ink-soft);
+  font-size: var(--font-label);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.legal-table tbody th {
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* ================================================================ foot === */
+
+/*
+ * The other two documents, at the end of each one. A legal page is rarely
+ * read alone, and the footer's links are a long way down by then.
+ */
+.legal-more {
+  margin-block-start: var(--lg-space);
+  padding-block-start: clamp(1.25rem, 3vw, 1.75rem);
+  border-block-start: var(--border-width) solid var(--color-brand-ink);
+}
+
+.legal-more__label {
+  margin: 0 0 0.9rem;
+  color: var(--lg-ink-soft);
+  font-size: var(--font-label);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.legal-more__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(0.85rem, 2.5vw, 1.75rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.legal-more__link {
+  color: var(--color-brand-ink);
+  font-size: clamp(1.0625rem, 1.2vw, 1.25rem);
+  font-weight: 800;
+  text-decoration-color: var(--color-brand-orange);
+  text-underline-offset: 0.22em;
+  transition: color var(--duration-fast) linear;
+}
+
+.legal-more__link:hover {
+  color: var(--color-accent-text);
+}
+
+/* ========================================================= two columns === */
+
+/*
+ * From 64rem the index becomes a sticky column beside the document. Below
+ * that it is simply the first block of the page, which is the right reading
+ * order on a phone as well.
+ */
+@media (min-width: 64.01rem) {
+  .legal-route {
+    --lg-title: clamp(3rem, 5vw, 4.75rem);
+    --lg-h2: clamp(1.75rem, 2.1vw, 2.25rem);
+    --lg-h3: clamp(1.2rem, 1.3vw, 1.4rem);
+    --lg-lede: clamp(1.25rem, 1.45vw, 1.5rem);
+    --lg-body: clamp(1.0625rem, 1.1vw, 1.1875rem);
+  }
+
+  .legal-hero__inner {
+    padding-block: clamp(8rem, 22svh, 11rem) clamp(3rem, 5vw, 4rem);
+  }
+
+  .legal-body__inner {
+    grid-template-columns: minmax(12rem, 20rem) minmax(0, 1fr);
+    column-gap: clamp(3rem, 6vw, 6rem);
+    align-items: start;
+  }
+
+  .legal-index {
+    position: sticky;
+    inset-block-start: clamp(3rem, 10vh, 6rem);
+  }
+}
+
+/* ============================================================= compact === */
+
+@media (max-width: 30rem) {
+  .legal-hero__title {
+    max-inline-size: none;
+  }
+
+  .legal-hero__lede,
+  .legal-section__heading {
+    max-inline-size: none;
+  }
+
+  /* A table this narrow is unreadable side by side; it keeps its own scroll
+     box, and the caption says so above it. */
+  .legal-table {
+    min-inline-size: 30rem;
+  }
+}
+
+/* ================================================ the privacy line === */
+
+/*
+ * The privacy notice beside the submit button on /contacto/.
+ *
+ * It lives in this stylesheet rather than in `contact-page.css` because it is
+ * part of the legal surface added on 2026-09-16, and because that file was
+ * being edited by a parallel session at the time. `index.css` imports this
+ * sheet after it, in the same layer, so these two rules win on equal
+ * specificity.
+ *
+ * The send block becomes a wrapping row, so on a wide screen the line sits
+ * beside the button and on a phone — where `contact-page.css` turns the block
+ * into a grid — it stacks under a full-width button.
+ */
+.contact-form__send {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: clamp(1rem, 2.5vw, 1.75rem);
+}
+
+.contact-form__privacy {
+  max-inline-size: 34ch;
+  margin: 0;
+  color: rgb(18 16 15 / 0.62);
+  font-size: clamp(0.9rem, 1vw, 0.9375rem);
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.contact-form__privacy a {
+  color: var(--color-accent-text);
+  font-weight: 700;
+  text-decoration-color: var(--color-brand-orange);
+  text-underline-offset: 0.2em;
+}
+
+/* ============================================================== print === */
+
+/*
+ * A legal document gets printed and filed. Print drops the site's furniture
+ * and gives back a plain, full-width, black-on-white document.
+ */
+@media print {
+  .legal-route {
+    --lg-body: 11pt;
+  }
+
+  .legal-index,
+  .legal-more,
+  .site-footer,
+  .edge-menu,
+  .ig-badge,
+  .custom-cursor,
+  .skip-link {
+    display: none !important;
+  }
+
+  .legal-body__inner {
+    display: block;
+  }
+
+  .legal-doc {
+    max-inline-size: none;
+  }
+
+  .legal-doc a {
+    color: #000;
+  }
+
+  .legal-section {
+    break-inside: avoid;
+  }
+
+  .legal-pending {
+    border-color: #000;
+    color: #000;
+  }
+}

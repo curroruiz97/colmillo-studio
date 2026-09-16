@@ -1,0 +1,111 @@
+---
+/**
+ * The body of a legal document: its numbered sections and their blocks.
+ *
+ * Every section is a real `<section>` with a stable `id`, so the in-page index
+ * links to it, a browser can deep-link to a clause and a lawyer can cite one.
+ * The number beside each heading is decorative typography, not content: the
+ * heading text alone is the accessible name.
+ *
+ * The block model is deliberately small — paragraph, subheading, list, note
+ * and table — because a legal document needs nothing else, and anything richer
+ * would invite formatting decisions into a file that exists to hold wording.
+ *
+ * The table scrolls inside its own box rather than widening the page, and is
+ * focusable so it can be reached and scrolled from the keyboard.
+ */
+import LegalRich from './LegalRich.astro';
+import type { LegalSection } from '@/data/legalPages';
+
+interface Props {
+  sections: LegalSection[];
+}
+
+const { sections } = Astro.props;
+
+const ordinal = (index: number) => String(index + 1).padStart(2, '0');
+---
+
+{
+  sections.map((section, index) => (
+    <section class="legal-section" id={section.id}>
+      <h2 class="legal-section__heading">
+        <span class="legal-section__number" aria-hidden="true">
+          {ordinal(index)}
+        </span>
+        <span>{section.heading}</span>
+      </h2>
+
+      {section.blocks.map((block) => {
+        if (block.kind === 'p') {
+          return (
+            <p>
+              <LegalRich rich={block.rich} />
+            </p>
+          );
+        }
+
+        if (block.kind === 'h3') return <h3>{block.text}</h3>;
+
+        if (block.kind === 'list') {
+          return (
+            <ul class="legal-list" role="list">
+              {block.items.map((item) => (
+                <li>
+                  <LegalRich rich={item} />
+                </li>
+              ))}
+            </ul>
+          );
+        }
+
+        if (block.kind === 'note') {
+          return (
+            <aside class="legal-note">
+              <p>
+                <LegalRich rich={block.rich} />
+              </p>
+            </aside>
+          );
+        }
+
+        return (
+          <div
+            class="legal-table-wrap"
+            role="region"
+            aria-label={block.caption}
+            tabindex="0"
+          >
+            <table class="legal-table">
+              <caption>{block.caption}</caption>
+              <thead>
+                <tr>
+                  {block.columns.map((column) => (
+                    <th scope="col">{column}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {block.rows.map((row) => (
+                  <tr>
+                    {row.map((cell, cellIndex) =>
+                      cellIndex === 0 ? (
+                        <th scope="row">
+                          <LegalRich rich={cell} />
+                        </th>
+                      ) : (
+                        <td>
+                          <LegalRich rich={cell} />
+                        </td>
+                      ),
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+      })}
+    </section>
+  ))
+}

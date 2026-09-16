@@ -1,0 +1,36 @@
+---
+/**
+ * 05 MOSAIC GALLERY — a small, controlled set of pieces.
+ *
+ * Deliberately not the archive's twelve-column masonry: this one is a short
+ * mosaic whose cells take their width from each piece's own proportion, so a
+ * project's applications read as a spread rather than as a second index.
+ */
+import CaseStudyMedia from '../CaseStudyMedia.astro';
+import type { GalleryModule } from '@/data/caseStudy';
+
+interface Props {
+  module: GalleryModule;
+}
+
+const { module } = Astro.props;
+---
+
+<div class="cs-shell">
+  {
+    module.title && (
+      <h2 class="cs-heading" data-cs-line>
+        {module.title}
+      </h2>
+    )
+  }
+  <ul class="cs-mosaic" role="list">
+    {
+      module.items.map((media) => (
+        <li class="cs-mosaic__cell" data-ratio={media.ratio ?? 'auto'}>
+          <CaseStudyMedia media={media} />
+        </li>
+      ))
+    }
+  </ul>
+</div>

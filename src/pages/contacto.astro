@@ -1,96 +1,53 @@
 ---
-import { publishedContactChannels } from '@/config/contact';
-import { demoMode } from '@/data/projects';
+/**
+ * /contacto/ — a conversation that starts.
+ *
+ * Two scenes and the global footer, nothing else (2026-09-16, user direction).
+ * The charcoal hero states the question and carries the route's own graphic,
+ * an unfinished orange trajectory; then one white sheet rises over it and
+ * holds the whole brief. The direct channels live inside that sheet's left
+ * block, so the page needs no closing strip and no "meanwhile" map back into
+ * the site — the edge menu is the navigation.
+ *
+ * Copy is centralised in `src/data/contactPage.ts`; the address and the
+ * profile come from the approved `src/config/contact.ts` and are never
+ * written here. Nothing on this route is fictional, so both builds render it
+ * in full.
+ */
+import ContactForm from '@/components/contact/ContactForm.astro';
+import ContactHero from '@/components/contact/ContactHero.astro';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 ---
 
-<BaseLayout title="Contacto" description="Contacto con Colmillo Studio.">
-  <article class="contact-page" aria-labelledby="contact-page-title">
-    <header class="contact-page__hero content-shell" data-surface-tone="accent">
-      <p class="section-index" aria-hidden="true">04 / Contacto</p>
-      <div class="contact-page__title">
-        <p class="section-kicker">El siguiente movimiento</p>
-        <h1 id="contact-page-title">Haz que tu marca <em>muerda</em></h1>
-      </div>
-      <div
-        class="contact-page__signal"
-        data-editorial-mark
-        data-contact-signal
-        aria-hidden="true"
-      >
-        <span></span><span></span><span></span>
-      </div>
-    </header>
-
-    <section
-      class="contact-page__channels"
-      aria-labelledby="channels-title"
-      data-surface-tone="dark"
-    >
-      <div class="content-shell contact-page__channels-grid">
-        <div>
-          <p class="section-index" aria-hidden="true">Canales</p>
-          <h2 id="channels-title">Hablemos.</h2>
-        </div>
-        {
-          publishedContactChannels.length > 0 ? (
-            <ul role="list">
-              {publishedContactChannels.map((channel, index) => (
-                <li>
-                  <a
-                    href={channel.href}
-                    data-magnetic
-                    data-cursor-label="Abrir"
-                  >
-                    <span aria-hidden="true">
-                      {String(index + 1).padStart(2, '0')}
-                    </span>
-                    <span class="contact-page__channel">
-                      <strong>{channel.label}</strong>
-                      {channel.value && (
-                        <span class="contact-page__channel-value">
-                          {channel.value}
-                        </span>
-                      )}
-                    </span>
-                    <span aria-hidden="true">↗</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            demoMode && (
-              <div class="contact-page__pending" data-dev-placeholder>
-                <strong class="demo-flag">DEMO FICTICIA — NO PUBLICAR</strong>
-                <p>
-                  Los canales reales aparecerán en este panel cuando el cliente
-                  confirme correo, teléfono y perfiles públicos.
-                </p>
-              </div>
-            )
-          )
-        }
-      </div>
-    </section>
-
-    <nav
-      class="contact-page__routes content-shell"
-      aria-label="Explorar antes de contactar"
-    >
-      <p class="section-index">Mientras tanto</p>
-      <a href="/studio/" data-cursor-label="Conocer" data-reveal-block>
-        <span>01</span><strong>Studio</strong><span aria-hidden="true">↗</span>
-      </a>
-      <a href="/servicios/" data-cursor-label="Ver" data-reveal-block>
-        <span>02</span><strong>Servicios</strong><span aria-hidden="true"
-          >↗</span
-        >
-      </a>
-      <a href="/proyectos/" data-cursor-label="Ver" data-reveal-block>
-        <span>03</span><strong>Proyectos</strong><span aria-hidden="true"
-          >↗</span
-        >
-      </a>
-    </nav>
+<BaseLayout
+  title="Contacto"
+  description="Escribe a Colmillo Studio: cuéntanos el proyecto que tienes entre manos y empezamos por ahí."
+  headerTheme="dark"
+>
+  <article
+    class="contact-route"
+    aria-labelledby="contact-page-title"
+    data-contact-page
+  >
+    <ContactHero />
+    <ContactForm />
   </article>
+
+  <script>
+    /*
+     * Only says where the page's motion lives. The dynamic import sits in this
+     * route-only script so the chunk stays out of the shared motion bundle;
+     * `ContactPage.ts`, run by `MotionController`, mounts, restarts and cleans
+     * it up. It must stay inside the layout's slot: module scripts run in
+     * document order, and this one has to run before the layout's own.
+     */
+    const page = document.querySelector('[data-contact-page]');
+    if (page) {
+      Reflect.set(
+        page,
+        'loadContactPage',
+        () => import('@/scripts/motion/ContactPageMotion'),
+      );
+    }
+  </script>
 </BaseLayout>

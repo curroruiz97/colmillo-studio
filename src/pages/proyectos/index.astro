@@ -1,6 +1,24 @@
 ---
+/**
+ * /proyectos/ — the studio's portfolio.
+ *
+ * One white sheet: the hero with the route's loop slot, then the category
+ * filter and the masonry, then one question and one route to Contacto. The
+ * rhythm and the colours are `projects-page.css`; the
+ * masonry's spans and proportions come from each project's `format` and the
+ * filter from its `categories`, both in `src/data/projects.ts`.
+ *
+ * The archive publishes approved entries only. In the standard build, with no
+ * approved project yet, the gallery and its filter are simply not rendered:
+ * the route is the hero and the close, and nothing provisional reaches
+ * `dist/`. Development and `build:demo` show the complete composition with
+ * the provisional pieces.
+ */
+import ProjectsCard from '@/components/projects/ProjectsCard.astro';
+import ProjectsClose from '@/components/projects/ProjectsClose.astro';
+import ProjectsFilters from '@/components/projects/ProjectsFilters.astro';
+import ProjectsHero from '@/components/projects/ProjectsHero.astro';
 import { getCollection } from 'astro:content';
-import ProjectCard from '@/components/projects/ProjectCard.astro';
 import { contentAvailability } from '@/config/content';
 import {
   demoMode,
@@ -19,43 +37,76 @@ const projects = demoMode
         ),
       ).map(normalizeProject)
     : [];
+
+const GRID_ID = 'projects-grid';
 ---
 
 <BaseLayout
   title="Proyectos"
-  description="Archivo de proyectos de Colmillo Studio."
+  description="Proyectos de Colmillo Studio."
+  headerTheme="light"
 >
-  <section
-    class="content-shell projects-index"
-    aria-labelledby="projects-title"
+  <article
+    class="projects-page"
+    aria-labelledby="projects-page-title"
+    data-projects-page
   >
-    <header class="projects-index__header">
-      <p class="section-kicker">Archivo</p>
-      <h1 id="projects-title">Proyectos</h1>
-      {
-        demoMode && (
-          <strong class="demo-flag">DEMO FICTICIA — NO PUBLICAR</strong>
-        )
-      }
-    </header>
+    <ProjectsHero />
+
     {
       projects.length > 0 && (
-        <ol class="projects-index__grid" role="list">
-          {projects.map((project, index) => (
-            <li class="project-card">
-              <ProjectCard project={project} index={index} />
-            </li>
-          ))}
-        </ol>
+        <section
+          class="projects-gallery"
+          aria-label="Archivo de proyectos"
+          data-surface-tone="light"
+        >
+          {/* Watched by the route's chunk to know when the filter is stuck. */}
+          <span aria-hidden="true" data-filters-sentinel />
+          <ProjectsFilters projects={projects} controls={GRID_ID} />
+          <div class="projects-shell">
+            <ul
+              class="projects-grid"
+              id={GRID_ID}
+              role="list"
+              data-projects-grid
+            >
+              {projects.map((project, index) => (
+                <ProjectsCard project={project} index={index} />
+              ))}
+            </ul>
+            <p class="projects-empty" role="status" hidden data-projects-empty>
+              No hay proyectos en esta categoría todavía.
+            </p>
+          </div>
+        </section>
       )
     }
-    {
-      demoMode && projects.length === 0 && (
-        <p class="dev-note" data-dev-placeholder>
-          La colección está preparada; no se publicarán proyectos hasta recibir
-          contenido real.
-        </p>
-      )
+
+    <ProjectsClose
+      title="¿Hacemos el siguiente"
+      lede="Cuéntanos qué tienes entre manos y encontramos por dónde muerde."
+      actions={[
+        { label: 'Hablemos', href: '/contacto/' },
+        { label: 'Ver servicios', href: '/servicios/' },
+      ]}
+    />
+  </article>
+
+  <script>
+    /*
+     * Only says where the route's motion lives. The dynamic import sits in
+     * this route-only script so the chunk stays out of the shared motion
+     * bundle; `ProjectsPage.ts`, run by `MotionController`, mounts, restarts
+     * and cleans it up. It must stay inside the layout's slot: module scripts
+     * run in document order, and this one has to run before the layout's own.
+     */
+    const page = document.querySelector('[data-projects-page]');
+    if (page) {
+      Reflect.set(
+        page,
+        'loadProjectsPage',
+        () => import('@/scripts/motion/ProjectsPageMotion'),
+      );
     }
-  </section>
+  </script>
 </BaseLayout>

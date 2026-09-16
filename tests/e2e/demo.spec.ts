@@ -106,17 +106,22 @@ async function collectConsoleErrors(page: Page) {
   return errors;
 }
 
-test('development demo exposes five unmistakably fictional projects', async ({
+test('development demo exposes its provisional projects and flags each one', async ({
   page,
 }) => {
+  // The archive itself is the portfolio and carries no notice; every piece
+  // declares that it is fictional on its own page (`projects.demo.spec.ts`
+  // covers the archive's own composition).
   await page.goto('/proyectos/');
-  await expect(
-    page.getByText('DEMO FICTICIA — NO PUBLICAR').first(),
-  ).toBeVisible();
   for (const name of demoNames) {
     await expect(page.getByRole('heading', { level: 3, name })).toBeVisible();
   }
-  await expect(page.locator('.project-card')).toHaveCount(5);
+  await expect(page.locator('[data-project-item]')).toHaveCount(10);
+
+  await page.goto('/proyectos/demo-fauce-elastica/');
+  await expect(
+    page.getByText('DEMO FICTICIA — NO PUBLICAR').first(),
+  ).toBeVisible();
 });
 
 test('services, studio and contact are complete demo destinations', async ({
@@ -137,19 +142,57 @@ test('services, studio and contact are complete demo destinations', async ({
   ).toBeVisible();
   await expect(page.locator('[data-principle-item]')).toHaveCount(4);
 
+  /*
+   * `/contacto/` is the hero, the brief and the footer (2026-09-16). The map
+   * back into the site that used to close it is gone: the edge menu is the
+   * navigation.
+   */
   await page.goto('/contacto/');
   await expect(
-    page.getByRole('heading', { level: 1, name: /Haz que tu marca/ }),
+    page.getByRole('heading', {
+      level: 1,
+      name: /Cuéntanos qué tienes entre manos/,
+    }),
   ).toBeVisible();
-  await expect(
-    page.locator('.contact-page__routes a[href="/servicios/"]'),
-  ).toBeVisible();
-  await expect(
-    page.locator('.contact-page__routes a[href="/studio/"]'),
-  ).toBeVisible();
-  await expect(
-    page.locator('.contact-page__routes a[href="/proyectos/"]'),
-  ).toBeVisible();
+  await expect(page.locator('[data-contact-form]')).toBeVisible();
+  await expect(page.locator('main a[href="/servicios/"]')).toHaveCount(0);
+  await expect(page.locator('main a[href="/studio/"]')).toHaveCount(0);
+  await expect(page.locator('main a[href="/proyectos/"]')).toHaveCount(0);
+});
+
+test('the edge tab turns ink over the orange service layer and back', async ({
+  page,
+}) => {
+  const ORANGE = 'rgb(205, 87, 48)';
+  const INK = 'rgb(18, 16, 15)';
+  const tab = page.locator('[data-edge-tab]');
+  const menu = page.locator('[data-edge-menu]');
+
+  /*
+   * The tab is brand orange, so on an orange field it would disappear and
+   * `EdgeMenu.ts` turns it ink. The only such field in either build is the
+   * `Identidad` layer of `/servicios/`; the standard build has none at all,
+   * which is why this moved here from `foundations.spec.ts` when `/contacto/`
+   * stopped being orange (2026-09-16).
+   */
+  await page.goto('/servicios/');
+  await expect(tab).toHaveCSS('background-color', ORANGE);
+
+  await page
+    .locator('[data-service-layer][data-theme="accent"]')
+    .evaluate((layer) => {
+      window.scrollTo({
+        top: layer.getBoundingClientRect().top + window.scrollY,
+        behavior: 'instant',
+      });
+    });
+  await expect(menu).toHaveAttribute('data-tab-tone', 'accent');
+  await expect(tab).toHaveCSS('background-color', INK);
+
+  // Back at the charcoal hero it is orange again.
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+  await expect(menu).not.toHaveAttribute('data-tab-tone', 'accent');
+  await expect(tab).toHaveCSS('background-color', ORANGE);
 });
 
 test('project detail, previous/next and history navigation work', async ({
@@ -540,15 +583,20 @@ test('fixed controls do not cover project copy or navigation', async ({
 }) => {
   await page.goto('/proyectos/demo-fauce-elastica/');
   const menu = page.locator('[data-edge-tab]');
+  // The case study's own copy since the route was rebuilt (2026-09-16): the
+  // project's name in the hero, its metadata and its introduction.
   const copy = page.locator(
-    '.project-hero__copy h1, .project-hero__copy p, .project-hero__copy li, .project-hero__copy strong',
+    '.cs-hero__title, .cs-meta__term, .cs-meta__value, .cs-intro__headline, .cs-intro__text',
   );
   await expect(page.locator('[data-motion-toggle]')).toHaveCount(0);
   await expectNoOverlap(menu, copy);
   await expectNoOverlap(page.locator('[data-instagram]'), copy);
 
-  await page.locator('.project-navigation').scrollIntoViewIfNeeded();
-  await expectNoOverlap(menu, page.locator('.project-navigation a'));
+  await page.locator('[data-cs-next]').scrollIntoViewIfNeeded();
+  await expectNoOverlap(
+    menu,
+    page.locator('.cs-next__title, .cs-next__route, .cs-next__aside'),
+  );
 });
 
 test('reduced motion keeps all project content available', async ({ page }) => {

@@ -1,0 +1,28 @@
+---
+/**
+ * 01 FULL BLEED MEDIA — one piece, alone.
+ *
+ * `bleed` takes it to both edges of the screen; without it the piece stays
+ * inside the route's wide container. Either way the frame is fixed geometry,
+ * so the optional dent and the bite reveal only ever clip the surface inside
+ * it (`CaseStudyMedia.astro`).
+ */
+import CaseStudyMedia from '../CaseStudyMedia.astro';
+import type { FullMediaModule } from '@/data/caseStudy';
+
+interface Props {
+  module: FullMediaModule;
+}
+
+const { module } = Astro.props;
+---
+
+<div class:list={['cs-full', module.bleed && 'cs-full--bleed']}>
+  <div class={module.bleed ? undefined : 'cs-shell'}>
+    <CaseStudyMedia
+      media={module.media}
+      press={module.press}
+      bite={module.reveal === 'bite'}
+    />
+  </div>
+</div>

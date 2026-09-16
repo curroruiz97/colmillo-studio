@@ -75,8 +75,9 @@ enable canonical URLs, release, indexing or client content.
 
 - `npm run build` -> `dist/`: nine static pages, no fictional projects,
   development notices or demo routes.
-- `npm run build:demo` -> `dist-demo/`: fourteen pages including five explicitly
-  marked fictional projects and provisional demo sections.
+- `npm run build:demo` -> `dist-demo/`: nineteen pages including ten
+  provisional project routes, each flagged on its own page, and provisional
+  demo sections.
 - `demoMode` is true only in Astro development or `--mode demo`.
 - Keep both artifacts isolated. The current Vercel demo override is a documented
   temporary exception, not a new final-release rule.
@@ -232,6 +233,13 @@ registers ScrollTrigger and initializes/cleans:
   through `SectionStack.ts` (sticky, `data-stack-content`); since 2026-09-14
   the route is a charcoal hero, white/orange/black/white service layers and a
   black close (`services-page.css`);
+- `ProjectsPage.ts`: mounts `ProjectsPageMotion.ts` (route-only chunk) for
+  `/proyectos/`: the hero loop's viewport-aware playback, the per-piece
+  reveals, the category filter (hide, let CSS Grid repack, then carry every
+  surviving piece between its two measured boxes) and the sticky filter band's
+  `data-stuck`. The masonry's dent reuses `PressSurface.ts`. The filter is
+  published by this chunk, so a page without JavaScript shows the complete
+  archive and no dead control;
 - `ContactBite.ts`: loads `ContactBiteMotion.ts` on demand for the home contact
   close (entrance, the soft sculpture's live pose from `ContactSculpture.ts`,
   pressure on "muerda", bite);
@@ -325,7 +333,41 @@ licenses and publication approval before enabling client material.
 
 - Static shell, permanent routes and fail-closed SEO/release gates.
 - Home/editorial/contact/project layouts and shared visual system.
-- Isolated typed fictional demo with five project routes.
+- Isolated typed fictional demo with ten project routes.
+- `/proyectos/` as the portfolio (2026-09-16): one white sheet end to end —
+  a hero in the `/studio/` and `/servicios/` composition with a 16:9 slot for
+  its loop (ink title, black wordmark, `headerTheme="light"`), a sticky
+  category filter, a twelve-column asymmetric masonry whose spans and
+  proportions come from each project's `format`, and a closing scene. No
+  section paints a field of its own and the footer keeps the shared white, so
+  the work is the only colour on the route. The standard build renders the
+  hero and the close only while no project is approved.
+- `/proyectos/` close as a scene (2026-09-16): the client's panoramic picture
+  with the decision standing in the gap it leaves — the question with its
+  orange mark, one supporting line and two bite buttons (`Hablemos` to
+  Contacto, `Ver servicios` to Servicios). Its paper is lifted to pure white
+  by `npm run media:projects`, so the picture has no edge on the sheet, only
+  its sculptures; each end is drawn as its own wing at a capped height, faded
+  on three sides, and pushed out only as far as keeps the copy's room clear.
+  Portrait screens put one end in a band at the top and the other at the foot.
+  It fills a whole screen and joins the route's stack (`data-stack-section` on
+  the hero and on it), so it rises over the archive behind a rounded band the
+  way the `/servicios/` layers do; what makes that read on an all-white route
+  is the scene, because the sculptures carry colour even where the ground does
+  not. Copy and the paper lift are provisional (`docs/CONTENT_NEEDED.md`).
+- `/contacto/` as a conversation that starts (2026-09-16): a charcoal hero one
+  screen tall with no media column — one typographic block over about 60% of
+  the measure and, in the empty rest of it, the route's own graphic: an
+  unfinished
+  orange trajectory with an opening and a disc walking its line — then one
+  white sheet that rises over the sticky hero and holds the whole brief. That
+  brief is a sticky left block (Hablemos., one line, the approved address and
+  profile) beside a large editorial form set straight into the page: small
+  label, large control, hairline rule, no box anywhere. Five fields, the
+  service selector a native radio group drawn as pills, the shared bite button
+  on its ink slab, and a small orange ring in the margin that glides to the
+  field with focus. Nothing else: the edge menu is the navigation. No asset is
+  added and nothing claims a message was sent — see below.
 - Responsive project rail with desktop ScrollTrigger enhancement and native
   touch/no-JavaScript/reduced-motion fallbacks.
 - Colmillo Edge Menu: a small orange tab on the right edge that follows a fine
@@ -358,9 +400,21 @@ licenses and publication approval before enabling client material.
 
 ## Unfinished Work and Known Issues
 
-- No approved project entries exist.
+- No approved project entries exist, so `/proyectos/` publishes its hero and
+  its close alone in the standard build.
 - Contact channels, legal/business text, approved copy/services/social/SEO data
   and canonical domain are absent.
+- `/contacto/` has no submit endpoint. This repository has no server, API
+  route, server action or mail provider, and none may be added without
+  authorisation. `contactFormEndpoint` in `src/data/contactPage.ts` is `null`,
+  so the form validates and then hands the brief to the visitor's own mail
+  client, saying exactly that; setting that constant is the only code change
+  needed to submit for real. See `docs/CONTENT_NEEDED.md`.
+- The route's copy is the user's provisional wording (2026-09-16) and is
+  pending approval, and the approved address `hola@colmillostudio.com` differs
+  by one letter from the one written in that request.
+- `.contact-page__*` in `src/styles/layout.css` is dead since the rebuild and
+  is waiting for a cleanup pass.
 - Licensed fonts, vector logo/favicon/brand manual and official hero/goodbye
   media are absent.
 - Standard build intentionally withholds unapproved content; release/indexing

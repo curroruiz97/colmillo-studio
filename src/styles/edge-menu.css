@@ -495,42 +495,41 @@ body {
   font-size: var(--font-label);
 }
 
+/*
+ * The channels are their names, side by side: "Correo" opens the mail client,
+ * "Instagram" the profile. The address and the handle are not shown.
+ */
 .edge-menu__channels {
-  display: grid;
-  gap: clamp(0.75rem, 1.8vh, 1.1rem);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem clamp(1.5rem, 3vw, 2.5rem);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .edge-menu__channels a {
-  display: grid;
-  justify-items: start;
-  gap: 0.15rem;
+  display: inline-block;
+  /* A comfortable target around short words. */
+  padding-block: 0.45rem;
   color: inherit;
   text-decoration: none;
   cursor: pointer;
 }
 
-.edge-menu__channel-label {
-  color: var(--color-brand-orange);
-  font-size: 0.68rem;
-  font-weight: 900;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
 /*
- * The value carries a hairline that draws in from the left on hover or focus,
- * while the text turns orange and leans a few pixels in. Nothing else moves.
+ * The word carries a hairline that draws in from the left on hover or focus,
+ * while it turns orange and leans a few pixels in. Nothing else moves.
  */
-.edge-menu__channels strong {
-  padding-block-end: 0.15rem;
+.edge-menu__channel-label {
+  display: inline-block;
+  padding-block-end: 0.2rem;
   background: linear-gradient(currentColor, currentColor) no-repeat 0 100% / 0
     1px;
-  font-size: clamp(0.95rem, 1.3vw, 1.15rem);
-  font-weight: 700;
-  overflow-wrap: anywhere;
+  font-size: clamp(0.8rem, 1vw, 0.95rem);
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   transition:
     color var(--duration-fast) linear,
     background-size var(--duration-medium) var(--ease-bite),
@@ -539,10 +538,10 @@ body {
 
 .edge-menu__channels a:focus-visible {
   outline: 3px solid var(--color-brand-cream);
-  outline-offset: 4px;
+  outline-offset: 2px;
 }
 
-.edge-menu__channels a:focus-visible strong {
+.edge-menu__channels a:focus-visible .edge-menu__channel-label {
   color: var(--color-brand-orange);
   background-size: 100% 1px;
 }
@@ -570,7 +569,7 @@ body {
     transform: translateX(0.85rem);
   }
 
-  .edge-menu__channels a:hover strong {
+  .edge-menu__channels a:hover .edge-menu__channel-label {
     color: var(--color-brand-orange);
     background-size: 100% 1px;
     transform: translateX(0.2rem);

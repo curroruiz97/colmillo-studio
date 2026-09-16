@@ -1,0 +1,63 @@
+---
+/**
+ * /proyectos/ — 02 Filter
+ *
+ * One horizontal row of the studio's four services plus "Todos", at the head
+ * of the white gallery and sticky there on wide screens. The active one is
+ * the accent with a short rule drawn under it; the rest are the word alone.
+ *
+ * These are real buttons, and they only work with JavaScript, so the row is
+ * hidden until the route's chunk mounts (`data-filters-ready`,
+ * `ProjectsPageMotion.ts`). Without it the archive is simply complete, which
+ * is the honest state: no control is shown that cannot do anything. The
+ * pressed button carries `aria-pressed`, and the grid it commands is named by
+ * `aria-controls`.
+ *
+ * Only categories with at least one piece are offered, so the row can never
+ * lead to an empty gallery on its own.
+ */
+import { PROJECT_CATEGORIES, type ProjectRecord } from '@/data/projects';
+
+interface Props {
+  /** Every piece in the archive, whatever the current filter. */
+  projects: ProjectRecord[];
+  /** The grid this row filters. */
+  controls: string;
+}
+
+const { projects, controls } = Astro.props;
+
+const used = new Set(projects.flatMap((project) => project.categories));
+const options = [
+  { id: 'todos', label: 'Todos' },
+  ...PROJECT_CATEGORIES.filter((category) => used.has(category.id)),
+];
+---
+
+<div class="projects-filters" data-projects-filters>
+  <div class="projects-shell">
+    <div
+      class="projects-filters__inner"
+      role="group"
+      aria-label="Filtrar proyectos por categoría"
+    >
+      <ul class="projects-filters__list" role="list">
+        {
+          options.map((option, index) => (
+            <li>
+              <button
+                class="projects-filter"
+                type="button"
+                data-project-filter={option.id}
+                aria-pressed={index === 0 ? 'true' : 'false'}
+                aria-controls={controls}
+              >
+                {option.label}
+              </button>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</div>

@@ -228,6 +228,18 @@ html:has([data-studio-page]) .site-footer__brand {
  * line without offsets. The frame is capped by the screen's height too.
  */
 @media (min-width: 64.01rem), (min-width: 48rem) and (orientation: landscape) {
+  /*
+   * Laptops (2026-09-15): the headings and the air between sections follow
+   * the screen's height too, so a short laptop window reads as the wide
+   * layout scaled down rather than as a very tall page. From about 1000 px of
+   * height the width terms decide, as before.
+   */
+  .studio-page {
+    --studio-h2: clamp(2.5rem, min(4.5vw, 8.5svh), 5rem);
+    --studio-h3: clamp(1.8rem, min(3vw, 5.6svh), 3.5rem);
+    --studio-space: clamp(5rem, min(11vw, 17svh), 10rem);
+  }
+
   .studio-hero__inner {
     min-block-size: 100svh;
     grid-template-columns: minmax(0, 40fr) minmax(0, 50fr);

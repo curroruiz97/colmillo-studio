@@ -1,0 +1,56 @@
+---
+/**
+ * The editorial block every module with copy is built from: an optional
+ * eyebrow in the project's accent, an optional heading and the paragraphs.
+ *
+ * Headings are `h2` because the project's name owns the page's only `h1`, so
+ * the outline of a case study reads as the name and then its chapters,
+ * whatever modules the project chose and in whatever order
+ * (`docs/CASE_STUDIES.md`).
+ *
+ * `align` and `width` are the only freedom a block has. They are bounded on
+ * purpose: `narrow`, `reading` and `wide` are all measures that stay readable,
+ * so a project can change its pace without leaving the studio's typography.
+ */
+interface Props {
+  eyebrow?: string | undefined;
+  title?: string | undefined;
+  body?: string[] | undefined;
+  align?: 'start' | 'center' | 'end' | undefined;
+  width?: 'narrow' | 'reading' | 'wide' | undefined;
+  class?: string | undefined;
+}
+
+const {
+  eyebrow,
+  title,
+  body = [],
+  align = 'start',
+  width = 'reading',
+  class: className,
+} = Astro.props;
+---
+
+<div class:list={['cs-block', className]} data-align={align} data-width={width}>
+  {
+    eyebrow && (
+      <p class="cs-block__eyebrow" data-cs-line>
+        {eyebrow}
+      </p>
+    )
+  }
+  {
+    title && (
+      <h2 class="cs-block__title" data-cs-line>
+        {title}
+      </h2>
+    )
+  }
+  {
+    body.map((paragraph) => (
+      <p class="cs-block__text" data-cs-line>
+        {paragraph}
+      </p>
+    ))
+  }
+</div>

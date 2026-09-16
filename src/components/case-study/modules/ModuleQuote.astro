@@ -1,0 +1,34 @@
+---
+/**
+ * 10 QUOTE — a real, approved quotation.
+ *
+ * The module exists only where a project supplies one; nothing here generates
+ * a testimonial, an attribution or a role, and a study with no quotation
+ * simply never includes this module (`docs/CASE_STUDIES.md`).
+ */
+import type { QuoteModule } from '@/data/caseStudy';
+
+interface Props {
+  module: QuoteModule;
+}
+
+const { module } = Astro.props;
+---
+
+<div class="cs-shell">
+  <figure class="cs-quote">
+    <blockquote class="cs-quote__text" data-cs-line>
+      <p>{module.text}</p>
+    </blockquote>
+    {
+      (module.author ?? module.role) && (
+        <figcaption class="cs-quote__source" data-cs-line>
+          {module.author && (
+            <span class="cs-quote__author">{module.author}</span>
+          )}
+          {module.role && <span class="cs-quote__role">{module.role}</span>}
+        </figcaption>
+      )
+    }
+  </figure>
+</div>

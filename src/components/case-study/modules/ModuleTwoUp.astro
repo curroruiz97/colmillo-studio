@@ -1,0 +1,21 @@
+---
+/**
+ * 04 TWO-UP MEDIA — two pieces together, never forced to match.
+ *
+ * Each keeps its own proportion, so an upright piece and a landscape one can
+ * share a row; `offset` drops the second one, which is what stops a pair from
+ * reading as a table of two cells.
+ */
+import CaseStudyMedia from '../CaseStudyMedia.astro';
+import type { TwoUpModule } from '@/data/caseStudy';
+
+interface Props {
+  module: TwoUpModule;
+}
+
+const { module } = Astro.props;
+---
+
+<div class="cs-shell cs-two" data-offset={module.offset ? '' : undefined}>
+  {module.items.map((media) => <CaseStudyMedia media={media} />)}
+</div>

@@ -637,12 +637,27 @@ html:has([data-services-page])[data-surface-tone='accent']
  * the right, Identidad and Contenido on the left.
  */
 @media (min-width: 64.01rem), (min-width: 48rem) and (orientation: landscape) {
+  /*
+   * Laptops (2026-09-15): the same two columns, with a type scale that follows
+   * the screen's height as well as its width, so a 620-790 px tall browser
+   * window keeps a whole layer, rule to last capability, inside one screen
+   * with air above and below. The `svh` terms only take over below about
+   * 1000 px of height; taller screens resolve to the width terms as before.
+   */
+  .services-page {
+    --sv-title: clamp(2.5rem, min(5vw, 9svh), 6rem);
+    --sv-claim: clamp(1.25rem, min(2.5vw, 4.6svh), 2.5rem);
+    --sv-body: clamp(1rem, min(1.25vw, 2.5svh), 1.375rem);
+  }
+
   .service-layer {
     min-block-size: 100svh;
   }
 
   .service-layer__inner {
-    --sv-pad-block: clamp(3.5rem, 9svh, 7rem);
+    /* The floor keeps the rule clear of the Instagram control on a short
+       window; from about 800 px of height the `svh` term decides. */
+    --sv-pad-block: clamp(4.5rem, 9svh, 7rem);
     min-block-size: 100svh;
     grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
     grid-template-areas: 'copy media';
@@ -653,6 +668,12 @@ html:has([data-services-page])[data-surface-tone='accent']
 
   .service-layer__media {
     justify-items: end;
+  }
+
+  /* The capability rows tighten on a short window, never below a comfortable
+     line; the rows keep their size from about 1000 px of height. */
+  .service-cap {
+    padding-block: clamp(0.4rem, calc(2.2svh - 0.55rem), 0.85rem);
   }
 
   .service-layer__frame {
@@ -926,7 +947,7 @@ html:has([data-services-page])[data-surface-tone='accent']
  * a short stretch of scroll before the next one rises, so it can be read
  * whole. The scroll is never held: nothing moves while it rests.
  */
-@media (min-width: 64.01rem) and (min-height: 40rem) and (prefers-reduced-motion: no-preference) {
+@media (min-width: 64.01rem) and (min-height: 34rem) and (prefers-reduced-motion: no-preference) {
   html:not([data-motion='reduced']) .service-layer {
     margin-block-end: var(--sv-hold);
   }
@@ -939,7 +960,7 @@ html:has([data-services-page])[data-surface-tone='accent']
  * and compression are for sticky layers only, so they are switched off here
  * (`SectionStack.ts` writes them inline).
  */
-@media (max-width: 64rem), (max-height: 39.99rem) {
+@media (max-width: 64rem), (max-height: 33.99rem) {
   .service-layer,
   .services-close {
     margin-block-start: calc(-1 * var(--sv-overlap));

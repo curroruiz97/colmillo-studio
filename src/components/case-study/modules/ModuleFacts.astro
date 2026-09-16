@@ -1,0 +1,36 @@
+---
+/**
+ * 11 PROJECT FACTS — verifiable data only.
+ *
+ * Duration, scope, platforms, markets: things that can be checked. No metric,
+ * no result and no performance claim is ever produced here; the module renders
+ * exactly the pairs a project supplies, as a description list.
+ */
+import type { FactsModule } from '@/data/caseStudy';
+
+interface Props {
+  module: FactsModule;
+}
+
+const { module } = Astro.props;
+---
+
+<div class="cs-shell">
+  {
+    module.title && (
+      <h2 class="cs-heading" data-cs-line>
+        {module.title}
+      </h2>
+    )
+  }
+  <dl class="cs-facts">
+    {
+      module.items.map((item) => (
+        <div class="cs-facts__row" data-cs-line>
+          <dt class="cs-facts__term">{item.label}</dt>
+          <dd class="cs-facts__value">{item.value}</dd>
+        </div>
+      ))
+    }
+  </dl>
+</div>

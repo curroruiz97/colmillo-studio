@@ -1,0 +1,45 @@
+---
+/**
+ * One run of legal prose: plain text, inline links and missing-data markers.
+ *
+ * Legal copy needs links inside sentences, which is why the documents in
+ * `src/data/legalPages.ts` are arrays of parts rather than strings. Nothing
+ * here uses `set:html`: every part is typed data, so a document can never
+ * inject markup and a translator can never break the page.
+ *
+ * A `pending` part renders the literal text `[PENDIENTE: …]` in the DOM, not
+ * only in the stylesheet, so it survives a copy-paste, a printed page and
+ * `scripts/release-check.mjs`, which refuses a release while one exists.
+ */
+import type { LegalRich } from '@/data/legalPages';
+
+interface Props {
+  rich: LegalRich;
+}
+
+const { rich } = Astro.props;
+
+const isExternal = (href: string) => /^https?:\/\//.test(href);
+---
+
+{
+  rich.map((part) => {
+    if (typeof part === 'string') return part;
+
+    if ('pending' in part) {
+      return <mark class="legal-pending">[PENDIENTE: {part.pending}]</mark>;
+    }
+
+    const external = isExternal(part.href);
+    return (
+      <a
+        href={part.href}
+        target={external ? '_blank' : undefined}
+        rel={external ? 'noopener noreferrer' : undefined}
+        data-cursor-label="Abrir"
+      >
+        {part.text}
+      </a>
+    );
+  })
+}

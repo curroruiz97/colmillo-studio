@@ -1,0 +1,51 @@
+---
+/**
+ * /contacto/ — 01 Hero
+ *
+ * A charcoal first screen built on empty space rather than on a split: no
+ * media column, no pair on the middle line. One large typographic block sits
+ * low and to the left over about 60% of the measure, the supporting line under
+ * it, and the rest of the screen is left alone for the unfinished trajectory
+ * (`ContactOrbit.astro`), which crosses the void on the right and bleeds off
+ * the edge.
+ *
+ * Sentence case, and the title's own full stop is the orange disc every other
+ * route uses. The entrance — title, then the line, then the arc drawing itself
+ * on — is CSS (`contact-page.css`), so it starts with the first paint and
+ * never waits for a script.
+ *
+ * The hero is sticky: the white brief sheet below rises over it as the page
+ * scrolls. That is layout, not motion, so it happens with no JavaScript and
+ * under reduced motion too.
+ */
+import ContactOrbit from '@/components/contact/ContactOrbit.astro';
+import { contactHero } from '@/data/contactPage';
+import { splitFullStop } from '@/data/servicesPage';
+
+const { text, stop } = splitFullStop(contactHero.title);
+---
+
+<header
+  class="contact-hero"
+  data-surface-tone="dark"
+  data-contact-hero
+  aria-labelledby="contact-page-title"
+>
+  <div class="contact-orbit-slot" aria-hidden="true">
+    <ContactOrbit />
+  </div>
+
+  <div class="contact-shell contact-hero__inner">
+    <h1 id="contact-page-title" class="contact-hero__title">
+      <span class="contact-line"
+        ><span
+          >{text}{
+            stop && <span class="contact-hero__dot" aria-hidden="true" />
+          }</span
+        ></span
+      >
+    </h1>
+
+    <p class="contact-hero__lede">{contactHero.lede}</p>
+  </div>
+</header>

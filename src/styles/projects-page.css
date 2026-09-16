@@ -1,0 +1,981 @@
+/*
+ * PROJECTS PAGE — /proyectos/
+ *
+ * The studio's portfolio, on one surface: the page's own white, from the hero
+ * through the filter and the masonry to the closing question and the footer
+ * (2026-09-16, user direction). The work is the only colour on the route.
+ *
+ * The hero keeps the composition of `/studio/` and `/servicios/` — title on
+ * the left, media frame on the right, both on the viewport's middle line, an
+ * orange disc for the full stop — but none of their dark ground, so nothing
+ * interrupts the sheet and there is no seam, band or rounded lift anywhere on
+ * it. The pictures and the orange marks carry the whole route.
+ *
+ * Contrast: ink on white ≈ 18.9:1; ink at 55% on white ≈ 7.3:1; #cd5730 on
+ * white ≈ 4.1:1, so brand orange carries marks and large type only and
+ * #b54d2a carries the small orange text.
+ *
+ * Sentence case throughout; display type is the system stack until the
+ * licensed faces arrive (`fonts.css`).
+ */
+
+/*
+ * Nothing on this route overrides the canvas or the footer: both are the
+ * shared white, so an overscroll at either end of the page shows the same
+ * paper every section is on.
+ */
+.projects-page {
+  --pj-radius: clamp(0.75rem, 1.1vw, 1.25rem);
+
+  /* One type scale for the route, in step with the other editorial pages. */
+  --pj-title: clamp(3rem, 15vw, 8rem);
+  --pj-h2: clamp(2.25rem, 5vw, 4.5rem);
+  --pj-body: clamp(1.125rem, 1.25vw, 1.375rem);
+  --pj-space: clamp(4.5rem, 10vw, 9rem);
+
+  /* The masonry's air. It follows the width alone: the gallery is never held
+     to one screen, so height plays no part here. */
+  --pj-gap: clamp(1.25rem, 2.6vw, 3.25rem);
+
+  /* The page gutter plus the edge menu's rail, on both sides from 48rem so
+     the compositions sit around the viewport's centre. */
+  --pj-pad-end: calc(var(--page-gutter) + var(--edge-rail-clearance));
+  --pj-pad-start: var(--page-gutter);
+
+  overflow-x: clip;
+  background: var(--color-white);
+}
+
+@media (min-width: 48rem) {
+  .projects-page {
+    --pj-pad-start: var(--pj-pad-end);
+  }
+}
+
+/* The route's container: one panoramic measure, centred. */
+.projects-shell {
+  box-sizing: border-box;
+  inline-size: 100%;
+  max-inline-size: calc(
+    var(--pj-measure, 100rem) + var(--pj-pad-start) + var(--pj-pad-end)
+  );
+  margin-inline: auto;
+  padding-inline: var(--pj-pad-start) var(--pj-pad-end);
+}
+
+.projects-page :focus-visible {
+  outline: 3px solid var(--color-brand-orange);
+  outline-offset: 4px;
+}
+
+/* A line of display type that rises out of its own clip. The padding keeps
+   descenders inside it; the negative margin gives the space back. */
+.projects-line {
+  display: block;
+  overflow: clip;
+  padding-block: 0.12em 0.22em;
+  margin-block: -0.12em -0.22em;
+}
+
+.projects-line > span {
+  display: inline-block;
+}
+
+/* =============================================================== hero === */
+
+.projects-hero {
+  position: relative;
+  z-index: 0;
+  display: grid;
+  min-block-size: 100vh;
+  min-block-size: 100svh;
+  background: var(--color-white);
+  color: var(--color-brand-ink);
+}
+
+/* Portrait and narrow screens: the title over the frame, the pair centred. */
+.projects-hero__inner {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: center;
+  gap: clamp(2.5rem, 7vw, 4rem);
+  padding-block: clamp(5.5rem, 13svh, 8rem) clamp(3rem, 8svh, 5rem);
+}
+
+.projects-hero__title {
+  max-inline-size: none;
+  margin: 0;
+  /* "Proyectos." is about 4.9em wide at this tracking: it fits 320px. */
+  font-size: var(--pj-title);
+  font-weight: 900;
+  letter-spacing: -0.06em;
+  line-height: 0.9;
+  overflow-wrap: normal;
+}
+
+/* The full stop is a small orange disc, as on Studio and Servicios. */
+.projects-hero__dot {
+  display: inline-block;
+  inline-size: 0.15em;
+  aspect-ratio: 1;
+  margin-inline-start: 0.05em;
+  border-radius: 50%;
+  background: var(--color-brand-orange);
+}
+
+.projects-hero__media {
+  inline-size: 100%;
+}
+
+/*
+ * The slot for the route's loop, already at its final size and proportion.
+ * Empty it is a plain surface one step off the page with a hairline, and no
+ * note: it has to read as a decision, not as something missing. The file
+ * replaces the surface and nothing else
+ * (`projectsHeroMedia`, `src/config/assets.ts`).
+ */
+.projects-hero__frame {
+  aspect-ratio: 16 / 9;
+  border-radius: var(--pj-radius);
+  background: rgb(18 16 15 / 0.04);
+  box-shadow: inset 0 0 0 1px rgb(18 16 15 / 0.09);
+}
+
+/* With the loop the frame is only the picture: no plate, radius or ground. */
+.projects-hero[data-hero-media] .projects-hero__frame {
+  aspect-ratio: var(--pj-hero-w) / var(--pj-hero-h);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+/*
+ * The loop fills the frame at its own proportion — `contain`, so no head,
+ * hand or floating frame is ever cropped and nothing is stretched — and its
+ * outer 8% fades into the sheet. That band is not decoration: the file's
+ * ground is #f4f2ee, a shade under the route's white, so a hard-edged
+ * rectangle of it would read as a pale panel behind the drawing. The drawing
+ * itself keeps at least 8.1% of empty ground on every side of every frame
+ * (measured in Chromium, `src/config/assets.ts`), so the band only ever
+ * touches ground. No filter, tint or blend goes near the ink.
+ */
+.projects-hero[data-hero-media] .page-media__asset {
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: contain;
+  object-position: 50% 50%;
+  mask-image:
+    linear-gradient(to right, transparent, #000 8%, #000 92%, transparent),
+    linear-gradient(to bottom, transparent, #000 8%, #000 92%, transparent);
+  mask-composite: intersect;
+}
+
+/*
+ * Portrait phones: the loop spans the screen but the edge menu's rail, the
+ * way `/servicios/` lets its own loop run to the edge. It can, because the
+ * band above already fades its ground into the sheet, so there is no seam to
+ * meet the screen's edge; without the bleed the drawing's own empty margins
+ * would leave it too small to read at 390 px.
+ */
+@media (max-width: 47.99rem) {
+  .projects-hero[data-hero-media] .projects-hero__media {
+    inline-size: auto;
+    margin-inline: calc(-1 * var(--pj-pad-start)) calc(-1 * var(--page-gutter));
+  }
+}
+
+/*
+ * Entrance, once, from the first paint: the title rises out of its clip and
+ * the frame settles a beat later. CSS, so it never waits for the route's
+ * motion chunk. Reduced motion skips it, here and in `reduced-motion.css`.
+ * The curves are GSAP's power3.out and power2.out.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  html:not([data-motion='reduced']) [data-projects-hero-title] {
+    animation: projects-rise 0.95s cubic-bezier(0.165, 0.84, 0.44, 1) 0.1s both;
+  }
+
+  html:not([data-motion='reduced']) .projects-hero__media {
+    animation: projects-arrive 1.1s cubic-bezier(0.215, 0.61, 0.355, 1) 0.3s
+      both;
+  }
+}
+
+@keyframes projects-rise {
+  from {
+    transform: translateY(108%);
+  }
+}
+
+@keyframes projects-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+/*
+ * Landscape screens: title on the left, frame on the right, 10% of breath
+ * between them, both on the viewport's middle line. The split and the type
+ * size are the ones `/servicios/` already uses, because "Proyectos." and
+ * "Servicios." are the same ten characters and have to hold their line at
+ * every width: a narrower column or a larger size wraps the orange full stop
+ * onto a second line. The frame is capped by the screen's height too, so a
+ * short laptop window keeps the wide composition instead of falling out of
+ * the first screen.
+ */
+@media (min-width: 64.01rem), (min-width: 48rem) and (orientation: landscape) {
+  .projects-hero__inner {
+    --pj-measure: 100rem;
+    min-block-size: 100svh;
+    grid-template-columns: minmax(0, 46fr) minmax(0, 44fr);
+    align-content: stretch;
+    align-items: center;
+    column-gap: 10%;
+    padding-block: clamp(4rem, 10svh, 6rem);
+  }
+
+  .projects-hero__title {
+    font-size: clamp(3.5rem, 8vw, 10.5rem);
+  }
+
+  .projects-hero__media {
+    justify-self: end;
+    /* 16:9 inside whatever height the screen has left. */
+    inline-size: min(100%, calc((100svh - 14rem) * 16 / 9));
+  }
+
+  /*
+   * With the loop the split changes, as it does on `/servicios/`: the title
+   * keeps its own width and the panorama takes the rest of the measure —
+   * about 57% at 1440 px — so the drawing has presence instead of sitting in
+   * a box. The gap between the columns is small because the file's own empty
+   * margins already hold the figures well clear of the title. The height cap
+   * keeps the whole composition inside the first screen on a short laptop
+   * window.
+   */
+  .projects-hero[data-hero-media] .projects-hero__inner {
+    grid-template-columns: max-content minmax(0, 1fr);
+    column-gap: clamp(1.5rem, 4vw, 5rem);
+  }
+
+  .projects-hero[data-hero-media] .projects-hero__media {
+    inline-size: min(
+      100%,
+      calc((100svh - 12rem) * var(--pj-hero-w) / var(--pj-hero-h))
+    );
+  }
+}
+
+/* ============================================================ gallery === */
+
+/*
+ * The same white the hero stands on: no lift, no radius, no rule. The
+ * archive simply begins under the title, and the only change of surface on
+ * the route is the black close.
+ */
+.projects-gallery {
+  position: relative;
+  z-index: 1;
+  background: var(--color-white);
+  color: var(--color-brand-ink);
+}
+
+/* ---------------------------------------------------------- the filter --- */
+
+/*
+ * The filter belongs to the route's chunk: it is only shown once that chunk
+ * has mounted (`data-filters-ready`). Without JavaScript the archive is
+ * simply complete, so no control is offered that could not work.
+ */
+.projects-filters {
+  display: none;
+}
+
+.projects-page[data-filters-ready] .projects-filters {
+  display: block;
+}
+
+@media (min-width: 48rem) {
+  .projects-page[data-filters-ready] .projects-filters {
+    position: sticky;
+    z-index: 4;
+    inset-block-start: 0;
+  }
+}
+
+.projects-filters__inner {
+  /* A short, quiet band: the gallery's air belongs to the pictures. */
+  padding-block: clamp(1.5rem, 3vw, 2.25rem) clamp(1rem, 2vw, 1.5rem);
+  background: var(--color-white);
+  transition: box-shadow var(--duration-medium) linear;
+}
+
+/* From 48rem the band is sticky, so it has to leave room for the fixed
+   Instagram control in the corner it scrolls under. The list is
+   left-aligned and never reaches it. */
+@media (min-width: 48rem) {
+  .projects-filters__inner {
+    padding-inline-end: calc(var(--pj-pad-end) + 7rem);
+  }
+}
+
+/* Stuck: one hairline, nothing else. Set by the chunk's sentinel. */
+.projects-filters[data-stuck] .projects-filters__inner {
+  box-shadow: 0 1px 0 rgb(18 16 15 / 0.12);
+}
+
+.projects-filters__list {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem clamp(1.25rem, 2.4vw, 2.75rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/*
+ * Phones keep one row and scroll it sideways rather than stacking five lines
+ * over the first picture; no dropdown. The row bleeds into both gutters so
+ * the first word still sits on the page's left edge, and its own end padding
+ * lets the last one rest clear of the Instagram control.
+ */
+@media (max-width: 47.99rem) {
+  .projects-filters__list {
+    margin-inline: calc(-1 * var(--pj-pad-start)) calc(-1 * var(--pj-pad-end));
+    padding-inline: var(--pj-pad-start) calc(var(--pj-pad-end) + 3rem);
+    /* A sideways scroller clips vertically too, so the focus ring is paid for
+       in padding and the space given back in margin. */
+    padding-block: 0.5rem;
+    margin-block: -0.5rem;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+  }
+
+  .projects-filters__list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .projects-filters__list > li {
+    flex: none;
+  }
+}
+
+@media (min-width: 48rem) {
+  .projects-filters__list {
+    flex-wrap: wrap;
+  }
+}
+
+/*
+ * One category. At rest the word alone in soft ink; active it is the accent
+ * with a short rule drawn under it. Nothing moves but the rule.
+ */
+.projects-filter {
+  position: relative;
+  display: inline-block;
+  padding: 0.35rem 0 0.55rem;
+  border: 0;
+  background: none;
+  color: rgb(18 16 15 / 0.55);
+  font: inherit;
+  font-size: clamp(0.95rem, 1.1vw, 1.15rem);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+  cursor: pointer;
+  transition: color var(--duration-medium) linear;
+}
+
+.projects-filter::after {
+  position: absolute;
+  inset-block-end: 0.1rem;
+  inset-inline-start: 0;
+  inline-size: 100%;
+  block-size: 2px;
+  background: var(--color-brand-orange);
+  content: '';
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 420ms var(--ease-bite);
+}
+
+.projects-filter:hover {
+  color: var(--color-brand-ink);
+}
+
+.projects-filter[aria-pressed='true'] {
+  color: var(--color-accent-text);
+}
+
+.projects-filter[aria-pressed='true']::after {
+  transform: scaleX(1);
+}
+
+/* ----------------------------------------------------------- the grid --- */
+
+/*
+ * The masonry. One twelve-column track; every piece takes its columns and its
+ * proportion from its `format` alone (`src/data/projects.ts`), so the rhythm
+ * is directed from the data and no card carries a rule of its own. `dense`
+ * keeps the rows packed when a filter removes one half of a pairing.
+ *
+ *   portrait   4:5    5 columns
+ *   square     1:1    5 columns
+ *   landscape  3:2    7 columns
+ *   wide      16:9   12 columns
+ *
+ * Phones read one column and keep every proportion.
+ */
+.projects-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: var(--pj-gap);
+  margin: 0;
+  padding: 0;
+  /*
+   * Only enough air to close the grid. The route's real breath before the
+   * question is the close's own top padding, and keeping it there is what
+   * lets the sticky filter release right after the last piece instead of
+   * hanging over the closing question on a page with no change of surface.
+   */
+  padding-block-end: clamp(1.5rem, 3vw, 3rem);
+  list-style: none;
+}
+
+.projects-item[data-format='portrait'] {
+  --pj-ratio: 4 / 5;
+}
+
+.projects-item[data-format='square'] {
+  --pj-ratio: 1 / 1;
+}
+
+.projects-item[data-format='landscape'] {
+  --pj-ratio: 3 / 2;
+}
+
+.projects-item[data-format='wide'] {
+  --pj-ratio: 16 / 9;
+}
+
+/* A filtered-out piece leaves the flow entirely, so the grid repacks. */
+.projects-item[hidden] {
+  display: none;
+}
+
+@media (min-width: 48rem) {
+  .projects-grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-auto-flow: row dense;
+  }
+
+  /* Tablets: two even columns, the proportions still doing the work. */
+  .projects-item {
+    grid-column: span 6;
+  }
+
+  .projects-item[data-format='wide'] {
+    grid-column: span 12;
+  }
+
+  /*
+   * The stagger. Pieces of different formats start at different heights, so a
+   * row reads as a composition rather than as a table line. It is a margin,
+   * not a transform, so the filter's own movement never fights it.
+   */
+  .projects-item[data-format='landscape'] {
+    margin-block-start: clamp(1rem, 2.4vw, 3rem);
+  }
+
+  .projects-item[data-format='square'] {
+    margin-block-start: clamp(2rem, 5vw, 6rem);
+  }
+}
+
+/*
+ * Laptops and up keep the asymmetric spans: 1366, 1440, 1536 and 1600 all
+ * read the twelve-column composition, only with less air.
+ */
+@media (min-width: 64.01rem) {
+  .projects-item[data-format='portrait'],
+  .projects-item[data-format='square'] {
+    grid-column: span 5;
+  }
+
+  .projects-item[data-format='landscape'] {
+    grid-column: span 7;
+  }
+}
+
+/* ---------------------------------------------------------- the piece --- */
+
+.projects-card {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+/*
+ * The frame is the piece's fixed geometry: it never moves, scales or
+ * reshapes. Only the surface inside it is ever clipped, by the shared
+ * pressure dent (`PressSurface.ts`), so the page shows through the bite while
+ * the grid keeps its exact measurements.
+ */
+.projects-card__frame {
+  position: relative;
+  aspect-ratio: var(--pj-ratio, 3 / 2);
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: var(--pj-radius);
+}
+
+.projects-card__surface {
+  position: absolute;
+  inset: 0;
+  background: var(--color-brand-cream-deep);
+}
+
+/* The cover fills the frame, whatever it is: a photograph or one of the
+   abstract compositions. The archive's card owns that geometry, not the older
+   card rules in `layout.css`. */
+.projects-card__cover {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  aspect-ratio: auto;
+  border: 0;
+  border-radius: 0;
+  object-fit: cover;
+}
+
+/*
+ * The name is always there, under the picture: nobody should need a pointer
+ * to read it. The categories are what hover adds, and a screen without hover
+ * simply keeps them open.
+ */
+.projects-card__meta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding-block-start: clamp(0.7rem, 1.1vw, 1rem);
+}
+
+.projects-card__title {
+  margin: 0;
+  font-size: clamp(1.05rem, 1.45vw, 1.6rem);
+  font-weight: 850;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  transition: color var(--duration-medium) linear;
+}
+
+.projects-card__tags {
+  max-inline-size: none;
+  margin: 0;
+  color: rgb(18 16 15 / 0.55);
+  font-size: clamp(0.8rem, 0.95vw, 0.95rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  opacity: 0;
+  transform: translateY(0.4em);
+  transition:
+    transform 420ms var(--ease-bite),
+    opacity 240ms linear;
+}
+
+.projects-card__arrow {
+  margin-inline-start: auto;
+  color: var(--color-accent-text);
+  font-weight: 800;
+  opacity: 0;
+  transform: translate(-0.35em, 0.35em) scale(0.7);
+  transition:
+    transform 420ms 80ms var(--ease-bite),
+    opacity 220ms 80ms linear;
+}
+
+@media (hover: hover) {
+  .projects-card:hover .projects-card__title {
+    color: var(--color-accent-text);
+  }
+
+  .projects-card:hover :is(.projects-card__tags, .projects-card__arrow) {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.projects-card:focus-visible .projects-card__title {
+  color: var(--color-accent-text);
+}
+
+.projects-card:focus-visible :is(.projects-card__tags, .projects-card__arrow) {
+  opacity: 1;
+  transform: none;
+}
+
+/* Without hover there is nothing to ask with, so everything stays open. */
+@media (hover: none) {
+  .projects-card__tags,
+  .projects-card__arrow {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Nothing matched the filter. Announced politely, never as an error. */
+.projects-empty {
+  max-inline-size: 32rem;
+  margin: 0;
+  padding-block: clamp(3rem, 8vw, 6rem) var(--pj-space);
+  color: rgb(18 16 15 / 0.6);
+  font-size: var(--pj-body);
+}
+
+.projects-empty[hidden] {
+  display: none;
+}
+
+/* ============================================================== close === */
+
+/*
+ * The last of the sheet: the client's panoramic scene, and the decision in the
+ * gap it leaves. Same intention as the `/servicios/` close and the same
+ * geometry, on this route's white instead of its black.
+ *
+ * The picture is 2172x724 (exactly 3:1) and `npm run media:projects` lifts its
+ * paper to pure `--color-white`, so the derivative's empty ground and the
+ * route's sheet are the same value. That is what makes this composition
+ * possible: the picture has no visible edges on the page, only its sculptures,
+ * so it can be drawn at whatever size and position the scene wants without a
+ * seam, band or field anywhere. The route stays one white surface end to end
+ * (2026-09-16) and the section paints nothing of its own.
+ *
+ * Only the two ends are wanted, and its clear middle is just 38% of its width,
+ * so a single layer would either crop the sculptures away or squeeze the copy.
+ * Each end is drawn as its own wing instead, pushed outwards (`--pj-cta-shift`)
+ * only as far as keeps `--pj-cta-clear` free in the middle. Ink reaches 30.3%
+ * of the width from the left and starts again at 68.1% (measured on the
+ * derivative), so `--pj-cta-depth` is 32% of the drawn width on both sides and
+ * the copy never meets a sculpture at any width.
+ *
+ * `--pj-cta-h` is the picture's drawn height, and it is capped rather than tied
+ * to the section: at the section's full height the file is blown up to about
+ * 165% of the screen's width, which crops everything but the orange ribbon. Held
+ * to about a third of a tall screen the whole sculpture is legible — metal
+ * blocks included — and the sculptures read as two marks entering the sheet
+ * rather than as a background.
+ */
+.projects-close {
+  --pj-cta-ratio: 3; /* 2172 / 724 */
+  /* The width the copy is held to. */
+  --pj-cta-room: clamp(30rem, 48vw, 56rem);
+  /*
+   * What the sculptures have to keep clear: the copy's room plus air on both
+   * sides. Without that margin the two are the same number and the ink lands
+   * exactly on the copy's edge, because the reach below is clamped to half of
+   * whatever is left over.
+   */
+  --pj-cta-clear: calc(var(--pj-cta-room) + 2 * clamp(1.5rem, 4vw, 4rem));
+  /* Portrait: the height of the top and bottom bands. */
+  --pj-cta-band: clamp(9rem, max(26svh, 42vw), 20rem);
+  /* How far it rides up over the section before it, the `/servicios/` figure. */
+  --pj-cta-lift: clamp(1.25rem, 5vw, 2rem);
+  position: relative;
+  /* Over the gallery, which is 1: the close is what rises. */
+  z-index: 2;
+  isolation: isolate;
+  display: grid;
+  align-content: center;
+  /* A whole screen, like the `/servicios/` close. */
+  min-block-size: max(38rem, 100svh);
+  margin-block-start: calc(-1 * var(--pj-cta-lift));
+  padding-block: clamp(3.5rem, 8vw, 7rem);
+  /* The rounded band the stack opens with is only real if it clips. */
+  overflow: clip;
+  background: var(--color-white);
+  color: var(--color-brand-ink);
+  text-align: center;
+}
+
+.projects-close__scene {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  container-type: size;
+  pointer-events: none;
+}
+
+.projects-close__wing {
+  --pj-cta-h: min(100cqh, clamp(20rem, 42vw, 34rem));
+  --pj-cta-img-w: calc(var(--pj-cta-h) * var(--pj-cta-ratio));
+  --pj-cta-depth: calc(var(--pj-cta-img-w) * 0.32);
+  --pj-cta-reach: clamp(
+    0px,
+    calc((100cqw - var(--pj-cta-clear)) / 2),
+    var(--pj-cta-depth)
+  );
+  --pj-cta-shift: calc(var(--pj-cta-depth) - var(--pj-cta-reach));
+  position: absolute;
+  /* Centred on the section: the picture's own top and bottom edges are the
+     page's white, so nothing marks where it begins or ends. */
+  inset-block-start: 50%;
+  block-size: var(--pj-cta-h);
+  translate: 0 -50%;
+  /* Never past the picture's empty middle, whatever the screen's shape. */
+  inline-size: min(50cqw, calc(var(--pj-cta-img-w) / 2 - var(--pj-cta-shift)));
+  overflow: hidden;
+}
+
+/*
+ * Each wing fades on three sides. The inner one is obvious: the picture has to
+ * give way to the copy. The top and the bottom are not decoration either — the
+ * master is itself a crop, so its sculptures meet its frame, and drawn at less
+ * than the section's height that frame would cut a straight edge across the
+ * orange in the middle of the sheet. Faded, the sculptures dissolve into the
+ * page instead, which is what the hero on this route already does with its own
+ * ground.
+ */
+.projects-close__wing--start {
+  inset-inline-start: 0;
+  -webkit-mask-image:
+    linear-gradient(to right, #000 calc(100% - 7rem), #0000),
+    linear-gradient(to bottom, #0000, #000 14%, #000 86%, #0000);
+  mask-image:
+    linear-gradient(to right, #000 calc(100% - 7rem), #0000),
+    linear-gradient(to bottom, #0000, #000 14%, #000 86%, #0000);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+
+.projects-close__wing--end {
+  inset-inline-end: 0;
+  -webkit-mask-image:
+    linear-gradient(to left, #000 calc(100% - 7rem), #0000),
+    linear-gradient(to bottom, #0000, #000 14%, #000 86%, #0000);
+  mask-image:
+    linear-gradient(to left, #000 calc(100% - 7rem), #0000),
+    linear-gradient(to bottom, #0000, #000 14%, #000 86%, #0000);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+
+/* Drawn at the section's own height and three times as wide, which is the
+   picture's exact proportion: it is never stretched, only cropped. */
+.projects-close__image {
+  position: absolute;
+  inset-block-start: 0;
+  inline-size: var(--pj-cta-img-w);
+  block-size: 100%;
+  max-inline-size: none;
+}
+
+.projects-close__wing--start .projects-close__image {
+  inset-inline-start: calc(-1 * var(--pj-cta-shift));
+}
+
+.projects-close__wing--end .projects-close__image {
+  inset-inline-end: calc(-1 * var(--pj-cta-shift));
+}
+
+/*
+ * The copy, in the picture's gap: held to the same room the wings keep clear
+ * and, on top of that, never closer to either edge than the page gutter plus
+ * the edge menu's rail.
+ */
+.projects-close__inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: clamp(1.25rem, 2.4vw, 2rem);
+  inline-size: min(
+    var(--pj-cta-room),
+    100% - 2 * (var(--page-gutter) + var(--edge-rail-clearance))
+  );
+  margin-inline: auto;
+}
+
+.projects-close__title {
+  max-inline-size: 14ch;
+  margin: 0;
+  font-size: var(--pj-h2);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1.02;
+  text-wrap: balance;
+}
+
+.projects-close__mark {
+  color: var(--color-brand-orange);
+}
+
+/* Ink at 62% on white ≈ 6.5:1. */
+.projects-close__lede {
+  max-inline-size: 44ch;
+  margin: 0;
+  color: rgb(18 16 15 / 0.62);
+  font-size: var(--pj-body);
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.projects-close__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem 1.25rem;
+  margin: 0;
+  /* Room for the slabs under the buttons. */
+  padding: clamp(0.5rem, 1.2vw, 1rem) 0 0.4rem;
+  list-style: none;
+}
+
+/* A keyboard user can reach a path before its arrival has run. */
+.projects-close__item:focus-within {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/*
+ * The shared bite button, a size up and without a line break: orange with an
+ * ink slab, or white with an orange slab. Hover and focus press it part of the
+ * way into the slab, a click all the way — the same behaviour as the
+ * `/servicios/` close, in this route's colours.
+ */
+.projects-close .projects-cta {
+  --cta-bg: var(--color-brand-orange);
+  --cta-slab: var(--color-brand-ink);
+  min-block-size: 4.5rem;
+  max-inline-size: none;
+  padding: 1.15rem 2.4rem;
+  background: var(--cta-bg);
+  box-shadow: 0 0.4rem 0 var(--cta-slab);
+  font-size: clamp(1.0625rem, 1.2vw, 1.25rem);
+  white-space: nowrap;
+  cursor: pointer;
+  /* `motion.css` sets the bite button's transition in a later cascade layer,
+     which would drop the press; hence `!important`. */
+  transition:
+    border-radius var(--duration-medium) var(--ease-bite),
+    box-shadow var(--duration-fast) var(--ease-bite),
+    translate var(--duration-fast) var(--ease-bite) !important;
+}
+
+.projects-close .projects-cta[data-variant='quiet'] {
+  --cta-bg: var(--color-white);
+  --cta-slab: var(--color-brand-orange);
+}
+
+.projects-cta__label::after {
+  display: inline-block;
+  margin-inline-start: 0.35em;
+  content: '↗';
+  content: '↗' / '';
+  transition: translate var(--duration-medium) var(--ease-bite);
+}
+
+@media (hover: hover) {
+  .projects-close .projects-cta:hover {
+    box-shadow: 0 0.18rem 0 var(--cta-slab);
+    translate: 0 0.22rem;
+  }
+}
+
+.projects-close .projects-cta:focus-visible {
+  box-shadow: 0 0.18rem 0 var(--cta-slab);
+  translate: 0 0.22rem;
+}
+
+.projects-close .projects-cta:active {
+  box-shadow: 0 0 0 var(--cta-slab);
+  translate: 0 0.4rem;
+}
+
+.projects-cta:is(:hover, :focus-visible) .projects-cta__label::after {
+  translate: 0.14em -0.14em;
+}
+
+/*
+ * Portrait screens and phones: the left wing becomes a band across the top and
+ * the right one a band across the foot, each fading into the sheet towards the
+ * copy, which sits between them.
+ */
+@media (orientation: portrait), (max-width: 47.99rem) {
+  .projects-close__wing {
+    /* The band is the drawn height here, so everything below it re-derives. */
+    --pj-cta-h: var(--pj-cta-band);
+    --pj-cta-reach: min(var(--pj-cta-depth), 44cqw);
+    inset-block-start: auto;
+    translate: none;
+    inline-size: min(
+      100cqw,
+      calc(var(--pj-cta-img-w) / 2 - var(--pj-cta-shift))
+    );
+  }
+
+  /* The outer edge of a band is a cut through the sculpture too, so it is
+     given the same short fade as the inner one. */
+  .projects-close__wing--start {
+    inset-block-start: 0;
+    -webkit-mask-image:
+      linear-gradient(#0000, #000 9%, #000 50%, #0000),
+      linear-gradient(to right, #000 calc(100% - 4rem), #0000);
+    mask-image:
+      linear-gradient(#0000, #000 9%, #000 50%, #0000),
+      linear-gradient(to right, #000 calc(100% - 4rem), #0000);
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+  }
+
+  .projects-close__wing--end {
+    inset-block-end: 0;
+    -webkit-mask-image:
+      linear-gradient(to top, #0000, #000 9%, #000 50%, #0000),
+      linear-gradient(to left, #000 calc(100% - 4rem), #0000);
+    mask-image:
+      linear-gradient(to top, #0000, #000 9%, #000 50%, #0000),
+      linear-gradient(to left, #000 calc(100% - 4rem), #0000);
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+  }
+
+  /* Keeps the copy clear of both bands; the section grows if it needs to. */
+  .projects-close {
+    padding-block: calc(var(--pj-cta-band) * 0.72);
+  }
+}
+
+@media (max-width: 29.99rem) {
+  /*
+   * The narrowest screens stack the tallest copy under the shortest bands, so
+   * the 0.72 above is not enough: at 320 the top sculpture still reached a
+   * tenth of the way behind the question. Here the copy clears the band
+   * outright and the section simply grows.
+   */
+  .projects-close {
+    padding-block: var(--pj-cta-band);
+  }
+
+  /* The buttons sit level with the edge menu's tab: they clear it. */
+  .projects-close__actions {
+    flex-direction: column;
+    align-items: stretch;
+    inline-size: min(
+      100%,
+      18rem,
+      100vw - 2 * (var(--page-gutter) + var(--edge-rail-clearance))
+    );
+  }
+
+  .projects-close .projects-cta {
+    inline-size: 100%;
+  }
+}

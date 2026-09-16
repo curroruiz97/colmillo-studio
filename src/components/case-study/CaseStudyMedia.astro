@@ -1,0 +1,114 @@
+---
+/**
+ * One piece of media inside a case study: an image, a video or one of the
+ * abstract compositions that stand in while a slot is empty.
+ *
+ * The geometry is always the same three layers, which is what lets the
+ * signature effects exist without any component knowing about them:
+ *
+ *   .cs-media__frame    fixed box; never scales, moves or reshapes
+ *   .cs-media__surface  the only layer ever clipped (the pressure dent and
+ *                       the bite reveal both write `clip-path` here)
+ *   the asset itself    fills the surface
+ *
+ * `press` binds the shared dent (`PressSurface.ts`) under a fine pointer, and
+ * `bite` marks the surface for the arrival mask; both are opt-in per module,
+ * because neither is meant to be everywhere.
+ *
+ * A caption makes the piece a `<figure>`; without one it is a plain box, so no
+ * empty figure reaches the accessibility tree. Media with an empty `alt` is
+ * decorative and hidden; informative media carries its own description.
+ */
+import type { CaseStudyMedia } from '@/data/caseStudy';
+
+interface Props {
+  media: CaseStudyMedia;
+  /** In the first screen: fetched eagerly, and a loop may start at once. */
+  priority?: boolean | undefined;
+  /** Gives under a fine pointer, with the archive's dent. */
+  press?: boolean | undefined;
+  /** Arrives behind the studio's concave mask. */
+  bite?: boolean | undefined;
+  class?: string | undefined;
+}
+
+const {
+  media,
+  priority = false,
+  press = false,
+  bite = false,
+  class: className,
+} = Astro.props;
+
+const caption = media.caption;
+const Root = caption ? 'figure' : 'div';
+const decorative = media.kind === 'art' || media.alt === '';
+const ratio = media.ratio ?? 'auto';
+const proportion =
+  media.kind === 'art'
+    ? undefined
+    : `--cs-w: ${media.width}; --cs-h: ${media.height}`;
+const loop = media.kind === 'video' && media.mode !== 'controls';
+---
+
+<Root
+  class:list={['cs-media', className]}
+  data-ratio={ratio}
+  style={proportion}
+>
+  <div class="cs-media__frame" data-press-frame={press ? '' : undefined}>
+    <div
+      class="cs-media__surface"
+      data-press-surface={press ? '' : undefined}
+      data-cs-bite={bite ? '' : undefined}
+    >
+      {
+        media.kind === 'image' && (
+          <img
+            class="cs-media__asset"
+            src={media.src}
+            width={media.width}
+            height={media.height}
+            alt={media.alt}
+            style={media.focus ? `object-position: ${media.focus}` : undefined}
+            loading={priority ? 'eager' : 'lazy'}
+            fetchpriority={priority ? 'high' : 'auto'}
+            decoding="async"
+          />
+        )
+      }
+      {
+        media.kind === 'video' && (
+          <video
+            class="cs-media__asset"
+            muted={loop}
+            loop={loop}
+            playsinline
+            controls={!loop}
+            preload={priority ? 'metadata' : 'none'}
+            poster={media.poster}
+            width={media.width}
+            height={media.height}
+            aria-label={decorative ? undefined : media.alt}
+            aria-hidden={decorative && loop ? 'true' : undefined}
+            tabindex={loop ? '-1' : undefined}
+            data-cs-video={loop ? '' : undefined}
+          >
+            {media.webm && <source src={media.webm} type="video/webm" />}
+            {media.mp4 && <source src={media.mp4} type="video/mp4" />}
+          </video>
+        )
+      }
+      {
+        media.kind === 'art' && (
+          <div class="cs-art" data-art={media.variant} aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </div>
+        )
+      }
+    </div>
+  </div>
+  {caption && <figcaption class="cs-media__caption">{caption}</figcaption>}
+</Root>

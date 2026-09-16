@@ -371,7 +371,7 @@
 
 /* The heading column keeps its place in the linear layout while the list goes
    by: plain CSS `sticky`, no scroll-driven state. */
-@media (min-width: 64.01rem) and (min-height: 40rem) {
+@media (min-width: 64.01rem) and (min-height: 34rem) {
   .services-section__lede {
     position: sticky;
     inset-block-start: clamp(2.5rem, 9svh, 6rem);
@@ -381,7 +381,7 @@
 
 /* ---------- the sequence ---------- */
 
-@media (min-width: 64.01rem) and (min-height: 40rem) {
+@media (min-width: 64.01rem) and (min-height: 34rem) {
   /*
    * One step of scroll per service on top of the screen the stage fills:
    * 100svh + 4 x 45svh = 280svh for the four services. The count is written
@@ -389,6 +389,11 @@
    */
   .services-section[data-services-enhanced] {
     --services-step: 45svh;
+    /* The furniture under each service follows the screen's height too, so a
+       laptop window keeps the pair and the readout inside the stage. */
+    --services-rule-gap: clamp(1rem, min(3vw, 4svh), 2.25rem);
+    --services-mark-gap: clamp(0.75rem, min(2vw, 2.6svh), 1.5rem);
+    --services-mark: clamp(2.4rem, min(3.6vw, 6.5svh), 3.8rem);
   }
 
   .services-section[data-services-enhanced] .services-section__track {
@@ -413,7 +418,17 @@
    * pair sits a little above the middle of the room the heading leaves.
    */
   .services-section[data-services-enhanced] .services-section__inner {
-    --services-art: min(clamp(24rem, 32vw, 36rem), 72svh);
+    /*
+     * The art is capped by width, by height and by what a short window has
+     * left once the heading, the spacer, the furniture and the readout are
+     * placed (the last term, which only binds below about 750 px of height),
+     * so the readout never reaches the stage's foot on a laptop.
+     */
+    --services-art: min(
+      clamp(24rem, 32vw, 36rem),
+      72svh,
+      calc((100svh - 25rem) * 1.6)
+    );
     inline-size: auto;
     block-size: 100svh;
     min-block-size: 0;
@@ -422,11 +437,12 @@
       minmax(0, 1fr) auto minmax(0, 30rem)
       minmax(0, 1fr);
     grid-template-rows:
-      auto minmax(clamp(3rem, 9svh, 6rem), 0.85fr) auto minmax(0, 1fr)
-      auto;
+      auto minmax(clamp(2rem, calc(20svh - 7.5rem), 6rem), 0.85fr) auto
+      minmax(0, 1fr) auto;
     column-gap: clamp(2.5rem, 4.5vw, 5rem);
     align-items: center;
-    padding-block: clamp(4.5rem, 11svh, 8rem) clamp(3rem, 9svh, 6.5rem);
+    padding-block: clamp(4.5rem, 11svh, 8rem)
+      clamp(2.5rem, calc(14svh - 3.5rem), 6.5rem);
     padding-inline: calc(var(--page-gutter) + clamp(1.5rem, 4.5vw, 5.5rem));
   }
 
@@ -510,7 +526,13 @@
     pointer-events: none;
   }
 
+  /* Both headings keep their wide-screen size from about 950 px of height and
+     step down with the window below it. */
+  .services-section[data-services-enhanced] .services-section__title {
+    font-size: clamp(2.6rem, min(5.6vw, 10.5svh), 5rem);
+  }
+
   .services-section[data-services-enhanced] .service-entry__title {
-    font-size: clamp(2.9rem, 5vw, 5.5rem);
+    font-size: clamp(2.4rem, min(5vw, 9.5svh), 5.5rem);
   }
 }

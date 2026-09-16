@@ -13,8 +13,8 @@ export interface ServicesPageTools {
 const none = () => undefined;
 
 /** Where `layout.css` makes the stack layers sticky. */
-const STACKED = '(min-width: 64.01rem) and (min-height: 40rem)';
-const LINEAR = '(max-width: 64rem), (max-height: 39.99rem)';
+const STACKED = '(min-width: 64.01rem) and (min-height: 34rem)';
+const LINEAR = '(max-width: 64rem), (max-height: 33.99rem)';
 
 /**
  * /servicios/ — the page's motion, loaded only on this route.

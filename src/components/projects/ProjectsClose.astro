@@ -1,0 +1,119 @@
+---
+/**
+ * /proyectos/ — 04 Close
+ *
+ * The route's last scene. The client's panoramic picture (orange and metal
+ * sculptures entering from both ends, empty paper in the middle) fills the
+ * section, and the decision sits in that middle: the question with its orange
+ * mark, one supporting line, and two compact bite buttons — "Hablemos" solid
+ * orange on an ink slab and "Ver servicios" white on an orange slab. Hover and
+ * focus press a button part of the way into its slab, a click all the way.
+ *
+ * Same intention as the `/servicios/` close and the same geometry, on this
+ * route's white instead of its black. The picture's paper is lifted to pure
+ * white in its derivative (`npm run media:projects`), so it has no visible
+ * edge on the page at all — only its sculptures. Its clear middle is 38% of
+ * its width, so one layer would either crop the sculptures away or squeeze the
+ * copy; each end is drawn as its own wing instead (`projects-page.css`),
+ * pushed outwards only as far as keeps the middle clear. The route stays one
+ * white surface end to end (2026-09-16) and the section paints no field of its
+ * own. Portrait screens and phones put the left wing in a band at the top and
+ * the right one at the foot.
+ *
+ * Both `<img>` share one file and are decorative. Both paths are real links
+ * with the label as their accessible name; the arrow is drawn by CSS with
+ * empty alternative text, so it never reaches the name. The links carry no
+ * `data-magnetic`: the shared pull writes an inline `translate: none` through
+ * GSAP, which would cancel the press into the slab (the same finding as the
+ * `/servicios/` close).
+ *
+ * Motion: the scene, the question, the line and each button carry the route's
+ * shared reveal (`data-projects-reveal`, `ProjectsPageMotion.ts`), so they
+ * settle in that order as the section enters, once. Reduced motion and no
+ * JavaScript show the finished composition.
+ *
+ * The copy is provisional until the client approves it
+ * (`docs/CONTENT_NEEDED.md`).
+ */
+import { projectsCloseScene } from '@/config/assets';
+
+interface CloseAction {
+  label: string;
+  href: string;
+}
+
+interface Props {
+  title: string;
+  lede: string;
+  actions: readonly CloseAction[];
+}
+
+const { title, lede, actions } = Astro.props;
+/* A local constant, not the imported binding: only a `const` keeps its
+   narrowing inside the wing callback below. */
+const scene = projectsCloseScene;
+const wings = ['start', 'end'] as const;
+const variants = ['solid', 'quiet'] as const;
+const cursorLabels = ['Hablar', 'Ver'] as const;
+---
+
+<section
+  class="projects-close"
+  aria-labelledby="projects-close-title"
+  data-surface-tone="light"
+  data-stack-section
+  data-projects-close
+>
+  {
+    scene && (
+      <div
+        class="projects-close__scene"
+        aria-hidden="true"
+        data-projects-reveal
+      >
+        {wings.map((side) => (
+          <div class={`projects-close__wing projects-close__wing--${side}`}>
+            <img
+              class="projects-close__image"
+              src={scene.src}
+              alt=""
+              width={scene.width}
+              height={scene.height}
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  <div class="projects-close__inner">
+    <h2
+      id="projects-close-title"
+      class="projects-close__title"
+      data-projects-reveal
+    >
+      {title}<span class="projects-close__mark">?</span>
+    </h2>
+
+    <p class="projects-close__lede" data-projects-reveal>{lede}</p>
+
+    <ul class="projects-close__actions" role="list">
+      {
+        actions.map((action, index) => (
+          <li class="projects-close__item" data-projects-reveal>
+            <a
+              class="bite-button projects-cta"
+              href={action.href}
+              data-variant={variants[index] ?? 'quiet'}
+              data-cursor-label={cursorLabels[index] ?? 'Ver'}
+            >
+              <span class="projects-cta__label">{action.label}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>

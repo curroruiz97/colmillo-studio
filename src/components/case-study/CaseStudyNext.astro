@@ -1,0 +1,58 @@
+---
+/**
+ * The end of a case study is the beginning of the next one.
+ *
+ * Instead of the usual row of three cards, one project fills the screen: its
+ * picture, its name and its categories, as a single link. While it is crossed
+ * the picture grows from inside the measure to the full width
+ * (`CaseStudyPageMotion.ts`, scroll-linked), so the portfolio feels continuous
+ * rather than paginated, and under a fine pointer it gives with the archive's
+ * own dent.
+ *
+ * Under it, two quiet routes that are never the loud thing on the page: the
+ * whole archive, and one discreet line to Contacto. The case study must not
+ * end on a sales pitch — the work is the argument.
+ *
+ * Accessibility: the link's name reads "Siguiente proyecto <name>", so it is
+ * unambiguous out of context, and the picture inside it is decorative.
+ */
+import CaseStudyMedia from './CaseStudyMedia.astro';
+import type { CaseStudyMedia as Media } from '@/data/caseStudy';
+import { categoryLabel, type ProjectRecord } from '@/data/projects';
+
+interface Props {
+  next: ProjectRecord;
+  media: Media;
+}
+
+const { next, media } = Astro.props;
+const tags = next.categories.map(categoryLabel).join(' / ');
+---
+
+<nav class="cs-next" aria-label="Navegación entre proyectos" data-cs-next>
+  <a
+    class="cs-next__link"
+    href={`/proyectos/${next.slug}/`}
+    rel="next"
+    data-cursor-label="Abrir"
+    data-cs-next-link
+  >
+    <span class="cs-next__media" data-cs-next-media>
+      <CaseStudyMedia media={media} press class="cs-next__frame" />
+    </span>
+    <span class="cs-next__copy">
+      <span class="cs-next__kicker">Siguiente proyecto</span>
+      <span class="cs-next__title">{next.title}</span>
+      {tags && <span class="cs-next__tags">{tags}</span>}
+    </span>
+  </a>
+
+  <div class="cs-shell cs-next__routes">
+    <a class="cs-next__route" href="/proyectos/" data-cursor-label="Ver">
+      Todos los proyectos
+    </a>
+    <a class="cs-next__aside" href="/contacto/" data-cursor-label="Hablar">
+      ¿Tienes algo entre manos? Hablemos<span aria-hidden="true"> ↗</span>
+    </a>
+  </div>
+</nav>

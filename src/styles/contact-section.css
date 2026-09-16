@@ -33,7 +33,7 @@
   --pt: clamp(2.5rem, 7svh, 5.5rem);
   /* About 15% over the manifesto's desktop word size (2026-09-11, client
      direction); "tu marca" stays inside the stage at any text zoom. */
-  --f: min(clamp(3.5rem, 6.4vw, 6.4rem), 21cqw);
+  --f: min(clamp(3.5rem, min(6.4vw, 12.5svh), 6.4rem), 21cqw);
   --indent-2: calc(var(--f) * 0.32);
   --indent-3: calc(var(--f) * 1.05);
   /* The sculpture's box; the piece itself fills about 72% of its width. */

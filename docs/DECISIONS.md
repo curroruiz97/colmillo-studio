@@ -2259,6 +2259,9 @@ links live in the footer. Email and Instagram stay the live channels from
   type rises to `9.2cqi` so its absolute size matches the wider panel.
 - Channel hover is colour plus a hairline drawn from the left and a 0.2rem
   lean, the same vocabulary as the route rows, never a fill.
+- Follow-up: the channels show only their names, "Correo" and "Instagram",
+  side by side; the words are the links and the address and handle are not
+  displayed in the panel.
 - The navigation is lifted by half of a `5vh` bottom margin, giving the
   channels more air than the wordmark without changing the panel height.
 - Unchanged: tab, tracking, close control, scrim, panel travel, colours, order,
@@ -2301,3 +2304,517 @@ Instagram behaviour become global chrome, one implementation each, in
   menu hand-off are unchanged; orange with the ink outline already reads on
   white, ink, charcoal and orange.
 
+## 2026-09-15 - Laptops Keep The Wide Layout, Scaled By Height
+
+Decision (user direction: a laptop must show the same composition as a large
+monitor, only more compact; no redesign).
+
+- Root cause: the wide compositions (pinned manifesto, services sequence,
+  sticky stack on the home and `/servicios/`) required `min-height: 40rem`
+  (640 px). A 1366x768 or 1280x800 laptop draws a browser window of roughly
+  580-660 px once the browser's own bars and the taskbar are counted, so it
+  fell into the tablet/linear layouts: the manifesto lost its pin, the home
+  services became a list, `/servicios/` lost the stack.
+- The wide threshold is now `(min-width: 64.01rem) and (min-height: 34rem)`
+  (linear below `33.99rem`), the same short-window line the hero and the edge
+  menu already used. It changed together in `layout.css`,
+  `manifesto-home.css`, `services-section.css`, `services-page.css`, the
+  manifesto's `noscript` style and the four motion queries
+  (`ManifestoMotion.ts`, `ServicesMotion.ts`, `SectionStack.ts`,
+  `ServicesPageMotion.ts`). Width breakpoints are unchanged: structural changes
+  still start at 64rem.
+- Scaling instead of breakpoints: inside the wide layouts the display type,
+  the air and the art take `min(<vw term>, <svh term>)` inside the existing
+  `clamp()`s, so they follow the scarcer of width and height. Every height
+  term only binds below about 900-1000 px of height, so 1920x1080 and taller
+  resolve to exactly the previous values (verified: identical scroll
+  positions and screenshots). Applied to the manifesto words, mark and
+  drawing width (the `max-height: 50rem` 57% override is gone, the size is
+  continuous), the home services heading, service name, art (also capped by
+  the height left after heading, spacer, furniture and readout), furniture
+  gaps, spacer and foot padding, the `/servicios/` title, claim, body, block
+  padding (floor 4.5rem so the rule clears the Instagram control) and
+  capability rows, the `/studio/` h2/h3 and section spacing, and the home
+  contact headline.
+- Sticky layers taller than the screen (a very short window, enlarged text)
+  no longer lose their foot: `SectionStack.ts` publishes
+  `--stack-overflow` (height minus screen, only for sticky or released
+  layers) on every ScrollTrigger `refreshInit`, and `layout.css` sticks the
+  layer that far above the top, so it scrolls to its foot and then holds. A
+  released layer resets to `top: 0`. Layers that fit keep `top: 0`, and
+  without JavaScript the value is 0.
+- Unchanged: colours, copy, assets, animations and their choreography,
+  left/right alternation, the stack's entrance band, buttons, the edge menu,
+  the wordmark and the Instagram control, and every layout below 64rem.
+
+## 2026-09-16 - /proyectos/ Is The Portfolio, Not An Archive Of Demos
+
+Decision (user direction: rebuild the route as the studio's main portfolio,
+with Hello Monday's Work page as a structural reference only — never a visual
+copy — and everything expressed in Colmillo's own language).
+
+- Structure: hero, filter, masonry, close. The hero repeats `/studio/` and
+  `/servicios/` exactly (title left on charcoal `#1f1f1f`, media frame right,
+  both on the viewport's middle line, the full stop as an orange disc), so the
+  three editorial routes open the same way. The white gallery then climbs
+  `--pj-lift` over the hero with a rounded head — the only curve on the page —
+  and the black close returns to the tone the footer continues. No beige
+  anywhere: light surfaces are white (2026-09-10 client direction).
+- The title takes `/servicios/`'s split (46fr/44fr) and size
+  (`clamp(3.5rem, 8vw, 10.5rem)`) rather than Studio's, because "Proyectos."
+  and "Servicios." are the same ten characters: a narrower column or a larger
+  size wraps the orange full stop onto a second line. Measured on one line at
+  1920, 1600, 1440, 1366, 1024 and 390.
+- The hero's media slot is built at its final size and proportion (16:9) and
+  holds a plain `#292929` surface with a hairline while `projectsHeroMedia` is
+  `null`. No "pending" note: it has to read as a decision. The loop replaces
+  the surface and nothing else moves.
+- Masonry: one twelve-column grid, `grid-auto-flow: row dense`, and every
+  piece takes its columns and its proportion from its own `format` —
+  `portrait` 4:5/5 cols, `square` 1:1/5, `landscape` 3:2/7, `wide` 16:9/12.
+  Art direction lives in the data, not in per-card CSS, so the client's
+  ordering and shapes drive the composition and a new project needs no rule of
+  its own. `dense` is deliberate: when a filter removes one half of a pairing
+  it repacks the rows instead of leaving two-column holes. The cost is that
+  the visual order can differ from the DOM order; for a set of independent
+  pieces with no reading sequence that was judged the right trade.
+- The rows step because formats carry a `margin-block-start` (landscape a
+  little, square more) from 48rem up. It is a margin, never a transform, so
+  the filter's own movement never fights it.
+- Tablets read the same grid at two even columns (span 6, `wide` 12) and keep
+  every proportion; phones read one column and keep them too. Laptops are not
+  a separate case: 1366, 1440, 1536 and 1600 all read the twelve-column
+  composition with less air.
+- The filter is the studio's four real services plus "Todos", and only the
+  categories that have a piece are offered. A project may belong to several
+  and appears under each: the test is membership, never a rule per project.
+  The row is published by the route's chunk and hidden until then
+  (`data-filters-ready`), because a control that cannot work should not be
+  shown; without JavaScript the archive is simply complete. Sticky from 48rem
+  with its end padding reserving the Instagram control's corner; phones scroll
+  the row sideways rather than stacking five lines over the first picture, and
+  never a dropdown.
+- The change of set is one short movement, about half a second: the leaving
+  pieces fade, the grid repacks, every piece that stays is carried between its
+  two measured boxes, the arriving ones fade in. The layout is never animated,
+  only the offset between two settled states. Reduced motion changes the set
+  with no movement at all.
+- Hover is the site's existing pressure dent (`PressSurface.ts`), the third
+  place it is used after the home rail and the Studio portraits — no new hover
+  system was written. Fine pointers only; touch, keyboard and reduced motion
+  keep the still picture.
+- Each piece's name is always in the page, under its picture; the categories
+  and the arrow are what hover or focus adds, and a screen without hover keeps
+  them open. Nobody needs a pointer to learn a project's name.
+- Content: the route publishes approved entries only. With none approved the
+  standard build renders the hero and the close and no gallery at all, so
+  nothing provisional reaches `dist/`. Development and `build:demo` show ten
+  provisional pieces with neutral, non-brand names; the archive itself carries
+  no "DEMO FICTICIA" band (user direction) but every project page still does,
+  and the route stays `noindex` behind the blocking `robots.txt`. The five
+  older demo pieces were kept and five neutral ones added, so the home rail
+  (first five) and every existing test are unchanged.
+- Removed: the "Archivo" kicker, the demo band on the index, the 01/02/03
+  numbers, the fictional years, the visible summaries and the old orange
+  cards.
+
+## 2026-09-16 - The /proyectos/ Hero Stands On White
+
+Decision (user direction, the same day as the rebuild above: the hero's
+background should be the page's own white like the rest of the route, and the
+title, the wordmark and the rest should follow).
+
+- The hero keeps its composition — title left, 16:9 media frame right, both on
+  the viewport's middle line, the orange disc for the full stop — and only
+  changes surface: white ground, ink title, the black wordmark
+  (`headerTheme="light"`), `data-surface-tone="light"` so the cursor keeps its
+  default colours. `/studio/` and `/servicios/` are unchanged; the archive is
+  now the one editorial route that opens on the paper.
+- The empty media slot follows: `rgb(18 16 15 / 0.04)` with an ink hairline
+  instead of `#292929` with a white one. Still a shade off the paper, still no
+  note, still the final size and proportion.
+- The rounded lift between hero and gallery went with it. It existed to make
+  the change from charcoal to white a lift rather than a cut; between two
+  white surfaces it is a curve that earns nothing, and the brief ruled those
+  out. Hero and gallery are now one sheet and the route's only change of
+  surface is the black close.
+- The route no longer forces the canvas to ink. That override existed so the
+  footer would continue the black close, but with a white hero it would have
+  shown black on an overscroll above the page. The footer is painted ink
+  directly on this route instead: the top of the page matches the hero, the
+  bottom still ends on one dark field.
+- Unchanged: the masonry and its formats, the filter and its movement, the
+  pressure dent, the reveals, the close's copy and button, and every
+  breakpoint.
+
+## 2026-09-16 - Case Studies Are A System, Not A Template
+
+Decision (user direction: build the complete system of individual project
+pages, with hellomonday.com's project pages as a structural reference only —
+never a visual copy — and every case study designed for its own project while
+sharing components).
+
+- The principle: **one structure, one set of components, and an art direction
+  per project.** What is always Colmillo is the skeleton, the typography, the
+  clipped lines, the pressure dent, the bite, the bite button, the cursor, the
+  edge menu, the wordmark and the Instagram control. What belongs to the
+  project is its palette, its pace and its choice and order of modules.
+- Model in `src/data/caseStudy.ts`: theme (six values), layout variant
+  (`editorial | immersion | graphic | minimal`), hero variant
+  (`full | contained | split`, default `full`), an ordered list of fourteen
+  module types, optional chapters, related projects and SEO.
+- **Nothing is required.** `resolveCaseStudy()` builds a complete page from the
+  record the archive already holds — cover as hero, summary as introduction,
+  gallery as full-width modules — so the first approved project publishes a
+  finished case study the day its entry lands, before anyone authors a module.
+  Authoring is how a project stops looking like the others, never how it
+  starts working.
+- Three sources, in order: approved frontmatter (validated by
+  `src/data/caseStudyFields.ts`), a registered demonstration study
+  (`src/data/caseStudies.ts`, demo build only), then the fallback.
+- Theme as data, never as a rule per pathname: the six colours become custom
+  properties on the page's root, and the same background and foreground are
+  given to the document, so an overscroll and the shared footer continue the
+  project. `chrome` picks the wordmark's derivative and the cursor's surface
+  tone. Only literal hex values are accepted (`safeColor()`), because the
+  colours arrive from client-authored frontmatter and reach a style attribute.
+- One renderer, one registry, one cast. `CaseStudyModules.astro` maps
+  `module.type` to a component and is kept honest by
+  `satisfies Record<CaseStudyModuleType, unknown>`: a new module type that
+  nobody registered fails the typecheck. The data stays a discriminated union
+  end to end.
+- **The bite reveal is the signature and is rationed.** An organic concave wave
+  uncovers a picture as it arrives, and it is literally the archive's pressure
+  dent at the scale of a whole picture: `bitePath()` was added to
+  `PressSurface.ts` and reuses its existing outline geometry, so the two can
+  never drift into two different effects. The renderer honours the first three
+  requests on a page and drops the rest.
+- **Cross-document View Transitions were not reintroduced** for the
+  card-to-hero expansion the brief asks about. This repository removed
+  ClientRouter on 2026-09-10 after real back/forward QA, and a later
+  cross-document probe reproduced the same touch history rejection
+  (`Transition was skipped`); the motion architecture since then is one
+  controller mount per native document. Reintroducing it would change the
+  lifecycle of every route for one effect the brief itself conditioned on
+  robustness. The same intent is served by the hero's own entrance — the media
+  settles out of `scale(1.06)` while the name rises out of its clip, then
+  drifts slowly as the first screen is left — and by the next project growing
+  from inside the measure to the full width. Revisit only as its own task,
+  with its own QA.
+- The route's progress indicator and its internal index are one element, not
+  two: a hairline against the left edge (the right belongs to the edge menu)
+  with the chapters hanging off it and one accent mark travelling down it. It
+  appears only when a project asks for chapters, has more than two, and the
+  screen is at least 1200 px wide; otherwise the page carries nothing.
+- The page ends on the work: the next project fills the screen as one link,
+  and under it exactly two quiet routes, the archive and one discreet line to
+  Contacto. No third call to action, and no row of three cards.
+- `previous` was dropped. The next project and the archive are the two ways
+  onward, which is what the brief asked for; the old `ProjectHero`,
+  `ProjectGallery` and `ProjectNavigation` components and `ProjectLayout` are
+  superseded (see the execution state for what was left in place).
+- `/proyectos/` itself was not touched. The archive's cards already linked to
+  `/proyectos/<slug>/`, so connecting the portfolio to the system needed no
+  change to the concurrent redesign at all.
+
+## 2026-09-16 - The Whole /proyectos/ Route Is One White Sheet
+
+Decision (user direction, immediately after the white hero: the closing CTA
+and the footer should be white as well).
+
+- The close keeps its shape — one question with the orange mark, one bite
+  button to Contacto, centred — and loses its black field. On white the button
+  takes the solid ink offset the home rail's route into the archive already
+  uses, so the same button reads the same way on both pages.
+- The route stops overriding the footer and the canvas entirely. `/studio/`
+  and `/servicios/` still carry their own dark canvas because their last
+  section is dark; `/proyectos/` no longer has one, so the shared footer and
+  the shared white are exactly right and an overscroll at either end shows the
+  page's own paper.
+- With no change of surface left to mark where the gallery ends, the grid's
+  bottom padding was cut from `--pj-space` to `clamp(1.5rem, 3vw, 3rem)`. The
+  breath before the question now comes from the close's own top padding, and
+  the sticky filter releases right after the last piece instead of hanging
+  over the closing question.
+- The consequence is deliberate: the pictures and the orange marks are the
+  only colour on the route, which is the strongest argument a portfolio can
+  make. Nothing else changed — composition, masonry, filter, dent, reveals and
+  breakpoints are as recorded above.
+
+## 2026-09-16 - The /proyectos/ Close Becomes A Scene, On White
+
+Decision (user direction, close only): the archive's closing CTA is rebuilt
+around the user-supplied `public/assets/projects/bg cta proyectos.png`, in the
+spirit of the `/studio/` and `/servicios/` closes but adapted to this route's
+white. Nothing above the close changed.
+
+- **The paper is lifted, and that is what makes the scene possible.** The
+  master is 2172x724 (exactly 3:1) with sculptures at both ends and empty
+  paper between them, but that paper is 254,253,251 — under the page's
+  #ffffff. Drawn as delivered it tinted the whole section a warm grey panel
+  with visible edges against the sheet, which the 2026-09-16 "one white sheet"
+  decision above forbids. `npm run media:projects` scales every channel by
+  255/251 (the hero master's own kind of white-point lift), clamping the paper
+  to pure white; the drawing moves by one or two levels. The picture then has
+  no boundary on the page at all, only its sculptures, so it can be drawn at
+  any size or position with no seam, band or plate. Approval is open
+  (`docs/CONTENT_NEEDED.md`).
+- **Two wings, as on `/servicios/`.** The picture's clear middle is only 38%
+  of its width, so a single layer either crops the sculptures away or squeezes
+  the copy. Each end is drawn as its own wing and pushed outwards only as far
+  as keeps `--pj-cta-clear` free. That figure is deliberately wider than
+  `--pj-cta-room`, the copy's own width: with the two equal, the reach clamp
+  lands the ink exactly on the copy's edge (measured: 0 px of air at 1440).
+  With the margin there is 114-161 px on the left and 88-125 px on the right
+  across every landscape width tested.
+- **The drawn height is capped, not tied to the section.** At the section's
+  full height the file is blown up to about 165% of the screen's width and
+  everything but the orange ribbon is cropped away — the metal blocks, and
+  with them the composition, disappear. Held to `min(100cqh, clamp(20rem,
+  42vw, 34rem))` the whole sculpture is legible and the two ends read as marks
+  entering the sheet rather than as a background.
+- **Three fades per wing, and the top and bottom are not decoration.** The
+  master is itself a crop, so its sculptures meet its frame; drawn shorter than
+  the section, that frame cut a straight edge across the orange in the middle
+  of the page. Fading the top and bottom dissolves them into the sheet, which
+  is what this route's hero already does with its own ground.
+- Copy: the question and its orange mark are kept ("¿Hacemos el siguiente?"),
+  with one new supporting line and a second route, "Ver servicios" to
+  `/servicios/` — the mirror of the `/servicios/` close's "Ver proyectos".
+  Linking the archive to itself would have been a dead end. All of it is
+  provisional and recorded for approval.
+- The buttons are the two compact bite buttons of the `/servicios/` close in
+  this route's colours (orange on an ink slab, white on an orange slab), and
+  they carry no `data-magnetic` for the same reason recorded there: the shared
+  pull writes an inline `translate: none` and cancels the press into the slab.
+  The old single button's `data-magnetic` went with it.
+- The section still paints no field of its own: its `background-color` is
+  `--color-white`, which is what the route's two suites already assert, so the
+  sheet decision above survives intact.
+
+## 2026-09-16 - The /proyectos/ Close Fills The Screen And Joins The Stack
+
+Decision (user direction, immediately after the scene above): the close should
+take the whole height and rise over the section before it, the way the
+`/servicios/` layers do.
+
+- It reuses `SectionStack.ts` rather than growing a private effect: the hero
+  and the close carry `data-stack-section`, the close is `max(38rem, 100svh)`
+  like the `/servicios/` close, and it rides `--pj-cta-lift`
+  (`clamp(1.25rem, 5vw, 2rem)`, the `--sv-overlap` figure) up over what
+  precedes it.
+- **The gallery is deliberately not a layer.** It is many screens tall and
+  carries its own sticky filter band, and `.stack-section` brings
+  `overflow: clip`, `min-block-size: 100svh` and sticky positioning, each of
+  which would fight one of those. Keeping it out costs the compression of the
+  previous layer and nothing else.
+- **The hero is a layer only because the stack needs two.** `initSectionStack`
+  returns early below two sections, and the standard build has no gallery, so
+  without the hero the effect would exist in the demo and be missing from the
+  artifact that ships. Marking it is free: no CSS keys off
+  `data-stack-section` (only the `.stack-section` class, which is not added),
+  so the hero gains no sticky, no radius and no clip of its own, and its
+  reveal is a no-op because its trigger is already past at the first paint.
+  That was the one risk worth measuring, and it was measured: the hero's
+  computed `clip-path` at load is `inset(0px 0%)` at every tested width, so
+  there is no clipped flash.
+- **On a white route the band is legible only because of the scene.** The
+  `/servicios/` layers read because each is a different colour; here the
+  rounded corners and the reveal band are white on white. What the eye follows
+  is the picture: the sculptures are clipped by the rounded band and grow with
+  it. The effect was kept because the scene supplies the contrast the ground
+  cannot.
+- Reduced motion and no JavaScript: `SectionStack.ts` returns before creating a
+  tween under reduced motion, so the close is a full screen with no clip in
+  both cases (verified).
+
+## 2026-09-16 - The /proyectos/ Hero Loop Is Published On Its Own Ground
+
+Decision, on the delivered `video hero proyectos.mp4` (user direction: swap
+the placeholder for the final loop, no filters, tints, blend modes, overlays,
+thick borders or card shadows, and let the illustration read).
+
+- The file is published exactly as delivered, under its own name and
+  referenced URL-encoded, the way `/servicios/` publishes its loop. It is not
+  re-encoded, cropped, re-timed or colour-corrected. The only change to it was
+  dropping a stray space before its extension so the public path is the one
+  the brief named.
+- Its ground is #f4f2ee — about eleven levels under `--color-white` — and the
+  route is one white sheet from the hero to the footer, so the hero cannot
+  take the file's ground the way `/servicios/` takes its black. Instead the
+  picture's outer 8% fades into the page with two intersecting linear-gradient
+  masks. 8% is the widest band that cannot touch a drawn pixel: measured frame
+  by frame, the drawing keeps at least 8.13% of empty ground on every side.
+  The result is a sheet of paper with no edge rather than a pale panel with a
+  hard one. Nothing else is applied — no filter, tint, blend mode, border,
+  radius or shadow — and `.projects-hero` keeps `--color-white`.
+- The frame is the file's own 16:9 with `object-fit: contain`, so no head,
+  hand or floating piece is ever cropped and nothing is stretched. The video
+  is not scaled up inside its wrapper: a scale would push the drawing into the
+  fade band, and presence was bought with the split instead.
+- That split follows `/servicios/`: with the loop present the landscape
+  columns become `max-content minmax(0, 1fr)` with a smaller gap, so the loop
+  takes about half the hero's measure at every laptop width instead of the
+  44fr the empty slot was given. The route's type scale was not touched — the
+  title and the orange full stop still have to hold one line, which is why the
+  share drops slightly at 1920, where the title is at its clamp maximum.
+- Portrait phones bleed the loop to the screen edge but the edge menu's rail,
+  again as `/servicios/` does. The bleed is only defensible because the fade
+  band means no seam can meet the screen's edge.
+- The master's two defects — a ground that is not the page's white, and a last
+  frame that is not its first, so each pass wraps with a small cut — are
+  recorded in `docs/CONTENT_NEEDED.md` rather than patched over. A re-export
+  on pure white would let the mask go.
+
+## 2026-09-16 — `/contacto/` rebuilt as a conversation that starts
+
+The route was the last one still carrying the early editorial template: an
+orange hero with the site's own claim repeated as its `<h1>`, a numbered list of
+channels on an ink stage and a "Mientras tanto" map back into Studio, Servicios
+and Proyectos. It was rebuilt at the user's direction to the level of the other
+four routes.
+
+- **Two scenes and the footer, nothing else.** 01 a charcoal hero, 02 the white
+  brief, then the shared footer. The closing "direct contact" strip the brief
+  in the request allowed was deliberately not built: the address and the profile
+  already sit in the brief's left block, so a second copy would be the same two
+  links twice on a page whose whole argument is restraint. The map back into the
+  site went with it — the edge menu is the navigation, and it marks Contacto as
+  the current route.
+- **Everything the route removes:** "04 / Contacto", "El siguiente movimiento",
+  the repeated "Haz que tu marca muerda" `<h1>` (it stays where it belongs, on
+  the home close and as the goodbye stage's call), the 01/02 numbering on the
+  channels, "Mientras tanto" and every trace of a secondary page. `.contact-page__*`
+  in `layout.css` is now dead; it was left in place because that file is being
+  edited from another terminal (see `EXECUTION_STATE.md`).
+- **The hero is not another split.** `/studio/`, `/servicios/` and `/proyectos/`
+  all put a title on the left and a media frame on the right. Contacto has no
+  media column at all: one typographic block over about 60% of the measure, the
+  supporting line under it, and the rest of the screen left empty for one
+  graphic. Sentence case, the orange disc for its full stop, and the type
+  capped so the pair always fits a 1366x768 laptop window.
+- **The graphic is an unfinished trajectory**, not another decorative ring: an
+  open arc of about 305 degrees with a 55-degree opening, drawn off-round (every
+  quadrant a slightly different reach, control points that do not mirror), a
+  hairline in `#cd5730`, anchored to a corner so what is on screen is always a
+  fragment of a longer path. No WebGL, no canvas, no image: one inline `<path>`
+  and one disc.
+- **The white sheet rises over the hero on sticky layout**, not on the shared
+  `SectionStack`. The hero is `position: sticky; top: 0` at exactly one screen
+  tall and the brief scrolls over it, so the effect exists with no JavaScript
+  and under reduced motion. It is not the `/servicios/` stack: no reveal band,
+  no compression of what is underneath, and the top radius is a token
+  (`clamp(0.5rem, 1.4vw, 1.5rem)`) that motion flattens to nothing as the sheet
+  lands, rather than the 5rem band the stack opens with.
+- **The form is set into the sheet, not into a card.** A field is a small label,
+  a large control and a hairline rule; the rules carry the structure. No box,
+  no panel, no shadow, no grey. The only shadow on the route is the submit
+  button's physical slab, the one `/servicios/` already uses.
+- **Five fields: Nombre, Correo, Empresa / proyecto, Servicio, Mensaje.**
+  Presupuesto and Plazos were considered and left out: at a first contact they
+  ask a visitor to commit to numbers they rarely have, and any answer they would
+  give fits in the message. Adding either is one entry in `contactFields`.
+- **The service selector is a native radio group.** The pills are the radios'
+  own labels and the inputs are only visually hidden, so arrow keys, the tab
+  sequence, the announcement and the no-JavaScript path all come for free.
+- **Nothing claims a message was sent.** There is no server, API route, server
+  action or mail provider anywhere in this repository (`output: 'static'`, no
+  adapter, no integration), and none was added — that needs the client's
+  authorisation. `contactFormEndpoint` in `src/data/contactPage.ts` is `null`
+  and decides the submit path: while it is null the finished brief is handed to
+  the visitor's own mail client as a prepared draft and the status says exactly
+  that, with the address beside it in case nothing opened. "Enviado" and
+  "Recibido" exist in the copy but can only be reached through the endpoint
+  branch, which a real 2xx has to answer. With no JavaScript the form's own
+  `action` does the same thing natively.
+- **Colour:** charcoal `#1f1f1f`, white, and `#cd5730` for the arc, the disc,
+  the full stops and the selected pill. Every orange word — a focused label, an
+  error, the status line — uses the accessible `#b54d2a`. No new palette, no
+  gradient, no beige, no photograph, no video: this is the lightest route on the
+  site and adds no asset at all.
+
+## 2026-09-16 - The Legal Pages Are Written From An Audit, Not From A Template
+
+Decision: write `/aviso-legal/`, `/privacidad/` and `/cookies/` against a
+technical audit of what this site actually does, publish them with the
+holder's identity marked as missing rather than filled with plausible data,
+and build no cookie consent mechanism.
+
+The audit, performed on 2026-09-16 over the source and over the deployed
+artifact at `https://colmillo-studio.vercel.app/`:
+
+- no analytics, tag manager, pixel, heatmap or marketing script exists in
+  `src/`, `public/` or `package.json`. The served HTML contains no third-party
+  `<script>`, no `<iframe>`, and no `_vercel/insights` or
+  `_vercel/speed-insights` injection; the Vercel project has neither product
+  enabled;
+- the response carries no `Set-Cookie` header, and `document.cookie` appears
+  nowhere in the codebase. The site sets no cookies at all;
+- the only browser storage written is `colmilloIntroPlayed` (sessionStorage,
+  value `true`, cleared when the tab closes), which stops the home intro
+  replaying. `MotionPreference.ts` only *removes* the retired
+  `colmillo-motion` localStorage key; it never writes one;
+- typefaces are the system stack and video is self-hosted, so no external host
+  is contacted for a subresource;
+- Instagram is a plain outbound link, not an embed, so Meta sets nothing while
+  a visitor is on this site;
+- the contact form has no backend: the project is `output: 'static'` with no
+  adapter or API route and `contactFormEndpoint` is `null`, so the browser
+  composes a draft in the visitor's own mail client and the site transmits
+  nothing.
+
+Reason, point by point:
+
+- **No consent banner.** Article 22.2 of the LSSI-CE requires consent for
+  storage that is not strictly necessary. There is no such storage here: the
+  one session key is first-party, carries no identifier, never reaches the
+  server and dies with the tab. Publishing a consent dialogue for it would ask
+  permission for nothing and add to consent fatigue. `/cookies/` states this
+  explicitly, including the commitment to implement consent *before* enabling
+  any future analytics or embed.
+- **No consent checkbox on the form.** Consent is not the legal basis for
+  answering a message somebody chose to write. The basis is a pre-contractual
+  measure at the data subject's request (art. 6.1.b RGPD) or legitimate
+  interest in replying (art. 6.1.f). A checkbox would also imply the site
+  transmits the brief, which it does not. A short privacy line next to the
+  submit button, linking to `/privacidad/`, is what the situation requires.
+- **Missing data is marked, never invented.** No business name, NIF, address
+  or registral data exists anywhere in this repository, so every such value is
+  a `pending(...)` marker rendering as a red, dashed `[PENDIENTE: …]` chip.
+  Nothing registral was written at all, because the holder's legal form is
+  unknown and a company's Registro Mercantil entry cannot be guessed.
+  `scripts/release-check.mjs` now walks `dist/` and refuses a release while a
+  single marker survives, so the honest gap cannot reach production silently.
+  `LEGAL_TODO.md` is the request list for the client.
+- **Vercel is named because it is verified**, not assumed: the `Server: Vercel`
+  header, the project in the client's own account and `docs/DEPLOYMENT.md` all
+  agree. Its processor agreement and international-transfer safeguard are
+  marked pending rather than asserted.
+- **The approved address is not typed into the documents.** They read it from
+  `src/config/contact.ts`, so the unresolved `colmillostudio` /
+  `colmilloestudio` spelling is corrected in one place when the client
+  confirms it.
+
+## 2026-09-16 - Legal Routes Follow The Site-Wide Indexing Gate
+
+Decision: stop forcing `noindex` inside `LegalLayout.astro`. The legal routes
+now inherit `SeoHead`'s default, which is `siteConfig.isPrelaunch`.
+
+Reason: the layout passed `noindex` unconditionally, which would have kept the
+legal notice, privacy policy and cookie policy out of the index permanently,
+even after release approval. A public site's legal disclosures are meant to be
+reachable and citable. Behaviour today is unchanged — `isPrelaunch` is `true`,
+so all nine routes stay `noindex` behind the same single gate — and the change
+is one prop.
+
+## 2026-09-16 - The Legal Routes Use `legal-route`, Not `.legal-page`
+
+Decision: name the new legal root class `legal-route` and leave the existing
+`.legal-page` rule in `layout.css` untouched.
+
+Reason: that rule belongs to the previous `.content-shell` version of these
+pages and would have added its own padding to the new composition. A parallel
+session had `layout.css` open, so the reversible choice was a new class name
+rather than an edit to a file owned by other uncommitted work. The same
+reasoning put the `/contacto/` privacy-line rules in `legal-page.css` instead
+of `contact-page.css`; both are noted in the stylesheet itself.

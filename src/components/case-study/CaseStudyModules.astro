@@ -1,0 +1,103 @@
+---
+/**
+ * The module renderer: `module.type` chooses a component, once, from one
+ * registry. Adding a module to the system is adding its type to the union in
+ * `src/data/caseStudy.ts`, its component here, and its rules to
+ * `case-study.css` — never a branch inside a page.
+ *
+ * `satisfies Record<CaseStudyModuleType, unknown>` is what keeps the registry
+ * honest: a new module type that nobody registered fails the typecheck instead
+ * of rendering nothing at runtime.
+ *
+ * Two things are decided here rather than in the modules, because both are
+ * about the page as a whole:
+ *
+ *   - the section wrapper, which carries the module's kind, its chapter anchor
+ *     and the arrival hook, so every module reveals the same way;
+ *   - the budget for the bite reveal. It is the studio's signature, so it is
+ *     rationed: the first three requests on a page are honoured and the rest
+ *     are quietly dropped, whatever a project asks for.
+ */
+import ModuleFacts from './modules/ModuleFacts.astro';
+import ModuleFullMedia from './modules/ModuleFullMedia.astro';
+import ModuleGallery from './modules/ModuleGallery.astro';
+import ModulePalette from './modules/ModulePalette.astro';
+import ModuleProcess from './modules/ModuleProcess.astro';
+import ModuleQuote from './modules/ModuleQuote.astro';
+import ModuleSequence from './modules/ModuleSequence.astro';
+import ModuleSplit from './modules/ModuleSplit.astro';
+import ModuleStatement from './modules/ModuleStatement.astro';
+import ModuleSticky from './modules/ModuleSticky.astro';
+import ModuleText from './modules/ModuleText.astro';
+import ModuleTwoUp from './modules/ModuleTwoUp.astro';
+import ModuleType from './modules/ModuleType.astro';
+import ModuleVideo from './modules/ModuleVideo.astro';
+import type { CaseStudyModule, CaseStudyModuleType } from '@/data/caseStudy';
+
+interface Props {
+  modules: CaseStudyModule[];
+}
+
+const { modules } = Astro.props;
+
+/**
+ * Every module component takes exactly one prop, its own module. Looked up
+ * dynamically they are fourteen different signatures, and asking for the one
+ * that accepts all of them is asking for `never`, so the registry is read
+ * through a single uniform signature. This is the only cast in the system: the
+ * data itself stays a discriminated union end to end, the keys are checked by
+ * `satisfies` below, and each component still declares the exact module it
+ * accepts.
+ */
+type ModuleComponent = (props: { module: CaseStudyModule }) => unknown;
+
+const REGISTRY = {
+  fullMedia: ModuleFullMedia,
+  text: ModuleText,
+  split: ModuleSplit,
+  twoUp: ModuleTwoUp,
+  gallery: ModuleGallery,
+  video: ModuleVideo,
+  statement: ModuleStatement,
+  sticky: ModuleSticky,
+  process: ModuleProcess,
+  quote: ModuleQuote,
+  facts: ModuleFacts,
+  palette: ModulePalette,
+  type: ModuleType,
+  sequence: ModuleSequence,
+} satisfies Record<CaseStudyModuleType, unknown>;
+
+const components = REGISTRY as unknown as Record<
+  CaseStudyModuleType,
+  ModuleComponent
+>;
+
+/** How many bite reveals a single page may spend. */
+const BITE_BUDGET = 3;
+
+let bites = 0;
+const rendered = modules.map((module) => {
+  const wants = 'reveal' in module && module.reveal === 'bite';
+  if (!wants) return module;
+  bites += 1;
+  return bites <= BITE_BUDGET ? module : { ...module, reveal: undefined };
+});
+---
+
+{
+  rendered.map((module) => {
+    const Component = components[module.type];
+    return (
+      <section
+        class:list={['cs-module', `cs-module--${module.type}`]}
+        data-cs-module={module.type}
+        id={module.chapter?.id}
+        data-cs-chapter={module.chapter?.id}
+        data-cs-reveal
+      >
+        <Component module={module} />
+      </section>
+    );
+  })
+}

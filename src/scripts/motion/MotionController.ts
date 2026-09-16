@@ -1,6 +1,8 @@
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { initCaseStudyPage } from './CaseStudyPage';
 import { initContactBite } from './ContactBite';
+import { initContactPage } from './ContactPage';
 import { initCustomCursor } from './CustomCursor';
 import { initEdgeMenu } from './EdgeMenu';
 import { initEditorialMotion } from './EditorialMotion';
@@ -13,6 +15,7 @@ import { initMagneticElements } from './MagneticElements';
 import { initManifestoMotion } from './ManifestoMotion';
 import { initMotionPreference } from './MotionPreference';
 import { initProjectTilePress } from './ProjectTilePress';
+import { initProjectsPage } from './ProjectsPage';
 import { initSectionStack } from './SectionStack';
 import { initServicesMotion } from './ServicesMotion';
 import { initServicesPage } from './ServicesPage';
@@ -47,6 +50,9 @@ export function initMotion(): void {
     initStudioMotion(),
     initStudioPage(),
     initServicesPage(),
+    initProjectsPage(),
+    initContactPage(),
+    initCaseStudyPage(),
     initGoodbyePanorama(),
     initContactBite(),
     initMagneticElements(),

@@ -1,17 +1,13 @@
 ---
+/**
+ * /aviso-legal/ — the LSSI-CE notice.
+ *
+ * The wording is in `src/data/legalPages.ts`; the route only chooses the
+ * document. It ships identically in both builds: it is not provisional copy,
+ * it is the real notice with the holder's identity still marked as pending.
+ */
 import LegalLayout from '@/layouts/LegalLayout.astro';
-import { demoMode } from '@/data/projects';
+import { legalNotice } from '@/data/legalPages';
 ---
 
-<LegalLayout
-  title="Aviso legal"
-  description="Información legal de Colmillo Studio pendiente de aprobación."
->
-  {
-    demoMode && (
-      <p class="dev-note" data-dev-placeholder>
-        Documento pendiente de datos legales y texto aprobado por el cliente.
-      </p>
-    )
-  }
-</LegalLayout>
+<LegalLayout doc={legalNotice} />

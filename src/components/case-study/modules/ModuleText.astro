@@ -1,0 +1,28 @@
+---
+/**
+ * 02 EDITORIAL TEXT — eyebrow, heading, paragraphs.
+ *
+ * Three measures and three alignments, which is as much freedom as an
+ * editorial page should have: anything wider than `wide` stops being readable
+ * and anything else stops looking like the same studio.
+ */
+import CaseStudyBlock from '../CaseStudyBlock.astro';
+import type { TextModule } from '@/data/caseStudy';
+
+interface Props {
+  module: TextModule;
+}
+
+const { module } = Astro.props;
+---
+
+<div class="cs-shell">
+  <CaseStudyBlock
+    class="cs-text"
+    eyebrow={module.eyebrow}
+    title={module.title}
+    body={module.body}
+    align={module.align}
+    width={module.width}
+  />
+</div>

@@ -1,0 +1,49 @@
+---
+/**
+ * 12 COLOR PALETTE — the project's colours as fields, not as chips.
+ *
+ * Large bands that touch each other, so the palette reads as a graphic
+ * statement rather than as a page of a brand manual. A colour keeps its name
+ * only if the project supplies one.
+ *
+ * Every value passes `safeColor()` before it reaches a style attribute: the
+ * colours arrive from client-authored frontmatter, so anything that is not a
+ * literal hex falls back to the project's surface instead of being written
+ * out.
+ */
+import { safeColor, type PaletteModule } from '@/data/caseStudy';
+
+interface Props {
+  module: PaletteModule;
+}
+
+const { module } = Astro.props;
+const swatches = module.colors.map((color) => ({
+  name: color.name,
+  value: safeColor(color.value, 'var(--cs-surface)'),
+}));
+---
+
+<div class="cs-shell">
+  {
+    module.title && (
+      <h2 class="cs-heading" data-cs-line>
+        {module.title}
+      </h2>
+    )
+  }
+  <ul class="cs-palette" role="list">
+    {
+      swatches.map((swatch) => (
+        <li
+          class="cs-palette__field"
+          style={`--swatch: ${swatch.value}`}
+          data-cs-line
+        >
+          <span class="cs-palette__chip" aria-hidden="true" />
+          {swatch.name && <span class="cs-palette__name">{swatch.name}</span>}
+        </li>
+      ))
+    }
+  </ul>
+</div>

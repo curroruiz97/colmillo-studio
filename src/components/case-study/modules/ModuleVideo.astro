@@ -1,0 +1,24 @@
+---
+/**
+ * 06 VIDEO — one large piece of moving image.
+ *
+ * A `loop` plays silently, without controls, only while it is on screen in a
+ * visible tab and never under reduced motion; a `controls` video waits for the
+ * visitor and keeps its sound. Not every video is a loop, so the project says
+ * which it is (`mode`).
+ */
+import CaseStudyMedia from '../CaseStudyMedia.astro';
+import type { VideoModule } from '@/data/caseStudy';
+
+interface Props {
+  module: VideoModule;
+}
+
+const { module } = Astro.props;
+---
+
+<div class:list={['cs-full', module.bleed && 'cs-full--bleed']}>
+  <div class={module.bleed ? undefined : 'cs-shell'}>
+    <CaseStudyMedia media={module.media} bite={module.reveal === 'bite'} />
+  </div>
+</div>

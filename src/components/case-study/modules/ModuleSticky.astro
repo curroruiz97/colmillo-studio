@@ -1,0 +1,60 @@
+---
+/**
+ * 08 STICKY STORY — chapters that hold while the picture beside them changes.
+ *
+ * The strongest module in the set, so it is meant to be rare: only a project
+ * whose story really is a sequence should use it.
+ *
+ * The document is always the honest version: step, picture, step, picture, in
+ * reading order. On a wide screen with motion allowed the route's chunk marks
+ * the block `data-enhanced`, which stacks the pictures into one frame and
+ * holds the copy column beside them; the steps stay exactly where they are in
+ * the DOM. Phones, short windows, reduced motion and no JavaScript read the
+ * plain sequence, which loses nothing.
+ */
+import CaseStudyMedia from '../CaseStudyMedia.astro';
+import type { StickyModule } from '@/data/caseStudy';
+
+interface Props {
+  module: StickyModule;
+}
+
+const { module } = Astro.props;
+---
+
+<div class="cs-shell">
+  {
+    module.title && (
+      <h2 class="cs-heading" data-cs-line>
+        {module.title}
+      </h2>
+    )
+  }
+
+  <div class="cs-sticky" data-cs-sticky>
+    <div class="cs-sticky__copy">
+      {
+        module.steps.map((step, index) => (
+          <div class="cs-sticky__step" data-cs-step={index}>
+            <h3 class="cs-sticky__title">{step.title}</h3>
+            <p class="cs-sticky__text">{step.body}</p>
+            <div class="cs-sticky__inline">
+              <CaseStudyMedia media={step.media} />
+            </div>
+          </div>
+        ))
+      }
+    </div>
+
+    {/* The stacked frame the enhanced layout uses; hidden until then. */}
+    <div class="cs-sticky__media" aria-hidden="true" data-cs-sticky-media>
+      {
+        module.steps.map((step, index) => (
+          <div class="cs-sticky__figure" data-cs-figure={index}>
+            <CaseStudyMedia media={step.media} />
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</div>

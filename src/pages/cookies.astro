@@ -1,18 +1,13 @@
 ---
+/**
+ * /cookies/ — what this site stores in the browser, and why there is no banner.
+ *
+ * The wording is in `src/data/legalPages.ts`. Its table lists the single
+ * sessionStorage key the site writes; there are no cookies of any kind, so no
+ * consent mechanism is published. See `docs/DECISIONS.md` (2026-09-16).
+ */
 import LegalLayout from '@/layouts/LegalLayout.astro';
-import { demoMode } from '@/data/projects';
+import { cookiePolicy } from '@/data/legalPages';
 ---
 
-<LegalLayout
-  title="Cookies"
-  description="Política de cookies de Colmillo Studio pendiente de aprobación."
->
-  {
-    demoMode && (
-      <p class="dev-note" data-dev-placeholder>
-        Política pendiente de la decisión sobre analítica, cookies y
-        consentimiento.
-      </p>
-    )
-  }
-</LegalLayout>
+<LegalLayout doc={cookiePolicy} />

@@ -1,0 +1,79 @@
+---
+/**
+ * What the project is, right after the hero: a narrow column of metadata on
+ * the left and the project's own headline with its introduction on the right.
+ *
+ * Every field is optional and nothing is invented. A list with no approved
+ * values is simply not rendered — no "pendiente", no dash, no empty row — so
+ * the block is honest from the first day a project exists to the day its
+ * client, year and deliverables are all signed off.
+ *
+ * The metadata is a description list, which is what it is: pairs of term and
+ * value, readable in order by a screen reader.
+ */
+import type { CaseStudy } from '@/data/caseStudy';
+import { categoryLabel } from '@/data/projects';
+
+interface Props {
+  study: CaseStudy;
+}
+
+const { study } = Astro.props;
+
+const entries: { term: string; values: string[] }[] = [
+  { term: 'Servicios', values: study.categories.map(categoryLabel) },
+  { term: 'Cliente', values: study.client ? [study.client] : [] },
+  { term: 'Año', values: study.year ? [String(study.year)] : [] },
+  {
+    term: 'Entregables',
+    values: study.deliverables.length > 0 ? study.deliverables : study.services,
+  },
+].filter((entry) => entry.values.length > 0);
+---
+
+<section class="cs-intro" aria-labelledby="cs-intro-title" data-cs-intro>
+  <div class="cs-shell cs-intro__inner">
+    {
+      entries.length > 0 && (
+        <dl class="cs-meta" data-cs-meta>
+          {entries.map((entry) => (
+            <div class="cs-meta__row" data-cs-line>
+              <dt class="cs-meta__term">{entry.term}</dt>
+              {entry.values.map((value) => (
+                <dd class="cs-meta__value">{value}</dd>
+              ))}
+            </div>
+          ))}
+        </dl>
+      )
+    }
+
+    <div class="cs-intro__copy">
+      {
+        study.headline && (
+          <h2 class="cs-intro__headline" id="cs-intro-title">
+            <span class="cs-line">
+              <span data-cs-line>{study.headline}</span>
+            </span>
+          </h2>
+        )
+      }
+      {
+        !study.headline && (
+          <h2 class="visually-hidden" id="cs-intro-title">
+            Sobre el proyecto
+          </h2>
+        )
+      }
+      <div class="cs-intro__body">
+        {
+          study.intro.map((paragraph) => (
+            <p class="cs-intro__text" data-cs-line>
+              {paragraph}
+            </p>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>

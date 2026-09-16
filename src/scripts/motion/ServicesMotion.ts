@@ -8,8 +8,8 @@ type SequenceLoader = () => Promise<{
 
 /** Where the section becomes a sequence; mirrors `services-section.css`. */
 const SEQUENCE_QUERY =
-  '(min-width: 64.01rem) and (min-height: 40rem) and (prefers-reduced-motion: no-preference)';
-const LINEAR_QUERY = '(max-width: 64rem), (max-height: 39.99rem)';
+  '(min-width: 64.01rem) and (min-height: 34rem) and (prefers-reduced-motion: no-preference)';
+const LINEAR_QUERY = '(max-width: 64rem), (max-height: 33.99rem)';
 
 /**
  * Home services motion. `MotionController` owns its lifecycle here.

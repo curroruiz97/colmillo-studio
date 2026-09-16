@@ -1,0 +1,235 @@
+---
+/**
+ * /contacto/ — 02 Brief
+ *
+ * The page's protagonist: one white sheet with a real, editorial `<form>` set
+ * straight into it. No card, no panel, no box, no shadow — a field is a small
+ * label, a large control and a hairline rule, and the rules are what give the
+ * block its structure.
+ *
+ * On wide screens the sheet is two columns, about 35/65: a short sticky block
+ * on the left (the heading, one line and the two approved channels, straight
+ * from `src/config/contact.ts`) and the form on the right. Narrower screens
+ * read the block first and then the form, so the direct channels are always
+ * above the fields.
+ *
+ * Accessibility and the no-JavaScript path decide the markup:
+ *
+ * - every control is a real `<input>`/`<textarea>` with a real `<label>`, a
+ *   correct `type` and an `autocomplete` token;
+ * - the service selector is a native radio group in a `<fieldset>`, so arrow
+ *   keys, the tab sequence and screen-reader announcement come for free. The
+ *   pills are the radios' own labels; the inputs themselves are only visually
+ *   hidden, never replaced by a `<div>`;
+ * - every field carries a permanent, empty `aria-describedby` target.
+ *   `ContactPageMotion.ts` writes the message into it and flips
+ *   `aria-invalid`, so an error is announced on the field it belongs to;
+ * - the form's `action` is the studio's own address. With no JavaScript the
+ *   browser validates natively and hands the fields to the visitor's mail
+ *   client; with JavaScript, `ContactPageMotion.ts` takes `novalidate`,
+ *   validates with the copy in `src/data/contactPage.ts` and composes a far
+ *   better draft. Nothing here ever claims a message was sent: see
+ *   `contactFormEndpoint`.
+ *
+ * The small orange ring at the form's left edge is the "contact pulse": it
+ * glides to whichever field has focus. It is decorative and hidden from
+ * assistive technology, absent below the two-column layout, and still under
+ * reduced motion.
+ */
+import {
+  contactBrief,
+  contactDirect,
+  contactEmail,
+  contactFields,
+  contactPrivacy,
+  contactServices,
+  contactSubject,
+  contactSubmit,
+} from '@/data/contactPage';
+import { splitFullStop } from '@/data/servicesPage';
+
+const { text, stop } = splitFullStop(contactBrief.title);
+
+/*
+ * The native fallback destination. Only the subject can be carried this way;
+ * the enhanced path composes the whole brief into the body instead.
+ */
+const action = contactEmail
+  ? `${contactEmail.href}?subject=${encodeURIComponent(contactSubject)}`
+  : undefined;
+
+const isExternal = (href: string) => /^https?:\/\//.test(href);
+---
+
+<section
+  class="contact-brief"
+  aria-labelledby="contact-brief-title"
+  data-surface-tone="light"
+  data-contact-brief
+>
+  <div class="contact-shell contact-brief__inner">
+    <div class="contact-brief__aside">
+      <div class="contact-brief__aside-inner" data-contact-reveal>
+        <h2 id="contact-brief-title" class="contact-brief__title">
+          {text}{stop && <span class="contact-brief__dot" aria-hidden="true" />}
+        </h2>
+        <p class="contact-brief__lede">{contactBrief.lede}</p>
+
+        {
+          contactDirect.channels.length > 0 && (
+            <ul class="contact-brief__channels" role="list">
+              {contactDirect.channels.map((channel) => {
+                const external = isExternal(channel.href);
+                return (
+                  <li class="contact-brief__channel">
+                    <span class="contact-brief__channel-label">
+                      {channel.label}
+                    </span>
+                    <a
+                      class="contact-brief__channel-link"
+                      href={channel.href}
+                      target={external ? '_blank' : undefined}
+                      rel={external ? 'noopener noreferrer' : undefined}
+                      data-cursor-label="Abrir"
+                    >
+                      {channel.value}
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          )
+        }
+      </div>
+    </div>
+
+    <form
+      class="contact-form"
+      action={action}
+      method="post"
+      enctype="text/plain"
+      data-contact-form
+      aria-describedby="contact-form-status"
+    >
+      <span class="contact-form__pulse" aria-hidden="true" data-contact-pulse
+      ></span>
+
+      {
+        contactFields.map((field) => {
+          const id = `contact-${field.name}`;
+          const errorId = `${id}-error`;
+          return (
+            <div
+              class="contact-field"
+              data-contact-field
+              data-contact-reveal
+              data-name={field.name}
+            >
+              <label class="contact-field__label" for={id}>
+                {field.label}
+                {field.required && (
+                  <span class="contact-field__required" aria-hidden="true">
+                    *
+                  </span>
+                )}
+              </label>
+
+              {field.control === 'textarea' ? (
+                <textarea
+                  class="contact-field__control contact-field__control--area"
+                  id={id}
+                  name={field.name}
+                  rows="5"
+                  placeholder={field.placeholder}
+                  autocomplete={field.autocomplete}
+                  required={field.required}
+                  aria-describedby={errorId}
+                />
+              ) : (
+                <input
+                  class="contact-field__control"
+                  id={id}
+                  name={field.name}
+                  type={field.type}
+                  placeholder={field.placeholder}
+                  autocomplete={field.autocomplete}
+                  required={field.required}
+                  aria-describedby={errorId}
+                />
+              )}
+
+              <span class="contact-field__rule" aria-hidden="true" />
+              <span
+                class="contact-field__error"
+                id={errorId}
+                data-field-error
+              />
+            </div>
+          );
+        })
+      }
+
+      <fieldset
+        class="contact-field contact-field--choice"
+        data-contact-field
+        data-contact-reveal
+        data-name="service"
+      >
+        <legend class="contact-field__label">{contactServices.legend}</legend>
+        <p class="contact-field__hint" id="contact-service-hint">
+          {contactServices.hint}
+        </p>
+        <div class="contact-choices">
+          {
+            contactServices.options.map((option) => (
+              <label class="contact-choice" data-cursor-label="Elegir">
+                <input
+                  class="contact-choice__input visually-hidden"
+                  type="radio"
+                  name="service"
+                  value={option.value}
+                  aria-describedby="contact-service-hint"
+                />
+                <span class="contact-choice__pill">{option.label}</span>
+              </label>
+            ))
+          }
+        </div>
+      </fieldset>
+
+      <div class="contact-form__send" data-contact-reveal>
+        <button
+          class="bite-button contact-form__submit"
+          type="submit"
+          data-contact-submit
+          data-cursor-label="Enviar"
+        >
+          <span class="contact-form__submit-label">{contactSubmit.label}</span>
+        </button>
+
+        {
+          /*
+           * What the brief is for, next to the control that sends it. No consent
+           * checkbox: consent is not the legal basis for answering a message
+           * somebody chose to write (see `contactPrivacy`).
+           */
+        }
+        <p class="contact-form__privacy">
+          {contactPrivacy.before}
+          <a href={contactPrivacy.href} data-cursor-label="Abrir"
+            >{contactPrivacy.linkLabel}</a
+          >{contactPrivacy.after}
+        </p>
+      </div>
+
+      <p
+        class="contact-form__status"
+        id="contact-form-status"
+        data-contact-status
+        role="status"
+        aria-live="polite"
+      >
+      </p>
+    </form>
+  </div>
+</section>

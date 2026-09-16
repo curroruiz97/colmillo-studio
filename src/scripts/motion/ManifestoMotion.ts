@@ -48,7 +48,7 @@ export function initManifestoMotion(): () => void {
   const media = gsap.matchMedia();
 
   media.add(
-    '(min-width: 64.01rem) and (min-height: 40rem) and (prefers-reduced-motion: no-preference)',
+    '(min-width: 64.01rem) and (min-height: 34rem) and (prefers-reduced-motion: no-preference)',
     () => {
       const band = canvas.querySelector<HTMLElement>('[data-manifesto-band]');
 
@@ -303,7 +303,7 @@ export function initManifestoMotion(): () => void {
 
   // Coarse pointers and short viewports read the same poster as a linear
   // editorial stack: reveals only, no pin and no sequence.
-  media.add('(max-width: 64rem), (max-height: 39.99rem)', () => {
+  media.add('(max-width: 64rem), (max-height: 33.99rem)', () => {
     const targets = gsap.utils.toArray<HTMLElement>([
       word('morder'),
       word('presionar'),

@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import process from 'node:process';
 import { URL } from 'node:url';
 
@@ -59,6 +59,31 @@ if (
 
 if (!existsSync(new URL('../dist/index.html', import.meta.url))) {
   failures.push('dist/index.html is missing. Run npm run build first.');
+}
+
+/*
+ * The legal pages ship with the holder's identity marked `[PENDIENTE: …]`
+ * because that data does not exist in the repository and must never be
+ * invented. Publishing them unfilled would leave the site in breach of
+ * article 10 of the LSSI-CE, so a release is blocked until the client's data
+ * replaces every marker. See `LEGAL_TODO.md`.
+ */
+const distRoot = new URL('../dist/', import.meta.url);
+if (existsSync(distRoot)) {
+  const pages = readdirSync(distRoot, { recursive: true, encoding: 'utf8' })
+    .filter((entry) => entry.endsWith('.html'))
+    .filter((entry) =>
+      readFileSync(
+        new URL(entry.replaceAll('\\', '/'), distRoot),
+        'utf8',
+      ).includes('[PENDIENTE:'),
+    );
+
+  if (pages.length > 0) {
+    failures.push(
+      `Legal data is still missing in ${pages.length} page(s): ${pages.join(', ')}. Fill the [PENDIENTE: ...] markers listed in LEGAL_TODO.md.`,
+    );
+  }
 }
 
 if (failures.length > 0) {

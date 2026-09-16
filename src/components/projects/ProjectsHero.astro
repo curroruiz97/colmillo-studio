@@ -1,0 +1,52 @@
+---
+/**
+ * /proyectos/ — 01 Hero
+ *
+ * The composition of `/studio/` and `/servicios/`: the title on the left,
+ * centred on the viewport's middle line, and one audiovisual frame on the
+ * right, clear of the right edge. Nothing decorative besides the orange full
+ * stop. Portrait screens stack the title over the frame.
+ *
+ * Unlike those two it stands on the page's own white (2026-09-16, user
+ * direction), so the title is ink, the global wordmark is the black
+ * derivative (`headerTheme="light"` on the route) and the surface tone it
+ * publishes is `light`, which keeps the cursor on its default colours.
+ *
+ * `projectsHeroMedia` (src/config/assets.ts) is the slot for the route's
+ * loop, played `autoplay muted loop playsinline` with no controls and fitted
+ * with `object-fit: contain`. While it is `null` the frame holds a plain
+ * surface of the final size, a shade off the paper and with a hairline, and
+ * no note: the layout is already the one the file will arrive into, so
+ * nothing has to be rebuilt for it. Loop and surface are decorative, so both
+ * are hidden from assistive technology.
+ */
+import ServiceMedia from '@/components/services/ServiceMedia.astro';
+import { projectsHeroMedia as media } from '@/config/assets';
+
+const proportion = media
+  ? `--pj-hero-w: ${media.width}; --pj-hero-h: ${media.height}`
+  : undefined;
+---
+
+<header
+  class="projects-hero"
+  data-surface-tone="light"
+  data-stack-section
+  data-projects-hero
+  data-hero-media={media?.kind}
+>
+  <div class="projects-shell projects-hero__inner">
+    <h1 id="projects-page-title" class="projects-hero__title">
+      <span class="projects-line">
+        <span data-projects-hero-title
+          >Proyectos<span class="projects-hero__dot" aria-hidden="true"
+          ></span></span
+        >
+      </span>
+    </h1>
+
+    <div class="projects-hero__media" style={proportion}>
+      <ServiceMedia media={media} priority class="projects-hero__frame" />
+    </div>
+  </div>
+</header>

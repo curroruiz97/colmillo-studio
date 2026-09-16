@@ -1,17 +1,13 @@
 ---
+/**
+ * /privacidad/ — the RGPD/LOPDGDD privacy policy.
+ *
+ * The wording is in `src/data/legalPages.ts`. It describes this site's actual
+ * data flow: a static site with no backend, whose contact form composes a
+ * draft in the visitor's own mail client rather than transmitting anything.
+ */
 import LegalLayout from '@/layouts/LegalLayout.astro';
-import { demoMode } from '@/data/projects';
+import { privacyPolicy } from '@/data/legalPages';
 ---
 
-<LegalLayout
-  title="Privacidad"
-  description="Política de privacidad de Colmillo Studio pendiente de aprobación."
->
-  {
-    demoMode && (
-      <p class="dev-note" data-dev-placeholder>
-        Política pendiente de requisitos de tratamiento y texto legal aprobado.
-      </p>
-    )
-  }
-</LegalLayout>
+<LegalLayout doc={privacyPolicy} />

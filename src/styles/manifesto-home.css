@@ -135,18 +135,23 @@
 }
 
 /* Desktop: one pinned stage, eight compositions. */
-@media (min-width: 64.01rem) and (min-height: 40rem) {
+@media (min-width: 64.01rem) and (min-height: 34rem) {
   .manifesto-home {
     /* Nine tenths of the two-word size, so three black concepts share one line
        with air on both sides. The protagonist scales in `ManifestoMotion.ts`
-       were divided by the same 0.9, so the oversized poses are unchanged. */
-    --manifesto-word: clamp(3.06rem, 5.58vw, 5.58rem);
-    --manifesto-mark: clamp(3.8rem, 7.4vw, 8rem);
+       were divided by the same 0.9, so the oversized poses are unchanged.
+       On a laptop window the height caps them too (the `svh` terms only bind
+       below about 1000 px of height), so the poster keeps its proportions
+       instead of its width. */
+    --manifesto-word: clamp(3.06rem, min(5.58vw, 10.5svh), 5.58rem);
+    --manifesto-mark: clamp(3.8rem, min(7.4vw, 14svh), 8rem);
     --manifesto-pair-gap: clamp(1.6rem, 4.2vw, 5.4rem);
     /* Percentages are of the canvas, which stops growing at `--content-width`;
        the `vw` term lets wide screens keep filling the empty lower-right corner
-       instead of freezing the drawing at the capped canvas size. */
-    --manifesto-figure-width: max(59%, 48vw);
+       instead of freezing the drawing at the capped canvas size. The height
+       term only binds below about 900 px of height: there the drawing shrinks
+       with the window, so its foot stays well inside the stage. */
+    --manifesto-figure-width: min(max(59%, 48vw), calc(100svh - 4rem));
 
     /* The tall track owns the scroll; the stage inside it does the pinning,
        so this section opts out of the shared sticky stack behaviour. */
@@ -231,12 +236,9 @@
   }
 }
 
-/* Shorter desktop viewports cannot afford the same vertical spread. */
-@media (min-width: 64.01rem) and (min-height: 40rem) and (max-height: 50rem) {
-  .manifesto-home {
-    --manifesto-figure-width: 57%;
-  }
-
+/* Shorter desktop viewports cannot afford the same vertical spread. The
+   drawing's size already follows the height (`--manifesto-figure-width`). */
+@media (min-width: 64.01rem) and (min-height: 34rem) and (max-height: 50rem) {
   .manifesto-home__figure {
     inset-block-start: 35%;
     inset-inline-start: 57%;
@@ -267,7 +269,7 @@ html[data-motion='reduced'] .manifesto-home__figure {
 
 /* Reduced motion keeps the finished poster composition, but drops the extra
    scroll length and the pin: there is no sequence left to drive. */
-@media (min-width: 64.01rem) and (min-height: 40rem) {
+@media (min-width: 64.01rem) and (min-height: 34rem) {
   html[data-motion='reduced'] .manifesto-home__track {
     block-size: 100svh;
   }
@@ -277,7 +279,7 @@ html[data-motion='reduced'] .manifesto-home__figure {
   }
 }
 
-@media (min-width: 64.01rem) and (min-height: 40rem) and (prefers-reduced-motion: reduce) {
+@media (min-width: 64.01rem) and (min-height: 34rem) and (prefers-reduced-motion: reduce) {
   .manifesto-home__track {
     block-size: 100svh;
   }

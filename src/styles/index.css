@@ -15,6 +15,10 @@
 @import './contact-section.css' layer(sections);
 @import './studio-page.css' layer(sections);
 @import './services-page.css' layer(sections);
+@import './projects-page.css' layer(sections);
+@import './case-study.css' layer(sections);
+@import './contact-page.css' layer(sections);
+@import './legal-page.css' layer(sections);
 @import './edge-menu.css' layer(components);
 @import './instagram-badge.css' layer(components);
 @import './site-logo.css' layer(components);

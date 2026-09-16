@@ -1,17 +1,102 @@
 ---
+/**
+ * The shell the three legal routes share.
+ *
+ * A legal page still belongs to Colmillo: the global wordmark, the edge menu,
+ * the Instagram control and the shared footer are all here, on the page's own
+ * white, with the orange disc closing the title exactly as on every other
+ * route. What it does not have is a hero that fills the screen — a legal
+ * document should start reading immediately — or any motion of its own.
+ *
+ * Structure: the title block, then the document in a reading column with its
+ * own contents beside it, then the other two documents. The index is a plain
+ * `<nav>` of in-page links and the whole route works with JavaScript disabled,
+ * because nothing here is an enhancement.
+ *
+ * Indexing is deliberately NOT forced off here. The previous version passed
+ * `noindex` unconditionally, which would have kept the legal pages out of the
+ * index even after release; a public site's legal notice is meant to be
+ * reachable. They now follow the site-wide gate in `src/config/site.ts`, so
+ * they stay `noindex` for as long as every other route does. See
+ * `docs/DECISIONS.md` (2026-09-16).
+ *
+ * All copy lives in `src/data/legalPages.ts`.
+ */
+import LegalBody from '@/components/legal/LegalBody.astro';
 import BaseLayout from './BaseLayout.astro';
+import { legalDocuments, type LegalDocument } from '@/data/legalPages';
+import { splitFullStop } from '@/data/servicesPage';
 
 interface Props {
-  title: string;
-  description: string;
+  doc: LegalDocument;
 }
 
-const { title, description } = Astro.props;
+const { doc } = Astro.props;
+const { text, stop } = splitFullStop(doc.title);
+const others = legalDocuments.filter((other) => other.href !== doc.href);
 ---
 
-<BaseLayout title={title} description={description} noindex>
-  <article class="content-shell legal-page">
-    <h1>{title}</h1>
-    <slot />
+<BaseLayout
+  title={doc.metaTitle}
+  description={doc.description}
+  headerTheme="light"
+>
+  <article class="legal-route" data-legal-route>
+    <header class="legal-hero" data-surface-tone="light">
+      <div class="legal-shell legal-hero__inner">
+        <h1 class="legal-hero__title">
+          {text}{stop && <span class="legal-hero__dot" aria-hidden="true" />}
+        </h1>
+        <p class="legal-hero__lede">{doc.lede}</p>
+        <p class="legal-hero__updated">
+          Última actualización:{' '}
+          <time datetime={doc.updated.iso}>{doc.updated.label}</time>
+        </p>
+      </div>
+    </header>
+
+    <div class="legal-body">
+      <div class="legal-shell legal-body__inner">
+        <nav class="legal-index" aria-labelledby="legal-index-label">
+          <p class="legal-index__label" id="legal-index-label">Contenido</p>
+          <ol class="legal-index__list" role="list">
+            {
+              doc.sections.map((section) => (
+                <li class="legal-index__item">
+                  <a class="legal-index__link" href={`#${section.id}`}>
+                    <span>{section.heading}</span>
+                  </a>
+                </li>
+              ))
+            }
+          </ol>
+        </nav>
+
+        <div class="legal-doc">
+          <LegalBody sections={doc.sections} />
+
+          <aside class="legal-more" aria-labelledby="legal-more-label">
+            <p class="legal-more__label" id="legal-more-label">
+              Otros documentos
+            </p>
+            <ul class="legal-more__list" role="list">
+              {
+                others.map((other) => (
+                  <li>
+                    <a
+                      class="legal-more__link"
+                      href={other.href}
+                      data-cursor-label="Abrir"
+                    >
+                      {other.navLabel}
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+          </aside>
+        </div>
+      </div>
+    </div>
   </article>
 </BaseLayout>

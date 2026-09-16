@@ -3885,6 +3885,14 @@ logo and page content untouched. Another terminal was editing `EdgeMenu.ts`
 - Open: the user wrote `hola@colmilloestudio.com`; the approved address in
   `contactChannels` (and `DECISIONS.md`, `CONTENT_NEEDED.md`) is
   `hola@colmillostudio.com`. It was kept pending confirmation.
+- Follow-up (same day, user direction): the address and the handle are no
+  longer shown. The links are the words "Correo" and "Instagram" themselves
+  (`.edge-menu__channel-label`, cream, uppercase, 900), side by side in a
+  wrapping flex row; hover/focus keeps the orange, the drawn hairline and the
+  0.2rem lean. Same destinations and `target`/`rel`. The foundations test now
+  also asserts the two words and that neither value appears. Rechecked at the
+  same nine viewports (one row even at 320), `astro check` 0/0/0, Prettier and
+  ESLint clean, both builds, channel/scrim tests 6 passed.
 
 Nothing was committed, pushed or deployed.
 
@@ -3955,3 +3963,794 @@ own inline sampling (only the logo stays in its `inert` set),
 (fixed, pill on every route, folds to the circle). `foundations.spec.ts`
 asserts the mark leaves the viewport on scroll. `DECISIONS.md`,
 `MOTION_SPEC.md` and `CLAUDE.md` updated to match.
+
+## 2026-09-15 Session: Laptop Responsive Pass (1280-1600 Wide, Short Heights)
+
+User request: laptops must keep the large-desktop composition, only more
+compact; no redesign. Run while other terminals had uncommitted work in
+`EdgeMenu.astro`, `edge-menu.css`, `foundations.spec.ts`, `DECISIONS.md` and
+this file; none of it was touched. See `DECISIONS.md` (2026-09-15, "Laptops
+Keep The Wide Layout, Scaled By Height").
+
+- Audit first (scratch Playwright script over a scratch `build:demo`): home,
+  `/servicios/`, `/studio/`, `/contacto/`, `/proyectos/` at 1920x1080,
+  1600x900, 1536x864, 1440x900, 1366x768, 1280x800 and at real browser-window
+  heights (1920x969, 1600x789, 1536x730, 1440x789, 1366x657, 1366x620,
+  1280x689, 1280x580), with a per-shot measurement of vertically cut elements.
+  Nominal sizes were mostly sound; the break was height: below 640 px of
+  window the wide layouts switched to tablet/linear (manifesto unpinned and
+  cut, home services as a list, `/servicios/` without the stack), and at
+  620-730 px the `/servicios/` layers and the home services stage filled the
+  whole height (readout at the stage's foot, rule under the Instagram band).
+- Files: `src/styles/layout.css`, `manifesto-home.css`,
+  `services-section.css`, `services-page.css`, `studio-page.css`,
+  `contact-section.css`, `src/components/sections/IntroSection.astro`,
+  `src/scripts/motion/SectionStack.ts`, `ManifestoMotion.ts`,
+  `ServicesMotion.ts`, `ServicesPageMotion.ts`, `docs/MOTION_SPEC.md`,
+  `docs/DECISIONS.md`.
+- Changes: wide threshold `min-height` 40rem -> 34rem everywhere (CSS, the
+  manifesto `noscript` style, four motion queries); `min(vw, svh)` terms
+  inside the existing clamps for the manifesto, home services, `/servicios/`
+  layers, `/studio/` headings/spacing and the contact headline (large screens
+  resolve to the previous values); `--stack-overflow` so a sticky layer taller
+  than the screen reaches its foot before holding.
+- A first version published `--stack-overflow` on every stack section and
+  shifted the manifesto and services tracks (both `position: relative`) by
+  thousands of pixels; caught by the audit's scroll positions and fixed by
+  publishing it only for sticky or released layers, with released layers
+  reset to `top: 0`.
+- Verified after the fix: 1920x1080 scroll positions identical to before and
+  screenshots unchanged; manifesto pinned and composed, home services
+  sequence with the readout inside the stage, `/servicios/` layers whole with
+  air at 1366x620 and 1280x580; 1024x768 keeps the tablet layouts (width
+  breakpoint unchanged); horizontal overflow 0 on every shot; no console
+  errors. Scratch checks: at 1100x560 with 150% root text every service layer
+  is taller than the screen, sticks at `-overflow` and the last capability is
+  reachable before the close covers it; reduced motion at 1366x620 and
+  1440x900 keeps the still poster and plain layers; resizing 1366x620 ->
+  900 -> 560 -> 1000x700 -> 1366x620 switches pin/sequence on and off
+  consistently. The scrolled "enter" states still show the covered layer's
+  heading being covered by the rising one: that is the stack's existing
+  vocabulary and was not changed.
+- Checks: `astro check` 0/0/0; ESLint and Prettier clean on the changed files
+  and docs; `test:e2e:demo` 125 passed / 61 skipped; `test:e2e` 72 passed /
+  10 skipped; `check:production` passed (72 files, 175,981 JS bytes). Both
+  suites rebuilt `dist-demo/` and `dist/`.
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-16 Session: /proyectos/ Rebuilt As The Portfolio
+
+User request: a complete redesign of `/proyectos/`, with Hello Monday's Work
+page as a structural reference only (hero, category filter, asymmetric
+masonry, strong hover, editorial feel, clickable pieces) expressed entirely in
+Colmillo's language. Run while other terminals had uncommitted work in
+`EdgeMenu.astro`, `IntroSection.astro`, `ManifestoMotion.ts`,
+`SectionStack.ts`, `ServicesMotion.ts`, `ServicesPageMotion.ts`, six
+stylesheets, `foundations.spec.ts`, `DECISIONS.md`, `MOTION_SPEC.md` and this
+file; none of it was touched. Only two lines of `foundations.spec.ts` were
+changed, both about this route. See `DECISIONS.md` (2026-09-16,
+"/proyectos/ Is The Portfolio, Not An Archive Of Demos").
+
+- New files: `src/components/projects/ProjectsHero.astro`,
+  `ProjectsFilters.astro`, `ProjectsCard.astro`, `ProjectsClose.astro`;
+  `src/styles/projects-page.css`; `src/scripts/motion/ProjectsPage.ts` and
+  `ProjectsPageMotion.ts`; `tests/e2e/projects.demo.spec.ts` and
+  `projects.spec.ts`.
+- Rewritten: `src/pages/proyectos/index.astro`.
+- Changed: `src/data/projects.ts` (categories, format, featured on
+  `ProjectRecord`; five neutral provisional pieces added after the existing
+  five, so the home rail's first five and every existing test are unchanged),
+  `src/content.config.ts` (the same two fields on the collection schema),
+  `src/config/assets.ts` (`projectsHeroMedia`, `null`),
+  `src/styles/index.css`, `src/scripts/motion/MotionController.ts`,
+  `scripts/check-production.mjs` (the five new slugs and the two missing
+  titles added to the forbidden markers; the bare words "Materia", "Umbral",
+  "Volumen", "Ritmo" and "Fragmento" were deliberately not added, since a
+  substring match on common Spanish nouns would fail on approved copy),
+  `playwright.config.ts` and `playwright.demo.config.ts`,
+  `tests/e2e/demo.spec.ts` and two lines of `tests/e2e/foundations.spec.ts`
+  (the route's wordmark theme is now `dark`; the production assertion moved
+  from the retired `.project-card` to `[data-project-item]`).
+- The route is now hero (the `/servicios/` title split and size, a 16:9 slot
+  for the loop), gallery (sticky filter, twelve-column masonry) and black
+  close. The hero was charcoal in the first pass and is white since the
+  user's follow-up the same day, so hero and gallery are one sheet. Standard build: nine pages, and with no approved
+  project the gallery is not rendered at all, so the route is the hero and the
+  close. Demo build: nineteen pages (ten project routes) and the complete
+  composition.
+- A first pass used Studio's 40fr/50fr hero split with `clamp(3rem, 9vw,
+  10rem)`; caught in the screenshot pass, where "Proyectos." overflowed its
+  column at 1440 and the orange full stop wrapped to a second line. Fixed by
+  taking the `/servicios/` values, then measured: one line at every tested
+  width. A second pass stacked the five filter words over the first picture on
+  a phone; fixed with a single sideways-scrolling row below 48rem.
+- Verified with a scratch Playwright pass over a scratch `build:demo` at
+  1920x1080, 1600x900, 1440x900, 1366x768, 1024x768 and 390x844: horizontal
+  overflow 0 everywhere, no console errors, the title on one line, the grid at
+  twelve columns from 1024.16 px and one column below 768, four formats with
+  distinct widths and heights, the filter reducing to exactly its own pieces
+  and back to ten, the band stuck at `top: 0` deep in the gallery without
+  touching the Instagram control or the edge tab, and the categories readable
+  on keyboard focus.
+- Checks: `astro check` 0/0/0; ESLint clean; Prettier clean on every new and
+  changed file (the repository-wide `format:check` still reports its
+  pre-existing line-ending mismatch, now 48 files, none of them touched here);
+  `test:e2e:demo` 147 passed / 69 skipped; `test:e2e` 76 passed / 10 skipped;
+  `check:assets`, `check:brand`, `check:hero`, `check:production` (74 files,
+  179,863 JS bytes) and `check:links` on both artifacts all passed.
+- Left in place deliberately: `src/components/projects/ProjectCard.astro` and
+  the `.project-card*` rules in `src/styles/layout.css` are now dead — nothing
+  imports or matches them since the index stopped using them. `layout.css` had
+  uncommitted work from another terminal, so removing half the pair would have
+  left an inconsistency; both should go together in a later pass.
+- Still open: the hero loop, real projects, their categories, formats and
+  covers, and approval of the closing copy — all recorded in
+  `CONTENT_NEEDED.md`.
+
+Nothing was committed, pushed or deployed.
+
+### Follow-up the same day: the /proyectos/ hero on white
+
+User direction: the hero's background should be the page's own white like the
+rest of the route, with the title, the wordmark and everything else following.
+
+- `projects-page.css`: `.projects-hero` takes `--color-white` and
+  `--color-brand-ink`; the empty media slot goes from `#292929` with a white
+  hairline to `rgb(18 16 15 / 0.04)` with an ink one, so it is still a shade
+  off the paper and still reads as a decision; `--pj-charcoal` is gone.
+- The rounded lift between hero and gallery was removed with it (`--pj-lift`,
+  the negative margin, the two start radii and the block padding that paid for
+  them): two white surfaces need no seam, and the brief was explicit about not
+  adding curves that do not earn their place.
+- The canvas is no longer forced to ink. `html:has([data-projects-page])` kept
+  `--color-background: ink` so the footer would continue the black close; with
+  a white hero that would have shown black on an overscroll above the page.
+  The override is gone and the footer is painted ink directly on this route
+  instead, so the top of the page matches the hero and the route still ends on
+  one dark field.
+- `ProjectsHero.astro` publishes `data-surface-tone="light"` (the cursor keeps
+  its default colours) and the route passes `headerTheme="light"`, so the
+  wordmark is the black derivative again.
+- Tests updated with it: `projects.demo.spec.ts` (white hero, ink text, the
+  footer's ink), `projects.spec.ts` (white hero, `light` wordmark) and the
+  `/proyectos/` row of `foundations.spec.ts` back to `light`.
+- Re-verified: `astro check` 0/0/0, ESLint and Prettier clean,
+  `test:e2e:demo` 147 passed / 69 skipped, `test:e2e` 76 passed / 10 skipped,
+  `check:production` (74 files, 179,863 JS bytes) and `check:links` on both
+  artifacts. Screenshot pass at 1440x900 confirms the white first screen, the
+  seamless hero-to-gallery sheet and the unchanged black close and footer.
+
+### Second follow-up the same day: the whole route on white
+
+User direction: the closing CTA and the footer should be white too.
+
+- `.projects-close` takes `--color-white` and `--color-brand-ink` (the "?"
+  stays brand orange, and the bite button swaps its translucent black offset
+  for the solid ink one the home rail's CTA uses on white), and publishes
+  `data-surface-tone="light"`.
+- The `html:has([data-projects-page]) .site-footer` overrides are gone: the
+  footer is the shared one again. Nothing on the route touches the canvas, the
+  footer or `--color-background` any more, so an overscroll at either end
+  shows the same paper, and `--pj-light` is no longer used.
+- The grid's bottom padding dropped from `--pj-space` to
+  `clamp(1.5rem, 3vw, 3rem)`. With no change of surface left to mark the end
+  of the gallery, the sticky filter hung over the closing question for about
+  130 px; the route's breath before the question now lives in the close's own
+  top padding alone, so the band releases right after the last piece. Total
+  air between the last piece and the question is unchanged in feel (about
+  190 px at 1440 instead of 290).
+- Tests: the archive spec now asserts gallery, close and footer share the one
+  white and that the close's text is ink.
+- Re-verified: `astro check` 0/0/0, ESLint and Prettier clean,
+  `test:e2e:demo` 147 passed / 69 skipped, `test:e2e` 76 passed / 10 skipped,
+  `check:production` (74 files, 179,863 JS bytes), `check:links` on both
+  artifacts, and a screenshot pass at 1440x900 from the first screen to the
+  footer.
+
+## 2026-09-16 Session: The Case Study System (/proyectos/[slug]/)
+
+User request: build the complete system of individual project pages, with
+hellomonday.com's project pages as a structural reference only, so that every
+case study shares one structure and none of them shares an art direction. Run
+while other terminals had uncommitted work in `EdgeMenu.astro`,
+`IntroSection.astro`, `ManifestoMotion.ts`, `SectionStack.ts`,
+`ServicesMotion.ts`, `ServicesPageMotion.ts`, eight stylesheets, several specs
+and the docs; none of it was touched beyond the five one-line hooks listed
+below. See `DECISIONS.md` (2026-09-16, "Case Studies Are A System, Not A
+Template") and the authoring guide `docs/CASE_STUDIES.md`.
+
+### What was built
+
+- New model `src/data/caseStudy.ts`: theme (six values), layout variant,
+  hero variant, fourteen module types as a discriminated union, chapters,
+  related projects, SEO, and `resolveCaseStudy()`, which builds a complete
+  page from the archive's own record when a project authors nothing.
+- New `src/data/caseStudyFields.ts` (Zod guard for approved frontmatter) and
+  `src/data/caseStudies.ts` (two authored demonstration studies, demo only).
+- New `src/layouts/CaseStudyLayout.astro`, seventeen components under
+  `src/components/case-study/`, `src/styles/case-study.css`,
+  `src/scripts/motion/CaseStudyPage.ts` and `CaseStudyPageMotion.ts`.
+- Rewritten `src/pages/proyectos/[slug].astro`.
+- `bitePath()` exported from `PressSurface.ts`: the bite reveal reuses the
+  pressure dent's own outline geometry instead of a second implementation.
+- New `tests/e2e/case-study.demo.spec.ts` (12 specs).
+- Five one-line hooks in files other terminals also hold: the stylesheet
+  import in `index.css`, the module registration in `MotionController.ts`, the
+  schema spread in `content.config.ts`, and the spec file registration in both
+  Playwright configs. Two markers added to `check-production.mjs` and three
+  selector lines updated in `demo.spec.ts`, all about this route.
+- `/proyectos/` itself was not touched: its cards already linked to
+  `/proyectos/<slug>/`.
+
+### Deliberately not done
+
+Cross-document View Transitions for a card-to-hero expansion. ClientRouter was
+removed from this repository on 2026-09-10 after back/forward QA, and a later
+probe reproduced the same touch history rejection; the motion architecture is
+one controller mount per native document. The brief conditioned the effect on
+being robust, so the intent is served by the hero's own entrance and the next
+project's growth instead. Recorded in `DECISIONS.md` as its own future task.
+
+### Defects found in QA and fixed
+
+- The bite reveal stayed at full depth and left the picture behind its own
+  mask. `initBite` created its triggers before `initSticky` changed the page's
+  height, and nothing refreshed afterwards because the chunk arrives after
+  `MotionController` has already refreshed. The layout-changing modules are
+  now mounted first and the chunk refreshes ScrollTrigger once at the end.
+- The next-project stage rendered as a narrow column with the title broken one
+  letter per line. Keeping the legacy `project-navigation` class so an
+  existing overlap test would still match pulled in `layout.css`'s
+  `grid-template-columns: 1fr auto 1fr` and its bordered links. The class was
+  dropped and the two lines of `demo.spec.ts` that measured it now point at
+  the new elements.
+- The chapter index, fixed against the left edge, sat over the copy. A page
+  that has one now reserves its width in the container's start padding.
+- The abstract placeholder, drawn in container units for a media frame, read
+  as three stray blobs across a whole screen. In a full-bleed hero it is held
+  to a centred square of the screen's shorter side.
+
+### Verification performed this session
+
+- `npm.cmd run check`: 151 files, 0 errors, 0 warnings, 0 hints.
+- `npm.cmd run lint`: clean across the repository.
+- Prettier: clean on every file created or changed this session.
+- `npm.cmd run build`: 9 pages (unchanged: no project route is generated
+  while no project is approved). `npm.cmd run build:demo`: 19 pages
+  (unchanged: the ten provisional pieces, now with case studies).
+- `npm.cmd run check:production`: passed, 76 files, 185,605 uncompressed
+  JavaScript bytes against the 220,000 budget, no demo content or placeholders.
+- `npm.cmd run check:links`: 9 and 19 HTML files, both artifacts clean.
+- `check:assets` (prelaunch slots unchanged), `check:brand`, `check:hero`:
+  passed.
+- `npm.cmd run test:e2e:demo`: 177 passed, 75 intentional skips, 0 failures.
+- `npm.cmd run test:e2e`: 75 passed, 10 skips, and the known pre-existing
+  mobile scrim-click flake in `foundations.spec.ts:297`, which passed 3/3 when
+  re-run in isolation. It is unrelated to this work.
+- Scratch Playwright sweep over `dist-demo` at 1920x1080, 1600x900, 1536x864,
+  1440x900, 1366x768, 1024x768, 430x932, 390x844 and 320x720, across the two
+  authored studies and one fallback study: horizontal overflow 0 everywhere,
+  0 at 200% root text on both routes, no console errors, no overlap between
+  the fixed chrome and the page's copy, and each project's own background
+  measured on the document. Screenshots inspected at 1440 and 390 for the
+  hero, the introduction, the modules, the sticky story, the bite reveal and
+  the next-project stage.
+
+### Left in place deliberately
+
+`src/components/projects/ProjectHero.astro`, `ProjectGallery.astro`,
+`ProjectNavigation.astro` and `src/layouts/ProjectLayout.astro` are now unused
+(verified: nothing imports them), as are their `.project-hero*`,
+`.project-story*`, `.project-gallery*` and `.project-navigation*` rules in
+`layout.css`. They were not deleted because `layout.css` has uncommitted work
+from another terminal and the previous session left the `.project-card` pair
+for the same reason; components and rules should go together in one later pass.
+
+### Still open
+
+The client's real projects. Everything the system needs from them is listed in
+`docs/CONTENT_NEEDED.md` under "Case studies", and nothing there blocks a
+launch: a project with no authored study already publishes a complete page.
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-16 Session: /proyectos/ Hero Loop Published
+
+Scope: the `/proyectos/` hero media only, at the user's request. The filter,
+the masonry, the cards, the press dent, the close, the footer, the global
+chrome and every other route were not touched. Other terminals were working in
+the same tree throughout; nothing of theirs was reverted or rewritten.
+
+### What changed
+
+- `public/assets/projects/video hero proyectos.mp4` — the delivered file,
+  renamed only to drop the stray space before its extension (it arrived as
+  `video hero proyectos .mp4`) so it sits on the public path the user
+  specified. Not re-encoded, cropped or colour-corrected.
+- `public/assets/projects/proyectos-hero-poster.webp` (new, 32,152 B,
+  1280x720) — the loop's first frame, drawn to a canvas in Chromium and
+  written with sharp at quality 86, the same route the `/servicios/` poster
+  took.
+- `src/config/assets.ts` — `projectsHeroMedia` filled: MP4 only (no WebM was
+  delivered), poster, 1280x720, `fit: 'contain'`, `alt: ''`. The space in the
+  file name is URL-encoded in the reference, as on `/servicios/`.
+- `src/styles/projects-page.css` — hero block only: the mask that fades the
+  loop's outer 8% into the sheet, the `max-content minmax(0, 1fr)` split and
+  height cap for the landscape composition, and the portrait bleed.
+
+Nothing else was edited. The entrance was not rewritten: the hero's existing
+CSS entrance (`projects-rise` on the title, `projects-arrive` on the media)
+already runs from the first paint and is skipped under reduced motion.
+
+### The file, measured
+
+Measured frame by frame in Chromium (Playwright, 36 samples across the loop):
+H.264, 1280x720 (16:9), 24 fps, 144 frames, 6.016 s, with an audio track the
+page never plays. The ground holds 243-244, 241-242, 237-238 (about #f4f2ee)
+from the first frame to the last, and the drawing never leaves the middle 83%
+— at least 8.75% clear on the left, 8.13% right, 9.44% top, 8.33% bottom.
+
+Two consequences, both recorded in `docs/CONTENT_NEEDED.md`:
+
+- that ground is about eleven levels under the route's white, so drawn as a
+  plain rectangle it reads as a pale panel with a hard edge on the sheet. The
+  hero therefore fades the outer 8% of the picture into the page with two
+  intersecting linear-gradient masks — the widest band that cannot touch a
+  drawn pixel. No filter, tint, blend mode, border or shadow goes near the
+  drawing, and the hero keeps `--color-white`, so the route is still one sheet
+  (the demo spec's white assertion still passes). The remaining field inside
+  the band measures 243-244 against the page's 255: visible as paper, with no
+  edge. A re-export on pure white, or the ground lift the home hero master was
+  given in September, would remove it outright;
+- the last frame is not the first (mean absolute difference 15.4/255 on a
+  320x180 sample), so each pass wraps with a small cut, exactly like the
+  `/servicios/` loop.
+
+### The composition
+
+With the loop present the landscape split changes the way `/servicios/` does:
+`max-content minmax(0, 1fr)` with `column-gap: clamp(1.5rem, 4vw, 5rem)`, so
+the title keeps its own width and the panorama takes the rest of the measure,
+capped by `calc((100svh - 12rem) * 16 / 9)` so a short laptop window keeps the
+wide composition. The route's type scale was left alone.
+
+Measured on the dev server, frame width as a share of the hero's inner
+measure: 1920x1080 46.8% (824x464), 1600x900 50.6% (810x456), 1536x864 50.5%
+(776x436), 1440x900 50.3% (724x407), 1366x768 50.1% (684x385), 1280x800 49.9%
+(638x359). The title holds one line at every width and never meets the frame
+(smallest gap 51 px at 1280, before the file's own empty margin). 1920 sits
+under the range because the title is at its clamp maximum there while the
+shell stops at 100rem.
+
+Portrait stacks title over loop, and phones bleed it to the screen edge but
+the edge menu's rail, as `/servicios/` does: 1024x1366 89.3% (915x514),
+834x1112 88.2% (736x414), 390x844 93.8% (366x206, starting at x=0), 320x720
+92.5% (296x167). The bleed is only safe because of the mask above.
+
+### Verified
+
+On the dev server at 1920x1080, 1600x900, 1536x864, 1440x900, 1366x768,
+1280x800, 1024x1366, 834x1112, 390x844 and 320x720: MP4 206, `readyState` 4,
+playing and advancing (about 0.92 s of playback per second of wall clock),
+`muted loop playsinline autoplay`, `controls` false, `preload="metadata"`,
+computed `object-fit: contain`, `filter: none`, `mix-blend-mode: normal`,
+rendered box exactly 16:9 (1.778) at every size, horizontal overflow 0,
+cumulative layout shift 0 and no console or page errors anywhere.
+
+Reduced motion at 1440 and 390: the video is paused at frame 0 on its poster,
+the media's entrance animation resolves to `none`, overflow 0. With JavaScript
+disabled at 1440 the loop still autoplays and wraps on its own attributes and
+the entrance still runs, so the hero needs no script.
+
+Checks: `astro check` 152 files, 0 errors / 0 warnings / 0 hints; Prettier and
+ESLint clean on the two changed source files; `npm run build` 9 pages;
+`check:production` passed (80 files, 185,605 JS bytes) with the MP4 and the
+poster in `dist/assets/projects/`; `check:links` passed; `projects.spec.ts`
+6/6 on desktop Chromium and Pixel 7.
+
+`build:demo` and the demo matrix were deliberately not run: another terminal
+was working in the same tree and `dist-demo` is shared. The hero is identical
+in both builds, and the dev server the measurements above come from is demo
+mode.
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-16 - /proyectos/ Close Rebuilt As A Scene
+
+The archive's closing CTA now stands inside the client's panoramic picture
+supplied this day. Rationale and the alternatives rejected are in
+`docs/DECISIONS.md`; the open approvals are in `docs/CONTENT_NEEDED.md`.
+
+### Changed
+
+- `scripts/prepare-projects-media.mjs` (new) and `media:projects` in
+  `package.json`: writes `public/assets/projects/proyectos-cta.webp` from the
+  untouched master `bg cta proyectos.png`, and prints the figures the layout is
+  built on so they can be re-derived rather than trusted.
+- `src/config/assets.ts`: `projectsCloseScene` (2172x724), `null` restores the
+  plain white close.
+- `src/components/projects/ProjectsClose.astro`: rewritten — a decorative
+  two-wing scene, the question, a supporting line and two bite buttons.
+- `src/pages/proyectos/index.astro`: passes `lede` and `actions` instead of a
+  single `label`/`href`.
+- `src/styles/projects-page.css`: the close section rewritten.
+- `tests/e2e/projects.spec.ts`, `tests/e2e/projects.demo.spec.ts`: one test
+  each for the scene, its two routes and its geometry.
+- `CLAUDE.md`, `docs/DECISIONS.md`, `docs/CONTENT_NEEDED.md`,
+  `docs/MOTION_SPEC.md`.
+
+### The three defects found by looking, and their fixes
+
+Each was found in a rendered screenshot, not in the code.
+
+- **The section read as a warm grey panel.** The two wings are half the screen
+  each, so between them they cover the whole width, and the master's paper is
+  254,253,251 against the page's #ffffff. `media:projects` now scales every
+  channel by 255/251, clamping the paper to pure white; the picture has no
+  boundary on the page at all. Approval of that lift is open.
+- **Only the orange ribbon survived.** Drawn at the section's full height the
+  file is blown up to about 165% of the screen's width and the metal blocks are
+  cropped away. The drawn height is now capped
+  (`min(100cqh, clamp(20rem, 42vw, 34rem))`) and the wings are centred.
+- **A straight edge cut the sculptures mid-sheet.** The master is itself a
+  crop, so its top and bottom are given the same fade as the inner edges.
+
+A fourth was found by arithmetic before it was rendered: with the wings' reach
+clamped to `(100cqw - room) / 2` and `room` also the copy's width, the ink lands
+exactly on the copy's edge (0 px of air at 1440). `--pj-cta-clear` is now the
+copy's room plus air, and the two are deliberately different numbers.
+
+### Verified
+
+Scratch Playwright sweep over `dist-demo` at 1920x1080, 1440x1000, 1440x900,
+1366x768, 1024x768, 834x1112, 430x932, 390x844 and 320x720, screenshotting the
+close and measuring the sculptures on the rendered pixels with the copy hidden
+(measuring it visible only finds the title): horizontal overflow 0 everywhere,
+the section's `background-color` #ffffff everywhere, and 0.00% of the copy's own
+box carrying scene ink at every width, the darkest pixel behind it 250-255.
+Air between the ink and the copy across landscape widths: 114-161 px on the
+left, 88-125 px on the right. 200% root text at 390: overflow 0. Reduced
+motion at 1440: every reveal resolves to opacity 1, so the finished
+composition is simply there. Screenshots inspected at 1920, 1440, 1024, 834,
+390 and 320.
+
+Checks, all green with this work in place: `astro check` 152 files, 0 errors /
+0 warnings / 0 hints; ESLint clean; Prettier clean repository-wide (the
+79-file line-ending mismatch recorded in `CLAUDE.md` was no longer present);
+`npm run build` 9 pages and `build:demo` 19 pages; `check:production` passed
+(80 files, 185,605 JS bytes — the close adds no JavaScript, it reuses the
+route's existing `[data-projects-reveal]`); `check:links`, `check:assets`,
+`check:brand` and `check:hero` passed.
+
+### The suites, once the tree compiled
+
+Both suites were blocked for part of this session: another terminal's
+in-progress contact page imported `@/scripts/motion/ContactPageMotion` before
+that file existed, and both suites build first. They were run once it compiled.
+
+- `projects.spec.ts` against the standard artifact: 6/6 passed.
+- `projects.demo.spec.ts` against the demo artifact: 28 passed, 8 skipped, 0
+  failed.
+- Still failing, and none of it this work: `foundations.spec.ts` (`essential
+  routes render`, `the edge tab turns ink over an orange surface and back`,
+  `every route carries one wordmark and one folding Instagram control`) and
+  `demo.spec.ts:127`. Every one of them asserts against `/contacto/`, which is
+  being rebuilt in the other terminal: the built page no longer carries
+  `contact-page__hero` (it is `contact-hero` now), its level-1 heading is no
+  longer "Haz que tu marca muerda" and `.contact-page__routes` is gone. Re-run
+  them once that page settles.
+- `npm run lint` reports 30 errors, all of them in `.tmp-qa-contacto.mjs` and
+  `.tmp-qa-form.mjs`, two scratch QA scripts the other terminal has at the
+  repository root. They were left untouched.
+
+Nothing was committed, pushed or deployed.
+
+## 2026-09-16 - The /proyectos/ Close Fills The Screen And Joins The Stack
+
+User direction, straight after the scene above: the close should take the whole
+height and rise over the section before it as the `/servicios/` layers do.
+Rationale in `docs/DECISIONS.md`.
+
+### Changed
+
+- `src/components/projects/ProjectsHero.astro` and `ProjectsClose.astro`:
+  `data-stack-section` on both, so the route joins the shared
+  `SectionStack.ts` instead of growing an effect of its own. No CSS keys off
+  that attribute — only the `.stack-section` class, which is deliberately not
+  added — so neither section gains sticky positioning, a radius or a clip of
+  its own.
+- `src/styles/projects-page.css`: the close is `max(38rem, 100svh)`, rides
+  `--pj-cta-lift` up over what precedes it, sits at `z-index: 2` over the
+  gallery and clips, so the stack's rounded band is real.
+- `tests/e2e/projects.demo.spec.ts`: a test for the stack, and two corrected
+  assertions (below).
+- `CLAUDE.md`, `docs/DECISIONS.md`, `docs/MOTION_SPEC.md`.
+
+The gallery is deliberately not a layer: it is many screens tall and carries
+its own sticky filter, and `.stack-section` would impose `overflow: clip`,
+`min-block-size: 100svh` and sticky positioning on it. The hero is one only
+because `initSectionStack` does nothing with fewer than two sections and the
+standard build has no gallery between them.
+
+### Two false assertions of mine, found by finally running them
+
+The closing-scene test had never executed — the tree did not compile when it
+was written. Two of its assertions were wrong and the CSS was right both times:
+
+- `inner.width <= end.left - start.right`: a wing's box is capped at
+  `min(50cqw, …)` and is mostly the picture's empty paper, so the boxes
+  legitimately overlap the copy's. What has to clear the copy is the ink, and
+  that is measured on rendered pixels, not in the DOM.
+- `start.right <= centre`: true on landscape screens, false on portrait ones,
+  where the wings are bands at the top and the foot and may be wider than half
+  the screen because they never share a row. The invariant is now that the two
+  wings never overlap as rectangles, which holds in both layouts.
+
+### Verified
+
+Scratch Playwright sweep at 1920x1080, 1440x900, 1366x768, 1024x768, 834x1112,
+390x844 and 320x720, on both artifacts: the close settles at exactly the
+viewport height at every size (1080/1080, 900/900, 768/768, 1112/1112,
+844/844; 740 at 320x720, where the portrait bands' padding makes it taller than
+the screen), horizontal overflow 0 everywhere, and mid-reveal it carries about
+50 px of top radius behind a 1.57% side inset — the stack's band, opening. The
+hero's computed `clip-path` at the first paint is `inset(0px 0%)` at every
+width, so marking it as a layer costs no clipped flash. Reduced motion and
+JavaScript disabled: `clip-path` `none`, full height, nothing hidden.
+
+On an all-white route the band is legible only because the scene is coloured:
+the sculptures are what the rounded corners clip as the close rises.
+
+Checks: `astro check` 158 files, 0 errors; `npm run build` 9 pages and
+`build:demo` 19; `check:production` passed (82 files, 194,777 JS bytes against
+the 220,000 budget — the close itself still adds no JavaScript, reusing
+`SectionStack.ts` and the route's existing `[data-projects-reveal]`; the rise
+since this session's earlier 185,605 is the concurrent contact work);
+`check:links` passed; Prettier clean on every file of this work.
+
+Nothing was committed, pushed or deployed.
+
+---
+
+## Session: `/contacto/` rebuilt (2026-09-16, Claude Code)
+
+### What was asked
+
+A complete redesign of `/contacto/`, the last main route still on the early
+editorial template, to the level of the home, `/studio/`, `/servicios/` and
+`/proyectos/`. No external reference: the brief was to design it out of the
+system already built. Scope was limited to the route.
+
+### What the route is now
+
+Two scenes and the shared footer, and nothing else.
+
+- **01 Hero** — charcoal `#1f1f1f`, one screen tall, `position: sticky`. No
+  media column: one typographic block ("Cuéntanos qué tienes entre manos.",
+  sentence case, orange disc for the full stop) over about 60% of the measure,
+  the supporting line under it, and the rest of the screen empty for the
+  route's one graphic: an unfinished orange trajectory, an open arc of about
+  305 degrees with a 55-degree opening, drawn off-round, anchored to a corner
+  so it always reads as a fragment. A small disc sits on the line.
+- **02 Brief** — the white sheet scrolls over the sticky hero and takes the
+  screen. About 35/65 from 64.01rem: a sticky left block (Hablemos., one line,
+  the two approved channels) and a large editorial form set straight into the
+  sheet — small label, large control, hairline rule, no box anywhere. Five
+  fields (Nombre*, Correo*, Empresa / proyecto, Servicio, Mensaje*), the
+  service selector a native radio group drawn as Colmillo pills, and the shared
+  bite button on its ink slab.
+- **Footer** — the global one, untouched, on the same white.
+
+Everything the request asked to remove is gone: "04 / Contacto", "El siguiente
+movimiento", the repeated `<h1>`, the 01/02 channel numbering, "Mientras tanto"
+and the internal route map. The edge menu marks Contacto as the current route.
+
+### Files added
+
+- `src/data/contactPage.ts` — every word the route renders, plus
+  `contactFormEndpoint`.
+- `src/components/contact/ContactHero.astro`, `ContactOrbit.astro`,
+  `ContactForm.astro`.
+- `src/styles/contact-page.css`.
+- `src/scripts/motion/ContactPage.ts` (the module `MotionController` owns) and
+  `ContactPageMotion.ts` (the route-only chunk, 8,799 bytes built).
+- `tests/e2e/contacto.spec.ts`.
+
+### Files changed
+
+- `src/pages/contacto.astro` — rewritten; `headerTheme="dark"`, hands over the
+  chunk's loader.
+- `src/scripts/motion/MotionController.ts` — two lines: the import and
+  `initContactPage()` in `startEnhancements`.
+- `src/styles/index.css` — one `@import` for `contact-page.css`.
+- `tests/e2e/foundations.spec.ts` — the route's `<h1>`; the wordmark theme for
+  `/contacto/` (now `dark`); and the edge-tab test, which asserted that the
+  contact hero was brand orange. Verified in the built site: **no section of
+  the standard build paints a field of brand orange any more**, so that test
+  now covers what `dist` has (the tab stays orange over the charcoal hero and
+  the white sheet) and the ink case moved to `demo.spec.ts`, where the orange
+  `Identidad` layer of `/servicios/` exists.
+- `tests/e2e/demo.spec.ts` — the `/contacto/` assertions, and the edge tab's
+  ink case over that orange service layer.
+- `docs/DECISIONS.md`, `docs/MOTION_SPEC.md`, `docs/CONTENT_NEEDED.md` —
+  appended.
+
+### Not changed, on purpose
+
+- `src/styles/layout.css` still holds the old `.contact-page__*` rules, now
+  dead (about 170 lines, several of them in selector lists shared with
+  `.editorial-page__*`). The file is modified in the working tree from another
+  terminal, so removing them was left as a follow-up rather than risked here.
+- No other page, component or global was touched.
+
+### The form, and what is missing
+
+There is no server, API route, server action or mail provider anywhere in this
+repository — verified: `output: 'static'`, no adapter, no integration in
+`astro.config.mjs` or `package.json`, and no `<form>` existed before this one.
+None was added. `contactFormEndpoint` in `src/data/contactPage.ts` is `null`
+and decides the submit path:
+
+- null (today): the browser validates with the page's own copy and then hands
+  the finished brief to the visitor's mail client as a prepared draft. The
+  status says exactly that and shows the address beside it. Nothing claims the
+  site sent anything; "Enviado"/"Recibido" can only be reached through the
+  other branch.
+- set: the brief is POSTed as JSON and the form reports what actually happened,
+  `success` only on a response that came back ok.
+
+With no JavaScript the form's own `action` does the same handoff natively.
+`docs/CONTENT_NEEDED.md` lists what the client must supply before that switch
+is thrown (endpoint, inbox, spam handling, retention).
+
+### Verified
+
+`astro check` 158 files, 0 errors / 0 warnings / 0 hints. ESLint and Prettier
+clean on every file touched. `npm run build` 9 pages; `check:production` passed
+(82 files, 194,873 JS bytes); `check:links` passed. The shared motion bundle is
+148,909 bytes against the 150,000 budget — about 1.1 KB of headroom, worth
+watching before the next module is added to `MotionController`.
+
+`npx playwright test` — 106 tests, all passing at `--workers=2`. At the default
+worker count one pre-existing test, `foundations.spec.ts` "the edge menu closes
+from the rail and from outside the panel" on Pixel 7, times out under CPU
+contention; it passes alone and with the whole `foundations.spec.ts` file, it
+never touches `/contacto/`, and the new spec only made the contention likelier
+by adding a sixth file.
+
+Measured on the dev server and the built site at 1920x1080, 1600x900, 1536x864,
+1440x900, 1366x768, 1024x768, 430x932, 390x844 and 320x720: horizontal overflow
+0 everywhere, no console or page errors anywhere, the hero title two lines from
+1366 up and three below, two columns from 1025 up and one below, the pulse
+present only in the two-column brief. At 200% text (1440, 1366, 390, 320)
+overflow stays 0 and the two columns hold. Reduced motion: the arc is drawn and
+its disc still, every block present, the pulse stationary, the form unchanged.
+With JavaScript disabled: four text controls, five radios, the submit and the
+real `mailto:` action, the `<h1>` and both channels.
+
+Nothing was committed, pushed or deployed. `build:demo` and the demo matrix
+were deliberately not run: another terminal is working in the same tree and
+`dist-demo` is shared. The route is identical in both builds, and the dev
+server every measurement above comes from is demo mode.
+
+### Working tree note
+
+`.tmp-qa-close.mjs`, an untracked scratch file from another terminal, was
+present at the start of this session and is gone at the end of it. It was not
+removed by this session — only this session's own `.tmp-qa-*` scripts were, by
+name.
+
+## 2026-09-16 - The Three Legal Pages, Written From A Technical Audit
+
+Claude Code session, user direction: finish the first version by building the
+legal notice, privacy policy and cookie policy properly and wiring them into
+the site — auditing what the site actually does first, and inventing no legal
+data. Decisions in `docs/DECISIONS.md`; the client request list is the new
+root-level `LEGAL_TODO.md`.
+
+### The audit that the wording rests on
+
+Performed over the source, the built artifacts and the live deployment
+(`curl` of `https://colmillo-studio.vercel.app/`, plus the Vercel project
+itself through its API):
+
+- no analytics, tag manager, pixel or marketing script anywhere in `src/`,
+  `public/` or `package.json`; the served HTML carries four scripts, all
+  first-party Astro chunks, no `<iframe>`, and no `_vercel/insights` or
+  `_vercel/speed-insights` injection. The Vercel project has neither product
+  enabled;
+- no `Set-Cookie` header on the response and no `document.cookie` in the
+  codebase: the site sets no cookies at all;
+- exactly one browser storage write: `colmilloIntroPlayed` (sessionStorage,
+  `true`, cleared with the tab). `MotionPreference.ts` only removes the
+  retired `colmillo-motion` key;
+- system typefaces and self-hosted video, so no external subresource host;
+- Instagram is a plain outbound `<a>`, not an embed;
+- no form backend: `output: 'static'`, no adapter, no API route,
+  `contactFormEndpoint` null. The form composes a draft in the visitor's own
+  mail client; the site transmits nothing.
+
+Consequences: **no consent banner and no consent checkbox were built**, and
+both omissions are argued in the documents themselves rather than assumed.
+
+### Added
+
+- `src/data/legalPages.ts`: the three documents as typed data — a small block
+  model (paragraph, subheading, list, note, table) and an inline model of
+  text, links and `pending(...)` markers, so no clause is ever `set:html` and
+  no wording lives in a component. The contact address is read from
+  `src/config/contact.ts`, never typed out.
+- `src/components/legal/LegalRich.astro` and `LegalBody.astro`: the renderers.
+  Numbered `<section>`s with stable ids, an accessible scrollable table region
+  and the `[PENDIENTE: …]` chip, whose literal text is in the DOM so it
+  survives copy-paste, print and the release gate.
+- `src/styles/legal-page.css`: the route's design. White sheet, ink text,
+  orange marks, an 800 px reading column at 19 px on a 1.75 line-height, a
+  sticky in-page index from 64rem, a print stylesheet, and the `/contacto/`
+  privacy-line rules (kept here, not in `contact-page.css`, because a parallel
+  session owned that file).
+- `LEGAL_TODO.md`: exactly what to ask the client, with a ready-to-send
+  template and a section on what does *not* need asking because it is already
+  verified.
+
+### Changed
+
+- `src/layouts/LegalLayout.astro`: rebuilt around a `doc` prop. Root class is
+  `legal-route`, so the stale `.legal-page` rule in `layout.css` was left
+  untouched. It no longer forces `noindex`; the routes now follow the
+  site-wide prelaunch gate, which is still closed, so behaviour is unchanged.
+- `src/pages/aviso-legal.astro`, `privacidad.astro`, `cookies.astro`: each now
+  selects its document. They ship identically in both builds — these are real
+  documents with missing data marked, not provisional demo copy.
+- `src/components/contact/ContactForm.astro` and `src/data/contactPage.ts`: a
+  short privacy line beside the submit button linking to `/privacidad/`. No
+  checkbox: consent is not the legal basis, and the site does not transmit the
+  brief. Both facts are recorded in the code comment.
+- `src/styles/index.css`: one import.
+- `scripts/release-check.mjs`: walks `dist/` and blocks a release while any
+  `[PENDIENTE:` marker survives. Verified working — it now reports
+  `aviso-legal/index.html` and `privacidad/index.html`, and correctly does not
+  report `cookies/index.html`, which has no missing data.
+- `docs/CONTENT_NEEDED.md`, `docs/DECISIONS.md`.
+
+The footer needed no change: it already used the global component, already
+linked the three routes and already rendered `© {new Date().getFullYear()}`.
+
+### Verified
+
+- `astro check` 162 files, 0 errors / 0 warnings / 0 hints; `eslint .` clean;
+  Prettier clean on every file of this work.
+- `npm run build` 9 pages; `npm run build:demo` 19 pages.
+- `check:production` passed (82 files, 194,873 JS bytes against the 220,000
+  budget — the legal routes add no JavaScript at all); `check:links` passed on
+  both `dist` and `dist-demo`.
+- `release:check` blocked with 4 checks, the fourth being the new legal gate.
+- Playwright `foundations.spec.ts` + `contacto.spec.ts`: 67 passed, 9 skipped,
+  0 failed. Demo `compact 320px` and `200 percent text sizing`: 2 passed,
+  4 capability-skipped.
+- Scratch Playwright sweep of the three routes at 1920x1080, 1440x900,
+  1366x768, 1024x768, 430x932, 390x844 and 320x720: horizontal overflow 0
+  everywhere, every H1 inside the frame, the cookie table never wider than the
+  viewport, two columns at and above 1366 and one column at and below 1024
+  with the index read first. 200% root text at 390: overflow 0 on all three.
+  Reduced motion: complete page. No console errors at any size. The temporary
+  script was deleted.
+- Browser inspection at 1440x900 of `/aviso-legal/`, `/cookies/` and
+  `/contacto/`: the wordmark, Instagram control, edge tab and footer are the
+  shared ones; measured 800 px reading column, 19 px body, 33.25 px line
+  height, sticky index, red dashed pending chips, and the privacy line sitting
+  on the same row as the submit button.
+
+### Open
+
+- Every `[PENDIENTE: …]` value in `LEGAL_TODO.md`: holder's name, NIF/CIF,
+  address, legal form, mail provider, processor agreements, transfer
+  safeguard, retention period. Nothing registral was written, because the
+  holder's legal form is unknown.
+- The email spelling is still unresolved (`colmillostudio` in the repo,
+  `colmilloestudio` written twice by the user). It was not changed; the legal
+  pages follow `src/config/contact.ts`, so one correction there fixes all.
+- Professional legal review before release.
+
+Nothing was committed, pushed or deployed.

@@ -1,0 +1,1234 @@
+/*
+ * CASE STUDY — /proyectos/[slug]/
+ *
+ * One skeleton, one set of modules, and a palette that belongs to the project
+ * rather than to the site. Every colour below resolves through the five custom
+ * properties the layout publishes from the project's theme:
+ *
+ *   --cs-bg         the page's own surface
+ *   --cs-fg         its type
+ *   --cs-accent     eyebrows, marks, the statement's emphasis
+ *   --cs-surface    plates and empty frames
+ *   --cs-secondary  a second accent for palettes and rules
+ *
+ * So changing a case study's identity is changing six values in its data, and
+ * nothing in this file. What stays constant is the Colmillo part: the measure,
+ * the rhythm, the display type, the clipped lines, the bite, the pressure
+ * dent, the bite button and the cursor.
+ *
+ * Contrast is the author's responsibility and is recorded in
+ * `docs/CASE_STUDIES.md`: the two demonstration themes measure ink on paper at
+ * about 15:1 and near-white on charcoal at about 15.6:1, and the accent is
+ * only ever used on large type, rules and marks.
+ *
+ * Sentence case throughout; display type is the system stack until the
+ * licensed faces arrive (`fonts.css`).
+ */
+
+.cs-page {
+  --cs-radius: clamp(0.75rem, 1.1vw, 1.25rem);
+
+  /* One type scale for the route, in step with the other editorial pages. */
+  --cs-display: clamp(2.75rem, 11vw, 9rem);
+  --cs-h2: clamp(1.9rem, 3.4vw, 3.6rem);
+  --cs-headline: clamp(2rem, 4.2vw, 4.5rem);
+  --cs-body: clamp(1.0625rem, 1.2vw, 1.3rem);
+  --cs-label: clamp(0.75rem, 0.85vw, 0.875rem);
+
+  /* The air between modules. The layout variant scales it (see below). */
+  --cs-space: clamp(4rem, 9vw, 8.5rem);
+  --cs-gap: clamp(1rem, 2.2vw, 2.5rem);
+
+  /* The page gutter plus the edge menu's rail, on both sides from 48rem, so
+     the compositions sit around the viewport's centre. */
+  --cs-pad-end: calc(var(--page-gutter) + var(--edge-rail-clearance));
+  --cs-pad-start: var(--page-gutter);
+  --cs-measure: 82rem;
+
+  position: relative;
+  overflow-x: clip;
+  background: var(--cs-bg);
+  color: var(--cs-fg);
+}
+
+@media (min-width: 48rem) {
+  .cs-page {
+    --cs-pad-start: var(--cs-pad-end);
+  }
+}
+
+/*
+ * Layout variants. They never change a component: only the air, the measure
+ * and how much of the screen the media takes, which is what makes an identity
+ * project read as a spread and a digital one as a reel.
+ */
+.cs-page[data-layout='immersion'] {
+  --cs-space: clamp(5rem, 12vw, 11rem);
+  --cs-measure: 90rem;
+}
+
+.cs-page[data-layout='graphic'] {
+  --cs-space: clamp(3.5rem, 7vw, 7rem);
+  --cs-gap: clamp(1.25rem, 3vw, 3.5rem);
+}
+
+.cs-page[data-layout='minimal'] {
+  --cs-space: clamp(5.5rem, 13vw, 12rem);
+  --cs-measure: 68rem;
+}
+
+.cs-shell {
+  box-sizing: border-box;
+  inline-size: 100%;
+  max-inline-size: calc(
+    var(--cs-measure) + var(--cs-pad-start) + var(--cs-pad-end)
+  );
+  margin-inline: auto;
+  padding-inline: var(--cs-pad-start) var(--cs-pad-end);
+}
+
+.cs-page :focus-visible {
+  outline: 3px solid var(--cs-accent);
+  outline-offset: 4px;
+}
+
+/* A line of display type that rises out of its own clip. The padding keeps
+   accents and descenders inside it; the negative margin gives the space back. */
+.cs-line {
+  display: block;
+  overflow: clip;
+  padding-block: 0.14em 0.24em;
+  margin-block: -0.14em -0.24em;
+}
+
+.cs-line > span {
+  display: inline-block;
+}
+
+.cs-heading {
+  max-inline-size: 22ch;
+  margin: 0 0 clamp(1.75rem, 4vw, 3rem);
+  font-size: var(--cs-h2);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.04;
+}
+
+/* The provisional notice. Unmistakable, never decorative. */
+.cs-flag {
+  display: inline-block;
+  margin-block-end: 1rem;
+  padding: 0.45rem 0.65rem;
+  border: 2px solid currentColor;
+  background: var(--color-brand-cream);
+  color: var(--color-brand-red);
+  font-size: 0.7rem;
+  font-weight: 950;
+  letter-spacing: 0.055em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+/* ============================================================== media === */
+
+/*
+ * The frame is fixed geometry and never moves; the surface inside it is the
+ * only layer anything clips, so the pressure dent and the bite reveal show the
+ * page through the bite while the layout stays exactly where it was.
+ */
+.cs-media {
+  margin: 0;
+  inline-size: 100%;
+}
+
+.cs-media__frame {
+  position: relative;
+  aspect-ratio: var(--cs-ratio, var(--cs-w, 16) / var(--cs-h, 9));
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: var(--cs-radius);
+}
+
+.cs-media__surface {
+  position: absolute;
+  inset: 0;
+  background: var(--cs-surface);
+}
+
+.cs-media__asset {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  max-inline-size: none;
+  object-fit: cover;
+}
+
+.cs-media[data-ratio='portrait'] {
+  --cs-ratio: 4 / 5;
+}
+
+.cs-media[data-ratio='square'] {
+  --cs-ratio: 1 / 1;
+}
+
+.cs-media[data-ratio='landscape'] {
+  --cs-ratio: 3 / 2;
+}
+
+.cs-media[data-ratio='cinematic'] {
+  --cs-ratio: 16 / 9;
+}
+
+.cs-media[data-ratio='wide'] {
+  --cs-ratio: 21 / 9;
+}
+
+.cs-media__caption {
+  margin-block-start: 0.75rem;
+  color: var(--cs-fg);
+  font-size: var(--cs-label);
+  line-height: 1.4;
+  opacity: 0.6;
+}
+
+/* ---------------------------------------------------------------- art --- */
+
+/*
+ * The abstract compositions that stand in for a missing file. They are drawn
+ * from the project's own palette, so a placeholder already belongs to the
+ * project's art direction instead of looking like a hole in the page.
+ */
+.cs-art {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  container-type: size;
+  background: var(--cs-surface);
+}
+
+.cs-art > span {
+  position: absolute;
+  display: block;
+}
+
+/* Pressure: two heavy forms closing on a soft one. */
+.cs-art[data-art='pressure'] > span:nth-child(1) {
+  inset: -14% auto auto -8%;
+  inline-size: 52cqmin;
+  aspect-ratio: 1;
+  border: 8cqmin solid var(--cs-fg);
+  border-radius: 48% 42% 52% 38%;
+}
+
+.cs-art[data-art='pressure'] > span:nth-child(2) {
+  inset: auto -10% -20% auto;
+  inline-size: 56cqmin;
+  aspect-ratio: 1;
+  border: 8cqmin solid var(--cs-accent);
+  border-radius: 44% 56% 40% 60%;
+}
+
+.cs-art[data-art='pressure'] > span:nth-child(3) {
+  inset: 42% auto auto 44%;
+  inline-size: 14cqmin;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--cs-secondary);
+}
+
+/* Cut: a plane opening in two along a torn line. */
+.cs-art[data-art='cut'] > span {
+  inset-block: -12%;
+  inline-size: 26cqmin;
+  background: var(--cs-fg);
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% 12%,
+    68% 20%,
+    100% 30%,
+    68% 40%,
+    100% 50%,
+    68% 60%,
+    100% 70%,
+    68% 80%,
+    100% 90%,
+    100% 100%,
+    0 100%
+  );
+  rotate: 12deg;
+}
+
+.cs-art[data-art='cut'] > span:nth-child(1) {
+  inset-inline-start: 8%;
+}
+
+.cs-art[data-art='cut'] > span:nth-child(2) {
+  inset-inline-start: 40%;
+  background: var(--cs-accent);
+  rotate: -12deg;
+}
+
+.cs-art[data-art='cut'] > span:nth-child(3) {
+  inset-inline-end: 6%;
+  background: var(--cs-secondary);
+}
+
+/* Trace: an open line that leaves the frame on both sides. */
+.cs-art[data-art='trace'] > span {
+  inset-block-start: 50%;
+  inline-size: 54cqmin;
+  block-size: 32cqmin;
+  border: 6cqmin solid var(--cs-accent);
+  border-inline-end-color: transparent;
+  border-radius: 50%;
+  translate: 0 -50%;
+}
+
+.cs-art[data-art='trace'] > span:nth-child(1) {
+  inset-inline-start: -10%;
+}
+
+.cs-art[data-art='trace'] > span:nth-child(2) {
+  inset-inline-start: 28%;
+  rotate: 24deg;
+}
+
+.cs-art[data-art='trace'] > span:nth-child(3) {
+  inset-inline-end: -12%;
+  border-color: var(--cs-fg);
+  border-inline-start-color: transparent;
+  rotate: -20deg;
+}
+
+/* Bite: a disc that has lost a round piece; absence as the mark. */
+.cs-art[data-art='bite'] > span {
+  aspect-ratio: 1;
+  border-radius: 50%;
+}
+
+.cs-art[data-art='bite'] > span:nth-child(1) {
+  inset: auto auto 14% -12%;
+  inline-size: 92cqmin;
+  background: var(--cs-fg);
+}
+
+.cs-art[data-art='bite'] > span:nth-child(2) {
+  inset: auto 6% 48% auto;
+  inline-size: 40cqmin;
+  background: var(--cs-surface);
+}
+
+.cs-art[data-art='bite'] > span:nth-child(3) {
+  inset: 12% auto auto 14%;
+  inline-size: 10cqmin;
+  background: var(--cs-accent);
+}
+
+/* Layers: rounded plates pushing up over one another. */
+.cs-art[data-art='layers'] > span {
+  inset-inline: 8%;
+  inset-block-end: -12%;
+  border-radius: 50% 50% 0 0 / 18% 18% 0 0;
+}
+
+.cs-art[data-art='layers'] > span:nth-child(1) {
+  inset-block-start: 14%;
+  background: var(--cs-secondary);
+}
+
+.cs-art[data-art='layers'] > span:nth-child(2) {
+  inset-block-start: 36%;
+  inset-inline: 16% 2%;
+  background: var(--cs-accent);
+}
+
+.cs-art[data-art='layers'] > span:nth-child(3) {
+  inset-block-start: 58%;
+  inset-inline: 2% 24%;
+  background: var(--cs-fg);
+}
+
+/* =============================================================== hero === */
+
+.cs-hero {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  align-content: end;
+  min-block-size: 100vh;
+  min-block-size: 100svh;
+  overflow: clip;
+  background: var(--cs-bg);
+}
+
+.cs-hero__inner {
+  position: relative;
+  z-index: 2;
+  padding-block: clamp(2.5rem, 7svh, 5rem);
+}
+
+.cs-hero__title {
+  max-inline-size: 14ch;
+  margin: 0;
+  font-size: var(--cs-display);
+  font-weight: 900;
+  letter-spacing: -0.055em;
+  line-height: 0.92;
+}
+
+/* The full stop is the accent disc, as on the other editorial routes. */
+.cs-hero__dot {
+  display: inline-block;
+  inline-size: 0.14em;
+  aspect-ratio: 1;
+  margin-inline-start: 0.06em;
+  border-radius: 50%;
+  background: var(--cs-accent);
+}
+
+/* ------------------------------------------------------------- variant --- */
+
+/* `full`: the project's media is the whole first screen and the name sits in
+   its foot, over a soft rise of the page's own colour so the type always
+   reads, whatever the picture does there. */
+.cs-hero[data-variant='full'] .cs-hero__media {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+}
+
+.cs-hero[data-variant='full'] .cs-media,
+.cs-hero[data-variant='full'] .cs-media__frame {
+  block-size: 100%;
+  aspect-ratio: auto;
+  border-radius: 0;
+}
+
+.cs-hero[data-variant='full']::after {
+  position: absolute;
+  z-index: 1;
+  inset: 52% 0 0;
+  background: var(--cs-bg);
+  content: '';
+  -webkit-mask-image: linear-gradient(#0000, #000 64%);
+  mask-image: linear-gradient(#0000, #000 64%);
+  opacity: 0.82;
+  pointer-events: none;
+}
+
+/*
+ * The abstract placeholder is drawn in container units for a media frame.
+ * Stretched across a whole screen its three shapes drift apart and read as
+ * stray blobs, so in a full-bleed hero it is held to a centred square of the
+ * screen's shorter side and keeps the proportions it was composed in. A real
+ * project's picture or loop fills the screen as usual; this is only ever the
+ * empty state.
+ */
+.cs-hero[data-variant='full'] .cs-art {
+  inset: 50% auto auto 50%;
+  inline-size: min(100%, 92svh);
+  block-size: min(100%, 92svh);
+  translate: -50% -50%;
+}
+
+/* `contained`: the name first, the media held inside the measure under it. */
+.cs-hero[data-variant='contained'] {
+  align-content: center;
+  gap: clamp(2rem, 5svh, 3.5rem);
+}
+
+.cs-hero[data-variant='contained'] .cs-hero__media {
+  order: 2;
+}
+
+.cs-hero[data-variant='contained'] .cs-hero__media .cs-media {
+  max-inline-size: calc(
+    var(--cs-measure) + var(--cs-pad-start) + var(--cs-pad-end)
+  );
+  margin-inline: auto;
+  padding-inline: var(--cs-pad-start) var(--cs-pad-end);
+}
+
+/* `split`: the composition the other editorial routes use. */
+.cs-hero[data-variant='split'] {
+  align-content: center;
+}
+
+.cs-hero[data-variant='split'] .cs-hero__inner {
+  display: grid;
+  gap: clamp(2rem, 6vw, 4rem);
+}
+
+@media (min-width: 64.01rem), (min-width: 48rem) and (orientation: landscape) {
+  .cs-hero[data-variant='split'] .cs-hero__inner {
+    grid-template-columns: minmax(0, 46fr) minmax(0, 44fr);
+    align-items: center;
+    column-gap: 10%;
+  }
+
+  .cs-hero[data-variant='split'] .cs-hero__media {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .cs-hero[data-variant='split'] .cs-hero__title {
+    grid-column: 1;
+    grid-row: 1;
+  }
+}
+
+/*
+ * Entrance, once, from the first paint, so it never waits for the route's
+ * chunk: the picture settles out of a slight scale while the name rises out of
+ * its clip. The curves are GSAP's power2.out and power3.out.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  html:not([data-motion='reduced']) .cs-hero__media {
+    animation: cs-arrive 1.3s cubic-bezier(0.215, 0.61, 0.355, 1) both;
+  }
+
+  html:not([data-motion='reduced']) [data-cs-hero-title] {
+    animation: cs-rise 1s cubic-bezier(0.165, 0.84, 0.44, 1) 0.25s both;
+  }
+}
+
+@keyframes cs-arrive {
+  from {
+    opacity: 0;
+    transform: scale(1.06);
+  }
+}
+
+@keyframes cs-rise {
+  from {
+    transform: translateY(110%);
+  }
+}
+
+/* ============================================================== intro === */
+
+.cs-intro {
+  padding-block: var(--cs-space);
+}
+
+.cs-intro__inner {
+  display: grid;
+  gap: clamp(2rem, 5vw, 3.5rem);
+}
+
+.cs-meta {
+  display: grid;
+  gap: clamp(1rem, 2vw, 1.5rem);
+  margin: 0;
+  align-content: start;
+}
+
+.cs-meta__row {
+  display: grid;
+  gap: 0.15rem;
+  padding-block-start: 0.75rem;
+  border-block-start: 1px solid currentColor;
+}
+
+.cs-meta__term {
+  margin-block-end: 0.35rem;
+  font-size: var(--cs-label);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  opacity: 0.55;
+  text-transform: uppercase;
+}
+
+.cs-meta__value {
+  margin: 0;
+  font-size: clamp(0.95rem, 1.05vw, 1.125rem);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.cs-intro__headline {
+  max-inline-size: 16ch;
+  margin: 0 0 clamp(1.5rem, 3vw, 2.5rem);
+  font-size: var(--cs-headline);
+  font-weight: 850;
+  letter-spacing: -0.04em;
+  line-height: 1.02;
+}
+
+.cs-intro__body {
+  display: grid;
+  gap: clamp(1rem, 1.6vw, 1.5rem);
+  max-inline-size: 42rem;
+}
+
+.cs-intro__text {
+  max-inline-size: none;
+  margin: 0;
+  font-size: var(--cs-body);
+  line-height: 1.55;
+}
+
+@media (min-width: 56rem) {
+  .cs-intro__inner {
+    grid-template-columns: minmax(11rem, 22fr) minmax(0, 68fr);
+    column-gap: clamp(2rem, 6vw, 6rem);
+  }
+}
+
+/* =========================================================== chapters === */
+
+/*
+ * The internal index: a hairline against the left edge with the chapters
+ * hanging off it and one accent mark travelling down it as the page scrolls.
+ * It is the route's progress and its navigation at once, so the page carries
+ * one discreet element instead of two.
+ */
+.cs-chapters {
+  display: none;
+}
+
+@media (min-width: 75rem) and (min-height: 34rem) {
+  /*
+   * The index is fixed against the left edge, so a page that has one reserves
+   * its width in the container's own start padding. Without this the rail sits
+   * over the copy, which QA found on the first pass.
+   */
+  .cs-page:has([data-cs-chapters]) {
+    --cs-pad-start: calc(var(--page-gutter) + 8.5rem);
+  }
+
+  .cs-chapters {
+    position: fixed;
+    z-index: 5;
+    inset-block-start: 50%;
+    inset-inline-start: clamp(0.75rem, 1.6vw, 1.5rem);
+    display: grid;
+    grid-template-columns: auto auto;
+    align-items: center;
+    gap: 0.9rem;
+    translate: 0 -50%;
+  }
+}
+
+.cs-chapters__rail {
+  position: relative;
+  inline-size: 1px;
+  block-size: clamp(6rem, 18vh, 11rem);
+  background: currentColor;
+  opacity: 0.22;
+}
+
+.cs-chapters__mark {
+  position: absolute;
+  inset-block-start: calc(var(--cs-progress, 0) * 100%);
+  inset-inline-start: 50%;
+  inline-size: 6px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--cs-accent);
+  translate: -50% -50%;
+}
+
+.cs-chapters__list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+}
+
+.cs-chapters__link {
+  display: block;
+  font-size: var(--cs-label);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  opacity: 0.5;
+  text-decoration: none;
+  transition:
+    opacity var(--duration-medium) linear,
+    translate var(--duration-medium) var(--ease-bite);
+}
+
+.cs-chapters__link:hover,
+.cs-chapters__link:focus-visible {
+  opacity: 1;
+  translate: 3px 0;
+}
+
+.cs-chapters__link[aria-current='true'] {
+  color: var(--cs-accent);
+  opacity: 1;
+}
+
+/* Anchored sections must clear the top of the screen when they are jumped to. */
+.cs-module[id] {
+  scroll-margin-block-start: clamp(2rem, 8vh, 5rem);
+}
+
+/* ============================================================ modules === */
+
+.cs-module {
+  padding-block: calc(var(--cs-space) / 2);
+}
+
+/* Media-only modules keep their own air: they are the page's punctuation. */
+.cs-module--fullMedia,
+.cs-module--video,
+.cs-module--sequence {
+  padding-block: calc(var(--cs-space) / 2.6);
+}
+
+.cs-full--bleed .cs-media__frame {
+  border-radius: 0;
+}
+
+.cs-block {
+  display: grid;
+  gap: clamp(0.85rem, 1.4vw, 1.25rem);
+}
+
+.cs-block[data-width='narrow'] {
+  max-inline-size: 34rem;
+}
+
+.cs-block[data-width='reading'] {
+  max-inline-size: 46rem;
+}
+
+.cs-block[data-width='wide'] {
+  max-inline-size: 64rem;
+}
+
+.cs-block[data-align='center'] {
+  margin-inline: auto;
+  text-align: center;
+}
+
+.cs-block[data-align='end'] {
+  margin-inline-start: auto;
+  text-align: end;
+}
+
+.cs-block__eyebrow {
+  max-inline-size: none;
+  margin: 0;
+  color: var(--cs-accent);
+  font-size: var(--cs-label);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cs-block__title {
+  max-inline-size: 20ch;
+  margin: 0;
+  font-size: var(--cs-h2);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.04;
+}
+
+.cs-block[data-align='center'] .cs-block__title,
+.cs-block[data-align='center'] .cs-block__text {
+  margin-inline: auto;
+}
+
+.cs-block__text {
+  max-inline-size: none;
+  margin: 0;
+  font-size: var(--cs-body);
+  line-height: 1.55;
+}
+
+/* ------------------------------------------------------------- split --- */
+
+.cs-split {
+  display: grid;
+  gap: clamp(1.75rem, 4vw, 3.5rem);
+  align-items: center;
+}
+
+@media (min-width: 56rem) {
+  .cs-split {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  }
+
+  .cs-split[data-side='start'] .cs-split__copy {
+    order: 2;
+  }
+}
+
+/* ------------------------------------------------------------- two-up --- */
+
+.cs-two {
+  display: grid;
+  gap: var(--cs-gap);
+  align-items: start;
+}
+
+@media (min-width: 48rem) {
+  .cs-two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cs-two[data-offset] > *:last-child {
+    margin-block-start: clamp(2rem, 6vw, 5rem);
+  }
+}
+
+/* ------------------------------------------------------------ mosaic --- */
+
+/*
+ * A short, controlled spread, never a second archive: cells take their width
+ * from their own proportion, so upright pieces pair up and landscape ones take
+ * the room they need.
+ */
+.cs-mosaic {
+  display: grid;
+  gap: var(--cs-gap);
+  margin: 0;
+  padding: 0;
+}
+
+@media (min-width: 48rem) {
+  .cs-mosaic {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .cs-mosaic__cell {
+    grid-column: span 3;
+  }
+
+  .cs-mosaic__cell[data-ratio='portrait'] {
+    grid-column: span 2;
+  }
+
+  .cs-mosaic__cell[data-ratio='landscape'],
+  .cs-mosaic__cell[data-ratio='cinematic'] {
+    grid-column: span 4;
+  }
+
+  .cs-mosaic__cell[data-ratio='wide'] {
+    grid-column: span 6;
+  }
+
+  .cs-mosaic__cell:nth-child(even) {
+    margin-block-start: clamp(1rem, 3vw, 3rem);
+  }
+}
+
+/* --------------------------------------------------------- statement --- */
+
+.cs-statement {
+  max-inline-size: 16ch;
+  margin: 0;
+  font-size: clamp(2.25rem, 7vw, 6.5rem);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+.cs-statement__accent {
+  color: var(--cs-accent);
+  font-style: normal;
+}
+
+/* ------------------------------------------------------ sticky story --- */
+
+/*
+ * The document is the plain sequence: step, picture, step, picture. The chunk
+ * marks the block `data-enhanced` on a wide screen with motion allowed, which
+ * stacks the pictures in one held frame beside the copy.
+ */
+.cs-sticky__media {
+  display: none;
+}
+
+.cs-sticky__step {
+  padding-block: clamp(2rem, 5vw, 3rem);
+}
+
+.cs-sticky__title {
+  margin: 0 0 0.75rem;
+  font-size: clamp(1.4rem, 2.2vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.cs-sticky__text {
+  max-inline-size: 38rem;
+  margin: 0 0 clamp(1.25rem, 3vw, 2rem);
+  font-size: var(--cs-body);
+  line-height: 1.55;
+}
+
+@media (min-width: 64.01rem) and (min-height: 34rem) {
+  .cs-sticky[data-enhanced] {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    align-items: start;
+    column-gap: clamp(3rem, 7vw, 7rem);
+  }
+
+  /* The copy column holds while its pictures change beside it. */
+  .cs-sticky[data-enhanced] .cs-sticky__media {
+    position: sticky;
+    inset-block-start: max(8vh, 4rem);
+    display: grid;
+  }
+
+  .cs-sticky[data-enhanced] .cs-sticky__inline {
+    display: none;
+  }
+
+  .cs-sticky[data-enhanced] .cs-sticky__step {
+    min-block-size: 78svh;
+    display: grid;
+    align-content: center;
+  }
+
+  .cs-sticky[data-enhanced] .cs-sticky__figure {
+    grid-area: 1 / 1;
+    opacity: 0;
+    transition:
+      opacity 420ms linear,
+      translate 620ms var(--ease-bite);
+    translate: 0 14px;
+  }
+
+  .cs-sticky[data-enhanced] .cs-sticky__figure[data-state='active'] {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+/* ------------------------------------------------------------ process --- */
+
+/*
+ * One short strip that runs sideways inside a page that does not. Native
+ * overflow with snapping: the wheel is never intercepted and the strip is a
+ * focusable region, so a keyboard reaches every step.
+ */
+.cs-process {
+  display: flex;
+  gap: var(--cs-gap);
+  margin: 0;
+  padding: 0 var(--cs-pad-end) 0.5rem var(--cs-pad-start);
+  margin-inline: calc(-1 * var(--cs-pad-start)) calc(-1 * var(--cs-pad-end));
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.cs-process::-webkit-scrollbar {
+  display: none;
+}
+
+.cs-process__step {
+  flex: none;
+  inline-size: min(68vw, 22rem);
+  scroll-snap-align: start;
+}
+
+.cs-process__label {
+  max-inline-size: none;
+  margin: 0.75rem 0 0;
+  font-size: var(--cs-label);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cs-process__note {
+  display: block;
+  margin-block-start: 0.25rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  opacity: 0.6;
+  text-transform: none;
+}
+
+/* -------------------------------------------------------------- quote --- */
+
+.cs-quote {
+  max-inline-size: 30ch;
+  margin: 0;
+}
+
+.cs-quote__text {
+  margin: 0;
+  font-size: clamp(1.6rem, 3.6vw, 3.25rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+}
+
+.cs-quote__text p {
+  max-inline-size: none;
+  margin: 0;
+}
+
+.cs-quote__source {
+  margin-block-start: clamp(1rem, 2vw, 1.5rem);
+  font-size: var(--cs-label);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cs-quote__role {
+  display: block;
+  font-weight: 500;
+  opacity: 0.6;
+}
+
+/* -------------------------------------------------------------- facts --- */
+
+.cs-facts {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  border-block-end: 1px solid currentColor;
+}
+
+.cs-facts__row {
+  display: grid;
+  gap: 0.25rem 2rem;
+  padding-block: clamp(0.85rem, 1.6vw, 1.15rem);
+  border-block-start: 1px solid currentColor;
+}
+
+@media (min-width: 40rem) {
+  .cs-facts__row {
+    grid-template-columns: minmax(8rem, 16rem) minmax(0, 1fr);
+    align-items: baseline;
+  }
+}
+
+.cs-facts__term {
+  font-size: var(--cs-label);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  opacity: 0.55;
+  text-transform: uppercase;
+}
+
+.cs-facts__value {
+  margin: 0;
+  font-size: clamp(1.05rem, 1.4vw, 1.4rem);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+/* ------------------------------------------------------------ palette --- */
+
+/*
+ * Large fields that touch, not a row of chips: the palette has to read as a
+ * graphic decision. The name sits under its own field and only when the
+ * project supplies one.
+ */
+.cs-palette {
+  display: grid;
+  grid-auto-flow: row;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+}
+
+@media (min-width: 40rem) {
+  .cs-palette {
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+  }
+}
+
+.cs-palette__field {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.cs-palette__chip {
+  display: block;
+  block-size: clamp(5rem, 22vh, 14rem);
+  background: var(--swatch);
+}
+
+.cs-palette__name {
+  padding-block-end: 1rem;
+  font-size: var(--cs-label);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ----------------------------------------------------------- specimen --- */
+
+.cs-specimen__sample {
+  max-inline-size: none;
+  margin: 0;
+  font-size: clamp(4rem, 20vw, 16rem);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 0.9;
+}
+
+.cs-specimen__note {
+  max-inline-size: 34rem;
+  margin: clamp(1rem, 2vw, 1.5rem) 0 0;
+  font-size: var(--cs-label);
+  line-height: 1.5;
+  opacity: 0.6;
+}
+
+/* ----------------------------------------------------------- sequence --- */
+
+/* Without the chunk only the first frame is shown, which is a complete still
+   of the movement; the rest are never fetched. */
+.cs-sequence__frame + .cs-sequence__frame {
+  display: none;
+}
+
+.cs-sequence[data-enhanced] {
+  display: grid;
+}
+
+.cs-sequence[data-enhanced] .cs-sequence__frame {
+  display: block;
+  grid-area: 1 / 1;
+}
+
+/* ============================================================ prose === */
+
+.cs-prose {
+  padding-block: var(--cs-space);
+  font-size: var(--cs-body);
+  line-height: 1.6;
+}
+
+.cs-prose > * {
+  max-inline-size: 46rem;
+}
+
+/* ============================================================== next === */
+
+/*
+ * The portfolio's loop: the next project fills the screen instead of a row of
+ * three cards. The picture grows from inside the measure to the full width
+ * while the section is crossed (`CaseStudyPageMotion.ts`), so the end of one
+ * project is the arrival of the next.
+ */
+.cs-next {
+  position: relative;
+  padding-block-start: var(--cs-space);
+}
+
+.cs-next__link {
+  position: relative;
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+/*
+ * The resting state is the full-width picture, which is what a reader without
+ * JavaScript and with reduced motion gets. The chunk only starts it smaller
+ * and lets it grow into that state as the section is reached.
+ */
+.cs-next__media {
+  display: block;
+  transform-origin: 50% 50%;
+}
+
+.cs-next__frame {
+  --cs-ratio: 16 / 9;
+}
+
+.cs-next__copy {
+  display: grid;
+  gap: 0.35rem;
+  padding: clamp(1.25rem, 3vw, 2rem) var(--cs-pad-end) 0 var(--cs-pad-start);
+}
+
+.cs-next__kicker {
+  color: var(--cs-accent);
+  font-size: var(--cs-label);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cs-next__title {
+  font-size: clamp(2rem, 6vw, 5rem);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  line-height: 0.98;
+  transition: color var(--duration-medium) linear;
+}
+
+.cs-next__tags {
+  font-size: var(--cs-label);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  opacity: 0.6;
+}
+
+@media (hover: hover) {
+  .cs-next__link:hover .cs-next__title {
+    color: var(--cs-accent);
+  }
+}
+
+.cs-next__link:focus-visible .cs-next__title {
+  color: var(--cs-accent);
+}
+
+/* The two quiet routes under it: the archive, and one discreet line to
+   Contacto. Neither is allowed to compete with the work above. */
+.cs-next__routes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  padding-block: var(--cs-space) calc(var(--cs-space) / 2);
+}
+
+.cs-next__route,
+.cs-next__aside {
+  font-size: clamp(0.95rem, 1.1vw, 1.125rem);
+  font-weight: 700;
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.3em;
+}
+
+.cs-next__aside {
+  font-weight: 500;
+  opacity: 0.65;
+}
+
+.cs-next__aside:hover,
+.cs-next__aside:focus-visible {
+  opacity: 1;
+}
+
+/* ===================================================== reduced motion === */
+
+/*
+ * Nothing on this route depends on movement. Reduced motion keeps every
+ * module, every picture and every route: it only removes the hero's entrance,
+ * the sticky story's held frame, the sequence's crossfade and the growth of
+ * the next project, all of which are already complete in their static state.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .cs-sticky[data-enhanced] .cs-sticky__figure {
+    transition: none;
+  }
+}
+
+html[data-motion='reduced'] .cs-sticky[data-enhanced] .cs-sticky__figure {
+  transition: none;
+}

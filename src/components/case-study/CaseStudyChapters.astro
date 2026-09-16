@@ -1,0 +1,51 @@
+---
+/**
+ * The internal index, offered only when a project asks for it
+ * (`chapters: true`) and only when it actually has chapters. A short project
+ * shows nothing at all: an index of two entries is furniture, not navigation.
+ *
+ * It is a real list of real anchors, so it works with no JavaScript, with the
+ * keyboard and with a screen reader; the chunk only adds the travelling mark
+ * and `aria-current` as sections pass. On wide screens it sits against the
+ * left edge, where nothing else lives — the edge menu owns the right — and it
+ * is hidden below that, where the page is read straight through.
+ *
+ * The hairline it hangs on doubles as the route's scroll progress
+ * (`--cs-progress`, written by the chunk): one thin line and one small accent
+ * mark, never a bar across the top of the screen.
+ */
+import type { CaseStudyChapter } from '@/data/caseStudy';
+
+interface Props {
+  chapters: CaseStudyChapter[];
+}
+
+const { chapters } = Astro.props;
+---
+
+{
+  chapters.length > 2 && (
+    <nav
+      class="cs-chapters"
+      aria-label="Secciones del proyecto"
+      data-cs-chapters
+    >
+      <span class="cs-chapters__rail" aria-hidden="true">
+        <span class="cs-chapters__mark" data-cs-progress-mark />
+      </span>
+      <ol class="cs-chapters__list" role="list">
+        {chapters.map((chapter) => (
+          <li>
+            <a
+              class="cs-chapters__link"
+              href={`#${chapter.id}`}
+              data-cs-chapter-link={chapter.id}
+            >
+              {chapter.label}
+            </a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  )
+}

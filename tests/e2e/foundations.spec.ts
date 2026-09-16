@@ -71,7 +71,7 @@ test('the standard production artifact excludes every demo route and marker', as
   await expect(page.getByText('DEMO FICTICIA — NO PUBLICAR')).toHaveCount(0);
 
   await page.goto('/proyectos/');
-  await expect(page.locator('.project-card')).toHaveCount(0);
+  await expect(page.locator('[data-project-item]')).toHaveCount(0);
   await expect(page.locator('body')).not.toContainText('Fauce Elástica');
   await expect(page.locator('body')).not.toContainText('Pulso Molar');
   await expect(page.locator('body')).not.toContainText('Rastro Naranja');
@@ -145,7 +145,7 @@ test('essential routes render', async ({ page }) => {
     ['/studio/', 'Studio'],
     ['/servicios/', 'Servicios'],
     ['/proyectos/', 'Proyectos'],
-    ['/contacto/', 'Haz que tu marca muerda'],
+    ['/contacto/', 'Cuéntanos qué tienes entre manos'],
     ['/aviso-legal/', 'Aviso legal'],
     ['/privacidad/', 'Privacidad'],
     ['/cookies/', 'Cookies'],
@@ -353,28 +353,31 @@ test('the edge tab stays brand orange under the cursor', async ({
   await expect(closer).toHaveCSS('color', INK);
 });
 
-test('the edge tab turns ink over an orange surface and back', async ({
+test('the edge tab keeps its orange over the surfaces this build paints', async ({
   page,
 }) => {
   const ORANGE = 'rgb(205, 87, 48)';
-  const INK = 'rgb(18, 16, 15)';
   const tab = page.locator('[data-edge-tab]');
 
-  // The contact hero is painted brand orange, so the orange tab would vanish.
+  /*
+   * Since `/contacto/` was rebuilt (2026-09-16) no section of the standard
+   * build paints a field of brand orange: every surface is white, ink or
+   * charcoal, so the tab is orange everywhere here and never has to turn ink.
+   * The case where it does — the orange `Identidad` layer of `/servicios/` —
+   * only exists in the demonstration build and is covered by
+   * `demo.spec.ts`.
+   */
   await page.goto('/contacto/');
-  await expect(page.locator('[data-edge-menu]')).toHaveAttribute(
+  await expect(page.locator('[data-edge-menu]')).not.toHaveAttribute(
     'data-tab-tone',
     'accent',
   );
-  await expect(tab).toHaveCSS('background-color', INK);
+  await expect(tab).toHaveCSS('background-color', ORANGE);
 
-  // Scrolled onto the ink channels, it is orange again.
-  await page.locator('.contact-page__channels').evaluate((section) => {
+  // Over the white brief that rises onto the charcoal hero, unchanged.
+  await page.locator('[data-contact-brief]').evaluate((section) => {
     window.scrollTo({
-      top:
-        section.getBoundingClientRect().top +
-        window.scrollY -
-        window.innerHeight / 4,
+      top: section.getBoundingClientRect().top + window.scrollY,
       behavior: 'instant',
     });
   });
@@ -458,6 +461,16 @@ test('the edge panel lists routes and channels without numbers or legal links', 
   );
   await expect(instagram).toHaveAttribute('target', '_blank');
   await expect(instagram).toHaveAttribute('rel', 'noopener noreferrer');
+
+  // The channels are their names only, side by side.
+  await expect(mail.locator('.edge-menu__channel-label')).toHaveText('Correo');
+  await expect(instagram.locator('.edge-menu__channel-label')).toHaveText(
+    'Instagram',
+  );
+  await expect(panel.locator('.edge-menu__foot')).not.toContainText('hola@');
+  await expect(panel.locator('.edge-menu__foot')).not.toContainText(
+    '@colmillo.studio',
+  );
 });
 
 test('the closed edge menu keeps the panel out of reach', async ({ page }) => {
@@ -871,7 +884,7 @@ test('every route carries one wordmark and one folding Instagram control', async
     { path: '/studio/', theme: 'dark' },
     { path: '/servicios/', theme: 'dark' },
     { path: '/proyectos/', theme: 'light' },
-    { path: '/contacto/', theme: 'light' },
+    { path: '/contacto/', theme: 'dark' },
   ]) {
     await page.goto(path);
 

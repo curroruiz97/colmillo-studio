@@ -1,8 +1,12 @@
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-/** Where `layout.css` makes a stack layer sticky. */
-const STICKY_QUERY = '(min-width: 64.01rem) and (min-height: 40rem)';
+/**
+ * Where `layout.css` makes a stack layer sticky. The height floor is 34rem,
+ * the site's short-window line: a laptop browser window (about 580-800 px
+ * tall once the browser's own bars are drawn) keeps the wide composition.
+ */
+const STICKY_QUERY = '(min-width: 64.01rem) and (min-height: 34rem)';
 
 /*
  * The reveal band is 7% of the screen, never of the layer. A percentage inset
@@ -13,6 +17,30 @@ const STICKY_QUERY = '(min-width: 64.01rem) and (min-height: 40rem)';
 const bandTop = (section: HTMLElement) =>
   Math.round(Math.min(section.offsetHeight, window.innerHeight) * 0.07);
 
+/*
+ * A sticky layer taller than the screen (a short laptop window, enlarged text)
+ * would keep its own foot out of reach: stuck at `top: 0`, its bottom stays
+ * below the screen until the next layer covers it. Each layer publishes how
+ * much taller than the screen it is, and `layout.css` sticks it that far above
+ * the top instead, so it scrolls until its foot is on screen and only then
+ * holds. A layer that fits publishes 0 and keeps `top: 0`, and so does every
+ * layer that is not sticky: the manifesto and the services track opt out with
+ * `position: relative`, where the same offset would move the whole section.
+ * A released layer counts as sticky (it only leaves the stack while covered).
+ * This is layout, not motion, so it runs under reduced motion too.
+ */
+const publishOverflow = (sections: HTMLElement[]) => {
+  sections.forEach((section) => {
+    const sticky =
+      getComputedStyle(section).position === 'sticky' ||
+      'stackReleased' in section.dataset;
+    const overflow = sticky
+      ? Math.max(0, section.offsetHeight - window.innerHeight)
+      : 0;
+    section.style.setProperty('--stack-overflow', `${overflow}px`);
+  });
+};
+
 export function initSectionStack(): () => void {
   const sections = gsap.utils.toArray<HTMLElement>('[data-stack-section]');
   if (sections.length < 2) return () => undefined;
@@ -20,8 +48,18 @@ export function initSectionStack(): () => void {
     section.style.setProperty('--stack-index', String(index + 1));
     section.dataset.stackReady = 'true';
   });
+  const measure = () => publishOverflow(sections);
+  measure();
+  ScrollTrigger.addEventListener('refreshInit', measure);
+  const releaseMeasure = () => {
+    ScrollTrigger.removeEventListener('refreshInit', measure);
+    sections.forEach((section) =>
+      section.style.removeProperty('--stack-overflow'),
+    );
+  };
   if (document.documentElement.dataset.motion === 'reduced') {
     return () => {
+      releaseMeasure();
       sections.forEach((section) => delete section.dataset.stackReady);
     };
   }
@@ -117,6 +155,7 @@ export function initSectionStack(): () => void {
   return () => {
     release.revert();
     context.revert();
+    releaseMeasure();
     sections.forEach((section) => delete section.dataset.stackReady);
   };
 }

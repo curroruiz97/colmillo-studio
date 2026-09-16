@@ -1,0 +1,55 @@
+---
+/**
+ * The case study's first screen: the project's own universe before a single
+ * word of explanation.
+ *
+ * `full` (the default) is one piece of media at the size of the screen with
+ * the project's name set over its foot; `contained` holds the media inside the
+ * page's measure under the name; `split` puts the name and the media side by
+ * side, the composition the other editorial routes use. The variant is data,
+ * so the portfolio can change its mind later without a rewrite.
+ *
+ * The name is the page's only `h1`. It is always real text in the document —
+ * never baked into the media — so the route is readable, indexable and
+ * usable with no CSS, no JavaScript and no picture at all.
+ *
+ * Motion is CSS, from the first paint, so it never waits for the route's
+ * chunk: the media settles from a slight scale while its cover lifts, and the
+ * name rises out of its own clip. `CaseStudyPageMotion.ts` only adds the slow
+ * cinematic drift afterwards. Reduced motion gets the finished frame.
+ */
+import CaseStudyMedia from './CaseStudyMedia.astro';
+import type { CaseStudy } from '@/data/caseStudy';
+
+interface Props {
+  study: CaseStudy;
+  /** The provisional notice, shown only for a flagged demonstration. */
+  notice?: string | undefined;
+}
+
+const { study, notice } = Astro.props;
+const tone = study.theme.chrome === 'dark' ? 'dark' : 'light';
+---
+
+<header
+  class="cs-hero"
+  data-cs-hero
+  data-variant={study.hero.variant}
+  data-surface-tone={tone}
+>
+  <div class="cs-hero__media" data-cs-hero-media>
+    <CaseStudyMedia media={study.hero.media} priority class="cs-hero__frame" />
+  </div>
+
+  <div class="cs-shell cs-hero__inner">
+    {notice && <strong class="cs-flag">{notice}</strong>}
+    <h1 class="cs-hero__title">
+      <span class="cs-line">
+        <span data-cs-hero-title
+          >{study.title}<span class="cs-hero__dot" aria-hidden="true"
+          ></span></span
+        >
+      </span>
+    </h1>
+  </div>
+</header>
