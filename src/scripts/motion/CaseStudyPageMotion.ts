@@ -6,6 +6,7 @@ import type {
   canPress,
   Edge,
 } from './PressSurface';
+import { playLoop, stopLoop } from './VideoLoop';
 
 /**
  * The shared tools, handed over by `CaseStudyPage.ts`. This chunk imports them
@@ -98,8 +99,8 @@ function initVideos(page: HTMLElement, reduced: boolean): () => void {
   const sync = () => {
     for (const video of videos) {
       if (!reduced && visible.get(video) === true && !document.hidden)
-        void video.play().catch(() => undefined);
-      else video.pause();
+        playLoop(video);
+      else stopLoop(video);
     }
   };
   const observer = new IntersectionObserver((entries) => {
@@ -114,7 +115,7 @@ function initVideos(page: HTMLElement, reduced: boolean): () => void {
   return () => {
     document.removeEventListener('visibilitychange', sync);
     observer.disconnect();
-    videos.forEach((video) => video.pause());
+    videos.forEach((video) => stopLoop(video));
   };
 }
 

@@ -1,4 +1,5 @@
 import gsap from 'gsap';
+import { playLoop, stopLoop } from './VideoLoop';
 
 /**
  * Home goodbye stage: a viewport over one panoramic scene.
@@ -54,13 +55,13 @@ export function initGoodbyePanorama(): () => void {
 
   const video = root.querySelector<HTMLVideoElement>('[data-goodbye-video]');
   if (video && reduced) {
-    video.pause();
+    stopLoop(video);
   } else if (video) {
     // Fetched and played only near the viewport and in a visible tab.
     let near = false;
     const sync = () => {
-      if (near && !document.hidden) void video.play().catch(() => undefined);
-      else video.pause();
+      if (near && !document.hidden) playLoop(video);
+      else stopLoop(video);
     };
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -74,7 +75,7 @@ export function initGoodbyePanorama(): () => void {
     cleanups.push(() => {
       observer.disconnect();
       document.removeEventListener('visibilitychange', sync);
-      video.pause();
+      stopLoop(video);
     });
   }
 

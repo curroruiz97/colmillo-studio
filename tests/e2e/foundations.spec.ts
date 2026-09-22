@@ -135,6 +135,56 @@ test('the hero publishes the official loop over a full first screen', async ({
   expect(size.height).toBeGreaterThanOrEqual(size.viewport);
 });
 
+test('a loop a browser refuses to start plays at the first gesture', async ({
+  page,
+}) => {
+  /*
+   * What iOS Low Power Mode, Chrome's Data Saver and Safari's per-site
+   * "Auto-Play: Never" do to a silent loop: the `autoplay` attribute is
+   * ignored and every `play()` outside a gesture is refused, so the element
+   * is left on its poster under the platform's own start badge — the mobile
+   * defect the client reported on 2026-09-22. `VideoLoop.ts` keeps the
+   * refused loop and retries it at the first gesture, which is where this
+   * asserts it: no control of ours, and none of theirs either.
+   */
+  await page.addInitScript(() => {
+    const play = HTMLMediaElement.prototype.play;
+    let unlocked = false;
+    const unlock = () => {
+      unlocked = true;
+    };
+    for (const gesture of ['pointerdown', 'touchstart', 'keydown'])
+      window.addEventListener(gesture, unlock, { capture: true });
+    // The attribute is refused as well, so nothing runs before the gesture.
+    document.addEventListener(
+      'play',
+      (event) => {
+        if (!unlocked && event.target instanceof HTMLMediaElement)
+          event.target.pause();
+      },
+      true,
+    );
+    HTMLMediaElement.prototype.play = function play_() {
+      return unlocked
+        ? play.call(this)
+        : Promise.reject(new DOMException('blocked', 'NotAllowedError'));
+    };
+  });
+
+  await page.goto('/');
+  const video = page.locator('.hero__media');
+  await expect(video).toHaveJSProperty('paused', true);
+
+  // Any gesture at all, wherever the visitor makes it.
+  await page.keyboard.press('Tab');
+  await expect(video).toHaveJSProperty('paused', false);
+  await expect
+    .poll(() =>
+      video.evaluate((node) => (node as HTMLVideoElement).currentTime),
+    )
+    .toBeGreaterThan(0);
+});
+
 test('essential routes render', async ({ page }) => {
   const consoleErrors: string[] = [];
   page.on('console', (message) => {

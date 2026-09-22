@@ -1,4 +1,5 @@
 import gsap from 'gsap';
+import { playLoop, stopLoop } from './VideoLoop';
 
 /**
  * Hero behaviour.
@@ -14,7 +15,7 @@ export function initHeroMotion(): () => void {
     ...document.querySelectorAll<HTMLVideoElement>('[data-motion-video]'),
   ];
   if (!hero || document.documentElement.dataset.motion === 'reduced') {
-    videos.forEach((video) => video.pause());
+    videos.forEach((video) => stopLoop(video));
     return () => undefined;
   }
 
@@ -25,7 +26,7 @@ export function initHeroMotion(): () => void {
   let held = document.documentElement.dataset.intro === 'full';
   if (held) {
     videos.forEach((video) => {
-      video.pause();
+      stopLoop(video);
       if (video.currentTime > 0) video.currentTime = 0;
     });
   }
@@ -34,9 +35,9 @@ export function initHeroMotion(): () => void {
   const sync = () => {
     for (const video of videos) {
       if (!held && onScreen.has(video) && !document.hidden) {
-        void video.play().catch(() => undefined);
+        playLoop(video);
       } else {
-        video.pause();
+        stopLoop(video);
       }
     }
   };
@@ -51,10 +52,10 @@ export function initHeroMotion(): () => void {
       if (!(entry.target instanceof HTMLVideoElement)) continue;
       if (entry.isIntersecting) {
         onScreen.add(entry.target);
-        if (!held) void entry.target.play().catch(() => undefined);
+        if (!held) playLoop(entry.target);
       } else {
         onScreen.delete(entry.target);
-        entry.target.pause();
+        stopLoop(entry.target);
       }
     }
   });

@@ -1,6 +1,7 @@
 import type { gsap as GsapCore } from 'gsap';
 import type { ScrollTrigger as ScrollTriggerClass } from 'gsap/ScrollTrigger';
 import type { bindPressSurface, canPress } from './PressSurface';
+import { playLoop, stopLoop } from './VideoLoop';
 
 /** Handed over by `ServicesPage.ts`; imported here for their types only. */
 export interface ServicesPageTools {
@@ -327,8 +328,8 @@ function initLoops(
         visible.has(video) &&
         !covered.has(video) &&
         !document.hidden;
-      if (playable) void video.play().catch(() => undefined);
-      else video.pause();
+      if (playable) playLoop(video);
+      else stopLoop(video);
     });
   };
 
@@ -372,6 +373,6 @@ function initLoops(
     document.removeEventListener('visibilitychange', sync);
     observer.disconnect();
     triggers.forEach((trigger) => trigger.kill());
-    videos.forEach((video) => video.pause());
+    videos.forEach((video) => stopLoop(video));
   };
 }

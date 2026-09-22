@@ -1,4 +1,5 @@
 import gsap from 'gsap';
+import { playLoop, stopLoop } from './VideoLoop';
 
 /**
  * Home Studio section: a quiet pause after the project rail.
@@ -18,7 +19,7 @@ export function initStudioMotion(): () => void {
   const video = section.querySelector<HTMLVideoElement>('[data-studio-video]');
 
   if (document.documentElement.dataset.motion === 'reduced') {
-    video?.pause();
+    if (video) stopLoop(video);
     return () => undefined;
   }
 
@@ -35,9 +36,9 @@ export function initStudioMotion(): () => void {
         started = true;
         if (video.currentTime < start) video.currentTime = start;
       }
-      void video.play().catch(() => undefined);
+      playLoop(video);
     } else {
-      video.pause();
+      stopLoop(video);
     }
   };
   // A small margin starts the fetch just before the loop scrolls into view.
@@ -78,7 +79,7 @@ export function initStudioMotion(): () => void {
   return () => {
     document.removeEventListener('visibilitychange', sync);
     observer.disconnect();
-    video?.pause();
+    if (video) stopLoop(video);
     context.revert();
   };
 }

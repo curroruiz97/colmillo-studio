@@ -4785,3 +4785,80 @@ Verified live after the deployment reported READY: `/aviso-legal/` and
 `[PENDIENTE: …]` markers respectively, the footer's three legal links and the
 dynamic `© 2026`. `noindex, nofollow` is present, `robots.txt` still answers
 `Disallow: /`, and the response still sets no cookie.
+
+## 2026-09-22 - Silent Loops Start On Their Own, Including Where A Browser Refuses
+
+Client report: on a phone the videos do not play by themselves; a play control
+has to be pressed. Requested behaviour: every loop plays on its own, in a loop,
+from the moment the site is opened.
+
+### What was wrong
+
+Nothing in the markup. Every loop is authored `muted loop playsinline` with no
+`controls`, the first-screen ones carry `autoplay`, and the ones below the fold
+carry `preload="none"` and are started by their own module as they arrive. All
+of that is correct and is untouched.
+
+The defect is the refusal path. Some browsers reject a silent autoplay even
+though it is muted and inline: iOS in Low Power Mode, Chrome with Data Saver,
+Safari with a per-site "Auto-Play: Never". They ignore the `autoplay` attribute
+and reject `play()` with `NotAllowedError`. Every call site swallowed that
+rejection (`.catch(() => undefined)`) and never tried again, so the loop stayed
+parked on its poster with the platform's own start badge over it — which is
+exactly the play button the client was pressing. On a phone this is the common
+case, because Low Power Mode is.
+
+### What was done
+
+- New `src/scripts/motion/VideoLoop.ts`: `playLoop(video)` and
+  `stopLoop(video)`. `playLoop` forces `muted`/`playsInline` as properties (an
+  autoplay policy reads the property, not the attribute) and, when the browser
+  answers `NotAllowedError`, keeps the element and retries it at the first
+  gesture the document sees — `pointerdown`, `touchstart`, `touchend`,
+  `keydown`, `scroll` or `click`, in capture, installed only while something is
+  waiting and removed as soon as nothing is. Inside a gesture the same call is
+  allowed, so the loops start by themselves as soon as the visitor does
+  anything at all, with no control of ours added to the page.
+- Only `NotAllowedError` is remembered. `play()` also rejects with
+  `AbortError` when a later `pause()` interrupts it, which is routine here (a
+  loop scrolling out mid-request); retrying that would restart a loop its own
+  module has just parked. `stopLoop` cancels a pending retry as it pauses, so a
+  loop that has since left the screen is never resurrected by a gesture.
+- Every loop call site now goes through the pair: `HeroMotion.ts`,
+  `StudioMotion.ts`, `GoodbyePanorama.ts`, `ProjectsPageMotion.ts`,
+  `ServicesPageMotion.ts`, `StudioPageMotion.ts`, `CaseStudyPageMotion.ts`.
+- No rule was relaxed. Reduced motion, off screen, covered by the next stack
+  layer and a backgrounded tab still decide whether a loop is asked to play at
+  all; this only makes the request itself survive a refusal.
+
+### Verified
+
+- `astro check` 163 files, 0 errors; `eslint` clean; Prettier clean on all nine
+  touched files (the repository-wide check still reports its pre-existing
+  line-ending mismatch in 40 untouched files, which was left alone).
+- `build` 9 pages, `build:demo` 19 pages, `check:production` passing at
+  196,093 JS bytes (budget 220,000), `check:links` passing.
+- `playwright test` 98 passed / 10 skipped; `playwright test --config
+  playwright.demo.config.ts` 186 passed / 75 skipped.
+- New regression test in `tests/e2e/foundations.spec.ts`, "a loop a browser
+  refuses to start plays at the first gesture": an init script reproduces Low
+  Power Mode (the `autoplay` attribute ignored, `play()` rejected with
+  `NotAllowedError` until a gesture) and asserts the hero loop is parked on
+  arrival and running after one keypress. It was confirmed to fail with the
+  retry disabled and to pass with it, on both the desktop and the Pixel 7
+  project.
+- Scratch Playwright sweep on a Pixel 7 over `/`, `/studio/`, `/servicios/` and
+  `/proyectos/` of `dist-demo`, with correct video MIME types and range
+  support. Autoplay allowed: every loop on screen was already playing on
+  arrival, with no gesture. Low Power Mode simulated: every loop was parked on
+  arrival and playing after a single tap, including the home Studio loop
+  further down the page. The temporary script lives only in the session
+  scratchpad and was not added to the repository.
+
+### Open
+
+- `src/data/caseStudy.ts` still offers `mode: 'controls'` for a case-study
+  video, which renders real controls and is the visitor's to start. No approved
+  or demo entry uses it, so nothing on the site shows controls today; if a
+  future piece is meant to autoplay, it must be authored as a loop.
+- Nothing was committed, pushed or deployed.

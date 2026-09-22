@@ -245,6 +245,15 @@ registers ScrollTrigger and initializes/cleans:
   pressure on "muerda", bite);
 - `MagneticElements.ts`: bounded pointer response with cached bounds.
 
+`VideoLoop.ts` is the shared helper those modules start and park every silent
+loop through. It forces `muted`/`playsInline` as properties and, when a browser
+refuses a silent autoplay outright (iOS Low Power Mode, Chrome's Data Saver,
+Safari's per-site "Auto-Play: Never" — all of which answer `NotAllowedError`),
+it keeps the loop and retries it at the first gesture instead of leaving it
+under the platform's own start badge. It never overrides the reduced-motion,
+off-screen, covered or background-tab rules, which still decide whether a loop
+is asked to play at all.
+
 Motion must support full/reduced preferences, fine/coarse pointers, keyboard,
 touch and no JavaScript. Prefer transform, opacity, SVG masks and clip paths.
 Avoid layout thrashing, permanent expensive filters, uncontrolled loops and

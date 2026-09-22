@@ -1,5 +1,6 @@
 import type { bindPressSurface, canPress } from './PressSurface';
 import { mountStudioOrbit, type OrbitTools } from './StudioOrbit';
+import { playLoop, stopLoop } from './VideoLoop';
 
 /**
  * The shared tools, handed over by `StudioPage.ts`. This chunk imports them
@@ -77,9 +78,8 @@ function initHeroLoop(page: HTMLElement, reduced: boolean): () => void {
 
   let visible = false;
   const sync = () => {
-    if (!reduced && visible && !document.hidden)
-      void video.play().catch(() => undefined);
-    else video.pause();
+    if (!reduced && visible && !document.hidden) playLoop(video);
+    else stopLoop(video);
   };
   const observer = new IntersectionObserver(([entry]) => {
     visible = Boolean(entry?.isIntersecting);
@@ -92,7 +92,7 @@ function initHeroLoop(page: HTMLElement, reduced: boolean): () => void {
   return () => {
     document.removeEventListener('visibilitychange', sync);
     observer.disconnect();
-    video.pause();
+    stopLoop(video);
   };
 }
 
