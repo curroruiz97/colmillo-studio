@@ -4862,3 +4862,24 @@ case, because Low Power Mode is.
   or demo entry uses it, so nothing on the site shows controls today; if a
   future piece is meant to autoplay, it must be authored as a loop.
 - Nothing was committed, pushed or deployed.
+
+### Committed, pushed and verified live (same session)
+
+At the user's explicit request the work above was committed as `2e6143c` and
+pushed to `origin/main` (`d61d66b..2e6143c`): the nine source/test files, this
+record and the `CLAUDE.md` paragraph. Nothing else was staged.
+
+Release impact: Vercel's build command is still overridden to
+`npm run build:demo` with output `dist-demo`, so the push updated the
+temporary, explicitly authorised public demo. No gate was opened —
+`PUBLIC_SITE_URL`, `PUBLIC_RELEASE_APPROVED` and `PUBLIC_INDEXING_APPROVED`
+remain unset or false, the live page still answers
+`<meta name="robots" content="noindex, nofollow">` and `robots.txt` still
+answers `Disallow: /`.
+
+Verified on the live demo after the deployment: `/_astro/VideoLoop.Bwgiitnq.js`
+serves 200 (560 bytes) with the retry. A Pixel 7 sweep of `/`, `/studio/`,
+`/servicios/` and `/proyectos/` against the public URL: with autoplay allowed
+every loop on screen was already running on arrival with no gesture; with Low
+Power Mode simulated every loop was parked on arrival and running after one
+tap, including the home Studio loop further down the page.
