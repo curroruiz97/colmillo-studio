@@ -2818,3 +2818,40 @@ session had `layout.css` open, so the reversible choice was a new class name
 rather than an edit to a file owned by other uncommitted work. The same
 reasoning put the `/contacto/` privacy-line rules in `legal-page.css` instead
 of `contact-page.css`; both are noted in the stylesheet itself.
+
+
+## 2026-09-23 - The Form Endpoint Waits For The Definitive Domain
+
+Decision: do not wire the contact form to a third-party form service now. Hold
+it until `colmillostudio.com` is migrated and the site runs on its definitive
+domain, and decide the endpoint then.
+
+Context the client gave: they already own `colmillostudio.com` and it is
+currently hosted on their own Plesk server at IONOS.
+
+Reason:
+
+- **Nothing is lost by waiting.** The site is `noindex` behind
+  `siteConfig.isPrelaunch` and `robots.txt` disallows everything, so it is not
+  collecting real enquiries. There are no submissions being missed today.
+- **A Plesk server changes the recommendation.** The earlier advice here was a
+  third-party form service, because a static site on Vercel has nowhere to send
+  a POST. With their own server and their own mailbox on the domain, the better
+  answer is an endpoint they own: no third party ever holds a visitor's brief,
+  nothing has to be declared as a data processor, and there is no monthly
+  submission cap. That option only exists once the domain move is settled.
+- **The published privacy policy would have to be rewritten twice.** It states
+  today that the form transmits nothing and that the studio receives no data
+  until the visitor sends the draft themselves. Any endpoint makes that false.
+  Rewriting a published policy for a stop-gap service and then again for the
+  final one is the kind of churn a legal document should not have.
+- **It belongs to a bundle, not to itself.** The canonical origin
+  (`PUBLIC_SITE_URL`), the indexing approval, the sitemap, the mail records
+  (SPF/DKIM/DMARC) and the form endpoint all depend on the same domain
+  decision, and several of them are only verifiable together.
+
+Open, and to be settled when the migration is planned: whether the site itself
+moves to the definitive domain on Vercel with IONOS keeping only the mailbox,
+or whether the built site is served from Plesk instead — a static build can be,
+and that would remove Vercel from the picture altogether. The answer decides
+what kind of endpoint is even available.

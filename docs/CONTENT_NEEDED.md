@@ -420,6 +420,15 @@ is waiting on three things:
   exactly that; with no JavaScript the form's own `action` does the same thing
   natively. Nothing ever claims the site sent a message.
 
+  **Deferred on 2026-09-23 at the client's request** until
+  `colmillostudio.com` is migrated and the site runs on its definitive domain.
+  They own the domain and it currently sits on their own Plesk server at IONOS,
+  which means the eventual endpoint may well be one they own rather than a
+  third-party service — no processor to declare and no monthly cap. Nothing is
+  lost by waiting: the site is `noindex` and `robots.txt` disallows
+  everything, so no real enquiry is being missed. See `docs/DECISIONS.md`
+  (2026-09-23).
+
   To make it a real submission, exactly one change is needed in the page's code:
   set `contactFormEndpoint` in `src/data/contactPage.ts` to the endpoint's URL.
   The branch is already written — the brief is POSTed as JSON
