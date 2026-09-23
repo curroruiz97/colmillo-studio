@@ -5849,3 +5849,68 @@ The known flaky `foundations.spec.ts` edge-menu test failed once here and
 passed on the re-run, as before.
 
 Nothing was deployed by hand.
+
+
+## 2026-09-23 Session: A Bigger Home CTA, And The Orange Mark Everywhere
+
+### The home hero's button
+
+Grown so it carries the first screen: `min-block-size` 4rem -> 4.75rem,
+padding 1.05/2rem -> 1.25/2.6rem, a type size of its own
+(`clamp(1.0625rem, 1.25vw, 1.3rem)`, where it used to inherit the body size)
+and a measure of 26.5rem. At 1440 it goes from 270x64 to 315x76, and at 1920
+to 350x76 with 20.8px type.
+
+The hero's height budget subtracted a bare `5.5rem` for the CTA while the
+button took its 4rem from the shared `.bite-button`, so growing one would
+silently have made the loop's height wrong. Both now read one
+`--hero-cta-block`, and the budget adds its own 1.5rem of air to it.
+
+**The slab depth was left alone.** It was briefly raised to 0.5rem and
+`demo.spec.ts` caught it: the home's contact channels are asserted to be the
+hero's button rather than a lookalike, comparing radius, shadow, background
+and border. Depth is shared material across every bite button on the site; the
+size is what this change was for. The test was right and the CSS was wrong.
+
+Checked at 1920x1080, 1440x900, 1366x768, 1280x720, 1024x640, 390x844 and
+320x720: the scroll hint stays on screen, the loop keeps a real height and
+there is no horizontal overflow at any of them.
+
+### The orange wordmark on every route
+
+`logoMark` now defaults to `orange` and the home's explicit override is gone.
+`CaseStudyHeader.astro` takes the orange mark too and no longer takes a prop —
+the project's `chrome` had been its only one, and with the colour no longer
+following the surface it was unused (ESLint caught it).
+
+Found while verifying, not after: flipping the default in `SiteLogo.astro`
+alone changed nothing, because `BaseLayout` passes its own `logoMark = 'auto'`
+explicitly and that wins. Only the case-study header, which does not go through
+that layout, had turned orange. The default had to move in the layout too.
+
+Contrast of the orange `#cd5730` against the surface each route actually puts
+behind it, measured on the built pages: cream 3.67:1 (home, `/proyectos/`,
+`/contacto/`'s sheet, the legal routes, the project template), `#1f1f1f`
+3.93:1 (`/studio/`), `#12100f` 4.52:1 (`/servicios/`). All clear the 3:1 that
+applies to a graphic, and the mark is decorative — `alt=""`, with the link's
+own `aria-label` carrying the name — so nothing depends on reading it. It is
+lower than the 16:1 the black mark had on cream, which is the client's call
+and is recorded here rather than assumed.
+
+No filter anywhere: each colour is still its own validated file, which
+`check:brand` and `foundations.spec.ts` both hold.
+
+### Verification (actually run)
+
+- `astro check` 166 files 0/0/0; ESLint clean; Prettier clean; both builds;
+  `check:brand` (three wordmarks); `check:hero`; `check:production` 84 files,
+  196,093 JS bytes.
+- Playwright: 102 passed / 10 skipped (`dist`) and 183 passed (`dist-demo`).
+  The wordmark table in `foundations.spec.ts`, the `/proyectos/` wordmark test
+  and the case-study header assertion were all updated from the per-route
+  derivative to orange.
+- A stale `dist/` briefly made the production suite fail on the home's mark: the
+  demo had been rebuilt after the layout fix and the standard build had not.
+  Rebuilt, and green.
+
+Nothing was deployed by hand.

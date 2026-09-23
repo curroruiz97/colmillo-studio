@@ -947,14 +947,16 @@ test('the Instagram control folds from the hero into the corner', async ({
 test('every route carries one wordmark and one folding Instagram control', async ({
   page,
 }) => {
-  // The home paints the orange mark (2026-09-22); every other route keeps the
-  // derivative its own tone chooses, and none of them is filtered into colour.
+  // Every route paints the orange mark (2026-09-23), whatever the tone of its
+  // first screen, and none of them is filtered into colour: each derivative is
+  // its own validated file. `data-theme` still follows the surface, because the
+  // cursor and the route's own styles read it.
   for (const { path, theme, mark } of [
     { path: '/', theme: 'light', mark: 'orange' },
-    { path: '/studio/', theme: 'dark', mark: 'cream' },
-    { path: '/servicios/', theme: 'dark', mark: 'cream' },
-    { path: '/proyectos/', theme: 'light', mark: 'black' },
-    { path: '/contacto/', theme: 'dark', mark: 'cream' },
+    { path: '/studio/', theme: 'dark', mark: 'orange' },
+    { path: '/servicios/', theme: 'dark', mark: 'orange' },
+    { path: '/proyectos/', theme: 'light', mark: 'orange' },
+    { path: '/contacto/', theme: 'dark', mark: 'orange' },
   ]) {
     await page.goto(path);
 

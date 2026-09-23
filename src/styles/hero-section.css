@@ -31,6 +31,13 @@
   --hero-logo-block: calc(var(--hero-logo-inline) / 3.5);
   /* The dot plus its travel, with a little air underneath. */
   --hero-scroll-block: 1.75rem;
+  /*
+   * The CTA's own height, named because two places need the same number: the
+   * button sets it, and the reserved budget below subtracts it. It used to be
+   * a bare 5.5rem in that budget with the button's 4rem coming from the shared
+   * `.bite-button`, so growing one silently made the loop's height wrong.
+   */
+  --hero-cta-block: 4.75rem;
   --hero-scroll-travel: 1.1rem;
   /*
    * The hint hangs closer to the CTA than the CTA hangs to the loop: it is a
@@ -61,8 +68,8 @@
    */
   --hero-reserved: calc(
     (var(--page-gutter) * 2) + var(--hero-logo-block) + (var(--hero-gap) * 2) +
-      var(--hero-scroll-gap) + 5.5rem + var(--hero-scroll-block) +
-      var(--hero-bottom-space)
+      var(--hero-scroll-gap) + calc(var(--hero-cta-block) + 1.5rem) +
+      var(--hero-scroll-block) + var(--hero-bottom-space)
   );
   --hero-media-block: calc(100svh - var(--hero-reserved));
 
@@ -262,7 +269,16 @@
 
 /* ------------------------------------------------------------------- cta -- */
 
+/*
+ * The first screen's one action, and it is meant to be seen: a size up on the
+ * shared button, in both its height and its type (client direction,
+ * 2026-09-23). The hero's height budget above subtracts the same
+ * `--hero-cta-block`, so the loop keeps exactly the room this leaves it.
+ */
 .hero__cta {
+  min-block-size: var(--hero-cta-block);
+  padding: 1.25rem 2.6rem;
+  font-size: clamp(1.0625rem, 1.25vw, 1.3rem);
   margin-block-start: var(--hero-gap);
   /*
    * The shared button caps its measure at 18.5rem, which forces the hero's own
@@ -270,7 +286,12 @@
    * 1440. Here it gets enough room to stay a single line wherever the column
    * allows it, and still wraps rather than overflowing when it does not.
    */
-  max-inline-size: min(100%, 24rem);
+  max-inline-size: min(100%, 26.5rem);
+  /*
+   * The slab keeps the depth every bite button on the site has. Only the size
+   * grows here: the material is shared, and `demo.spec.ts` holds the home's
+   * contact channels to being this exact button rather than a lookalike.
+   */
   box-shadow: 0 0.4rem 0 var(--color-brand-ink);
 }
 

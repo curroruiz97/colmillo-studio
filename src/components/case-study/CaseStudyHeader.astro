@@ -19,16 +19,14 @@
  */
 import { brandWordmark } from '@/config/assets';
 import { primaryNavigation } from '@/config/navigation';
-import type { CaseStudyTheme } from '@/data/caseStudy';
 
-interface Props {
-  chrome: CaseStudyTheme['chrome'];
-}
-
-const { chrome } = Astro.props;
-/* The mark follows the project's own surface, exactly as the global one does
-   on every other route. No filter: each colour is its own validated file. */
-const mark = chrome === 'dark' ? brandWordmark.cream : brandWordmark.black;
+/*
+ * The orange mark, as on every other route since 2026-09-23. The header takes
+ * no props: the project's surface no longer picks the mark's colour, and the
+ * band's own background comes from `--cs-bg`, which the layout publishes. No
+ * filter: each colour is its own validated file.
+ */
+const mark = brandWordmark.orange;
 
 /* Taken from the menu rather than written here, so the way back cannot drift
    from the archive's own route. */

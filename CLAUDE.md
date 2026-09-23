@@ -402,11 +402,12 @@ licenses and publication approval before enabling client material.
   `contactChannels.instagram`. Since 2026-09-15 every route starts as the pill.
 - Global wordmark (2026-09-15): `SiteLogo.astro` in `BaseLayout`, a link home
   in the top-left corner of every route's first screen at the home hero's
-  size; not fixed, it scrolls away with the page. Each
-  route passes `headerTheme` (`light` default; `/studio/` and `/servicios/`
-  are `dark`) and may override the derivative with `logoMark="orange"`, which
-  only the home does; the home hero keeps an empty `.hero__logo` box of the
-  same size, sized to the mark that route paints.
+  size; not fixed, it scrolls away with the page. Since 2026-09-23 every route
+  paints the **orange** derivative (`logoMark` defaults to it), including the
+  project template's own centred mark; `headerTheme` no longer picks the
+  colour but still publishes `data-theme` for the cursor's surface tone. A
+  route could ask for the tone-matched black or cream with `logoMark="auto"`;
+  none does. The home hero keeps an empty `.hero__logo` box of the same size.
 - Surface-aware cursor; the system reduced-motion preference is the only motion
   source (the sticky header and the manual motion toggle were both removed on
   2026-09-10 at the user's request).

@@ -8,18 +8,20 @@
  * with the first screen. The home hero keeps an empty box of the same size
  * where the mark used to sit, so its composition is unchanged.
  *
- * The route declares the tone of its hero through the layout's `headerTheme`:
- * a light surface gets the black derivative, a dark one the cream derivative.
+ * The route declares the tone of its hero through the layout's `headerTheme`.
  *
- * A route may ask for the orange mark instead through `mark="orange"`, which
- * overrides the tone. Only the home does, since 2026-09-22 (client direction);
- * every other route keeps the derivative its tone chooses. No filter is
- * involved anywhere: each colour is its own validated file.
+ * Since 2026-09-23 the orange derivative is the mark on every route (client
+ * direction), so `mark` defaults to it and `headerTheme` no longer picks the
+ * colour — it still publishes `data-theme`, which the cursor's surface tone
+ * and the route's own styles read. A route can still ask for the tone-matched
+ * black or cream mark with `mark="auto"`; none does.
+ *
+ * No filter is involved anywhere: each colour is its own validated file.
  */
 import { brandWordmark } from '@/config/assets';
 
 export type HeaderTheme = 'light' | 'dark';
-/** `auto` follows the route's tone; `orange` overrides it. */
+/** `orange` is the mark everywhere; `auto` follows the route's tone instead. */
 export type LogoMark = 'auto' | 'orange';
 
 interface Props {
@@ -27,7 +29,7 @@ interface Props {
   mark?: LogoMark;
 }
 
-const { theme = 'light', mark: choice = 'auto' } = Astro.props;
+const { theme = 'light', mark: choice = 'orange' } = Astro.props;
 const mark =
   choice === 'orange'
     ? brandWordmark.orange

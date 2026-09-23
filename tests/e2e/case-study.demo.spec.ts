@@ -232,11 +232,11 @@ test('every project stands on the same cream, page and canvas alike', async ({
       'background-color',
       CREAM,
     );
-    // And the mark is the black derivative throughout, since the surface is
-    // light on every one of them.
+    // And the mark is the orange derivative, as on every route since
+    // 2026-09-23.
     await expect(page.locator('.cs-header__mark'), slug).toHaveAttribute(
       'src',
-      /black/,
+      /orange/,
     );
   }
 });

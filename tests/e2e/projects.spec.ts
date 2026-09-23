@@ -57,7 +57,7 @@ test('the close stands in its own scene and offers both routes', async ({
   ).toHaveAttribute('href', '/servicios/');
 });
 
-test('the route carries the black wordmark and marks itself in the menu', async ({
+test('the route carries the orange wordmark and marks itself in the menu', async ({
   page,
 }) => {
   await page.goto('/proyectos/');
@@ -65,6 +65,10 @@ test('the route carries the black wordmark and marks itself in the menu', async 
   await expect(page.locator('[data-site-logo]')).toHaveAttribute(
     'data-theme',
     'light',
+  );
+  await expect(page.locator('[data-site-logo] img')).toHaveAttribute(
+    'src',
+    /orange/,
   );
   const current = page.locator('.edge-menu__list a[aria-current="page"]');
   await expect(current).toHaveCount(1);

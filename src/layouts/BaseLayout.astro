@@ -21,9 +21,9 @@ interface Props {
    */
   headerTheme?: HeaderTheme;
   /**
-   * Which validated wordmark the route paints. `auto` follows `headerTheme`;
-   * `orange` asks for the orange derivative whatever the tone. Only the home
-   * sets it.
+   * Which validated wordmark the route paints. The default is `orange` on
+   * every route since 2026-09-23 (client direction); `auto` asks for the
+   * derivative that matches `headerTheme` instead. No route sets it today.
    */
   logoMark?: LogoMark;
   /**
@@ -44,7 +44,7 @@ const {
   hideNavigation = false,
   hideLogo = false,
   headerTheme = 'light',
-  logoMark = 'auto',
+  logoMark = 'orange',
   ogImage,
   ogImageAlt,
   ogType,
