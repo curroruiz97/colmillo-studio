@@ -5791,3 +5791,61 @@ either end included.
 - Playwright: 100 passed / 10 skipped (`dist`) and 183 passed (`dist-demo`).
 
 Nothing was committed, pushed or deployed.
+
+
+## 2026-09-23 Session: The Shared Button Closes Its Oval
+
+User report: the buttons look cut off at the sides. They were — not by a
+container, but by their own geometry.
+
+### The cause
+
+A corner's radius is a share of the box it sits in: the first value a share of
+the width, the second of the height. An edge therefore only curves the whole
+way across when its two radii add up to the whole of it. `.bite-button` carried
+`border-radius: 50% 42% 48% 44%`, which adds up to 94% down the left side and
+90% down the right, and the few per cent left over are drawn as a straight
+vertical line at each end. Measured on the home CTA at 270x64: 3.8px of
+straight edge on the left and 6.4px on the right.
+
+### The change
+
+Two declarations, the button's only two shapes:
+
+- `typography.css` (rest): `55% 45% 55% 45% / 55% 45% 55% 45%`
+- `motion.css` (hover): the mirror, `45% 55% 45% 55% / 45% 55% 45% 55%`
+
+Every pair sums to exactly 100% — top 55+45, bottom 45+55, left 55+45, right
+45+55 — so no edge can straighten in either state. The shape stays asymmetric,
+so it keeps the drawn-by-hand quality the rest of the site has; it is not a
+plain `50%` ellipse.
+
+### Verification (actually run)
+
+- Every `.bite-button` on seven routes at 1440 and 390 — 28 buttons — had each
+  of its four edges resolved to pixels and its straight run measured: **worst
+  case 0.00px**, against up to 6.4px before.
+- That measurement is now a test (`foundations.spec.ts`, "no button is
+  flattened on any edge"), with half a pixel of tolerance for sub-pixel
+  rounding and an assertion that the walk actually found buttons.
+- Inspected at 3x on the widest button and a small one: the outline is
+  continuous end to end.
+- `astro check` 0/0/0; ESLint clean; Prettier clean; both builds;
+  `check:production` 84 files, 196,093 JS bytes.
+- Playwright: 102 passed / 10 skipped (`dist`, two more than before — the new
+  test) and 183 passed (`dist-demo`).
+
+### Scope
+
+Only the shared `.bite-button` was touched. The `/contacto/` service pills were
+measured too and are already closed: their radii exceed their height, so the
+browser scales them and both ends are full curves. Their straight run is along
+the top, which is what makes them pills rather than ovals — their intended
+shape, so they were left alone. The asymmetric percentage radii elsewhere
+(`hero-section.css`, `layout.css`, `edge-menu.css`, the cursor) are decorative
+shapes, not buttons, and were not in scope.
+
+The known flaky `foundations.spec.ts` edge-menu test failed once here and
+passed on the re-run, as before.
+
+Nothing was deployed by hand.

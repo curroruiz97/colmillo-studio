@@ -42,7 +42,21 @@ p {
      optical padding to stay centred instead of touching the curve. */
   padding: 1.05rem 2rem;
   border: var(--border-width) solid var(--color-brand-ink);
-  border-radius: 50% 42% 48% 44%;
+  /*
+   * A closed oval, never a flattened one.
+   *
+   * A corner's radius is a share of the box it sits in — the horizontal half
+   * of the width, the vertical half of the height — so an edge only curves all
+   * the way across when its two radii add up to the whole of it. The old
+   * `50% 42% 48% 44%` added up to 94% down the left and 90% down the right,
+   * and the missing few per cent were drawn as a straight vertical line at
+   * each end: the button looked cut off at the sides.
+   *
+   * Every pair here sums to exactly 100%: top 55+45, bottom 45+55, left 55+45,
+   * right 45+55. The shape stays asymmetric, so it keeps the drawn-by-hand
+   * quality the rest of the site has, but its outline never straightens.
+   */
+  border-radius: 55% 45% 55% 45% / 55% 45% 55% 45%;
   background: var(--color-brand-orange);
   color: var(--color-brand-ink);
   font-weight: 800;

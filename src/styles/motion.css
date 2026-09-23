@@ -97,8 +97,11 @@ html[data-surface-tone='dark'] .custom-cursor__core {
 }
 
 @media (hover: hover) and (pointer: fine) {
+  /* The mirror of the resting oval, so the shape rolls over on approach. Its
+     pairs sum to 100% exactly as the resting one does, so hovering can never
+     straighten an edge either (`typography.css`). */
   .bite-button:hover {
-    border-radius: 42% 50% 44% 48%;
+    border-radius: 45% 55% 45% 55% / 45% 55% 45% 55%;
   }
   .bite-button:hover > span {
     transform: scale(0.97, 0.94);

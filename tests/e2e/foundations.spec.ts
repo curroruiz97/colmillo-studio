@@ -1142,3 +1142,74 @@ test('client navigation remains stable across history changes', async ({
   ).toBeAttached();
   expect(consoleErrors).toEqual([]);
 });
+
+/*
+ * The shared button is an oval and has to close.
+ *
+ * A corner's radius is a share of its box, so an edge only curves the whole
+ * way across when its two radii add up to the whole of that edge. They used to
+ * add up to 94% and 90% down the two sides, and the few per cent left over
+ * were drawn as a straight vertical line: the buttons read as cut off at the
+ * ends. This walks every `.bite-button` the standard build publishes and
+ * measures what is left straight on each of its four edges.
+ */
+test('no button is flattened on any edge', async ({ page }) => {
+  const routes = ['/', '/studio/', '/servicios/', '/proyectos/', '/contacto/'];
+  let measured = 0;
+
+  for (const route of routes) {
+    await page.goto(route);
+    await page.evaluate(() => {
+      document.documentElement.removeAttribute('data-intro');
+      document.querySelector('.home-intro')?.remove();
+    });
+
+    const buttons = await page.evaluate(() =>
+      [...document.querySelectorAll<HTMLElement>('.bite-button')].map(
+        (button) => {
+          const box = button.getBoundingClientRect();
+          const style = getComputedStyle(button);
+          const toPx = (value: string, basis: number) =>
+            value.endsWith('%')
+              ? (Number.parseFloat(value) / 100) * basis
+              : Number.parseFloat(value);
+          const corner = (property: string) => {
+            const [across, down] = style
+              .getPropertyValue(property)
+              .split(' ') as [string, string | undefined];
+            return {
+              across: toPx(across, box.width),
+              down: toPx(down ?? across, box.height),
+            };
+          };
+          const tl = corner('border-top-left-radius');
+          const tr = corner('border-top-right-radius');
+          const br = corner('border-bottom-right-radius');
+          const bl = corner('border-bottom-left-radius');
+          return {
+            label: (button.textContent ?? '').trim().slice(0, 30),
+            top: box.width - (tl.across + tr.across),
+            bottom: box.width - (bl.across + br.across),
+            left: box.height - (tl.down + bl.down),
+            right: box.height - (tr.down + br.down),
+          };
+        },
+      ),
+    );
+
+    for (const button of buttons) {
+      measured += 1;
+      const straightest = Math.max(
+        button.top,
+        button.bottom,
+        button.left,
+        button.right,
+      );
+      // Half a pixel of tolerance for sub-pixel rounding, nothing more.
+      expect(straightest, `${route} — "${button.label}"`).toBeLessThan(0.5);
+    }
+  }
+
+  // The walk is only worth anything if it actually found buttons.
+  expect(measured).toBeGreaterThan(5);
+});
