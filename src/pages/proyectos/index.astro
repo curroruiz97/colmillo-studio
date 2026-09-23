@@ -56,9 +56,11 @@ const GRID_ID = 'projects-grid';
     {
       projects.length > 0 && (
         <section
-          class="projects-gallery"
+          class="stack-section projects-gallery"
           aria-label="Archivo de proyectos"
           data-surface-tone="light"
+          data-stack-section
+          data-stack-flush
         >
           {/* Watched by the route's chunk to know when the filter is stuck. */}
           <span aria-hidden="true" data-filters-sentinel />

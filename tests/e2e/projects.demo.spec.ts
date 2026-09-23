@@ -67,11 +67,14 @@ test('the archive opens like the other editorial routes and ends on one door', a
   await expect(page.locator('body')).not.toContainText('2099');
   await expect(page.locator('.project-card')).toHaveCount(0);
 
-  // One sheet end to end: gallery, close and footer are the same white, and
-  // no section of the route paints a field of its own.
+  /*
+   * The archive and the footer are the page's cream; the close is the route's
+   * one change of surface since 2026-09-23, and it is white. The hero and the
+   * archive are still one sheet with no seam between them.
+   */
   for (const selector of [
+    '.projects-hero',
     '.projects-gallery',
-    '.projects-close',
     '.site-footer',
   ]) {
     await expect(page.locator(selector), selector).toHaveCSS(
@@ -79,6 +82,10 @@ test('the archive opens like the other editorial routes and ends on one door', a
       CREAM,
     );
   }
+  await expect(page.locator('.projects-close')).toHaveCSS(
+    'background-color',
+    'rgb(255, 255, 255)',
+  );
   await expect(page.locator('.projects-close')).toHaveCSS('color', INK);
   await expect(
     page.getByRole('link', { name: 'Hablemos', exact: true }),
@@ -160,15 +167,39 @@ test('the close rises over the archive as a layer of the route stack', async ({
 }) => {
   await page.goto('/proyectos/');
 
-  // The route joins the shared stack rather than growing its own effect, and
-  // it needs both layers: the stack does nothing with fewer than two.
-  await expect(page.locator('[data-stack-section]')).toHaveCount(2);
+  /*
+   * Three layers since 2026-09-23: the hero, the archive and the close. The
+   * archive had to join them — it is the section the close rises over, and a
+   * layer can only be risen over if it holds.
+   */
+  await expect(page.locator('[data-stack-section]')).toHaveCount(3);
+  for (const selector of [
+    '.projects-hero',
+    '.projects-gallery',
+    '.projects-close',
+  ]) {
+    await expect(page.locator(selector), selector).toHaveAttribute(
+      'data-stack-ready',
+      'true',
+    );
+  }
+
+  // The hero and the archive stack flush: they are one sheet and must not
+  // open a band between them. Only the close does.
   await expect(page.locator('.projects-hero')).toHaveAttribute(
-    'data-stack-ready',
-    'true',
+    'data-stack-flush',
+    '',
   );
+  await expect(page.locator('.projects-gallery')).toHaveAttribute(
+    'data-stack-flush',
+    '',
+  );
+  await expect(page.locator('.projects-close')).not.toHaveAttribute(
+    'data-stack-flush',
+    '',
+  );
+
   const close = page.locator('.projects-close');
-  await expect(close).toHaveAttribute('data-stack-ready', 'true');
 
   // Parked inside the stack's window ('top 92%' to 'top 38%') the close is
   // opening: a rounded band with the picture clipped inside it.

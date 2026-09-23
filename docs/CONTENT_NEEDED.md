@@ -58,7 +58,18 @@ The home hero was solved in CSS the same day and needs nothing; the two on
    The ground being a shade off the page is still a defect of the master and
    is listed below; a client re-delivery on cream would let the lift go.
 
-3. **`/proyectos/` close scene.** `npm run media:projects` lifts the master's
+3. **`/proyectos/` close scene — RESOLVED 2026-09-23, no re-export needed.**
+   The section is white again (client direction), which is the surface the
+   derivative was prepared for: `npm run media:projects` lifts the master's
+   paper to pure `--color-white`, so on white the picture's ground and the
+   section are the same value and the sculptures carry no rectangle. Measured
+   on the rendered page at 1920, 1440 and 390: the dominant light value inside
+   the close is exactly rgb(255, 255, 255), with the picture's own paper a
+   level or two down in blue only (WebP encoding), against the twenty-level
+   gap it showed on cream. The lift itself is still an untouched-master
+   treatment whose approval is open. Original note follows.
+
+   **`/proyectos/` close scene.** `npm run media:projects` lifts the master's
    paper to pure `#ffffff` (`PAPER_FLOOR = 251`, `LIFT = 255/251`), which is
    what made the picture edgeless on the white sheet. On cream the two wings
    now read as a white band across the section: their top and bottom fade,

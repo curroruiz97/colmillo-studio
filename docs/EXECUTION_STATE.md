@@ -5914,3 +5914,69 @@ No filter anywhere: each colour is still its own validated file, which
   Rebuilt, and green.
 
 Nothing was deployed by hand.
+
+
+## 2026-09-23 Session: The /proyectos/ Close Becomes A Real Stack Layer
+
+User request: make the archive's closing CTA behave like the `/servicios/`
+close — a whole screen, rising over the section before it — and put it on
+white.
+
+### What was actually wrong
+
+Measured before changing anything, and it was not what it looked like. The two
+closes already agreed on almost everything: both were `min-block-size:
+max(38rem, 100svh)`, both opened with an 80px band, both rode up 32px over
+what came before. The one difference was `position`: `/servicios/` had
+`sticky`, `/proyectos/` had `relative`.
+
+The cause was two-layered. The `/proyectos/` close carried the
+`data-stack-section` attribute but not the `stack-section` class, so it got
+the stack's script and none of its CSS. And `.projects-hero` and
+`.projects-gallery` each declared `position: relative` of their own, which —
+sitting in a later cascade layer — cancelled the sticky the class would have
+given them. Nothing on the route was ever sticky, so there was nothing for the
+close to rise over: the 32px was a static overlap, not a stack.
+
+### The change
+
+- All three sections are stack layers now: the hero, the archive and the
+  close. `position` and `z-index` were removed from the hero and the archive
+  so the stack owns them.
+- The archive publishes `--stack-overflow: 3699px`, so it scrolls until its
+  foot is on screen and only then holds — which is what the close rises over.
+- The close is white (`--color-white`), the route's one change of surface.
+- `SectionStack.ts` gained `data-stack-flush`: a layer that stacks, holds and
+  compresses but does not open with the rounded band. The hero and the archive
+  take it, because this route is built as one continuous sheet and adding a
+  seam between them was a side effect nobody asked for. Only the close opens.
+- The close keeps its own `min-block-size`. `stack-section` releases the
+  height under 48rem, where the stack stops being sticky, and the section has
+  to fill a phone screen too — caught by the spec at 390, where it came out
+  805px against an 844px viewport.
+
+### It closes an open item
+
+`docs/CONTENT_NEEDED.md` item 3 was the close's scene reading as a white band
+on the cream. White is the surface `npm run media:projects` prepares the
+picture for, so the problem is gone rather than worked around. Measured on the
+rendered page at 1920, 1440 and 390: the dominant light value inside the close
+is exactly rgb(255, 255, 255), and the picture's own paper sits a level or two
+down in blue alone (WebP encoding) against the twenty-level gap it had on
+cream. Invisible, and stated as measured rather than as perfect.
+
+### Verification (actually run)
+
+- The rise, sampled at four scroll offsets at 1440: the archive holds at
+  `top: -3699` while the close's band opens 58.9px -> 6.3px -> 0, and the
+  archive's own radius stays 0 throughout, so the hero/archive sheet shows no
+  seam.
+- The archive's sticky filter still works inside the newly clipped layer
+  (`overflow: clip` does not create a scroll container).
+- `astro check` 0/0/0; ESLint clean; Prettier clean; both builds;
+  `check:production` 84 files, 196,119 JS bytes; `check:links`.
+- Playwright: 102 passed / 10 skipped (`dist`) and 183 passed (`dist-demo`).
+  Four assertions were updated: the close's surface in two specs, the stack
+  layer count (2 -> 3) and the new flush/opening split.
+
+Nothing was deployed by hand.

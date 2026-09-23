@@ -66,27 +66,37 @@ export function initSectionStack(): () => void {
 
   const context = gsap.context(() => {
     sections.forEach((section, index) => {
-      // Both ends share one shape, so every value interpolates in pairs.
-      gsap.fromTo(
-        section,
-        {
-          clipPath: () =>
-            `inset(${bandTop(section)}px 2.5% 0px round 5rem 5rem 0rem 0rem)`,
-          borderRadius: '5rem 5rem 0 0',
-        },
-        {
-          clipPath: 'inset(0px 0% 0px round 0rem 0rem 0rem 0rem)',
-          borderRadius: '0rem',
-          ease: 'none',
-          scrollTrigger: {
-            trigger: section,
-            start: 'top 92%',
-            end: 'top 38%',
-            scrub: 0.6,
-            invalidateOnRefresh: true,
+      /*
+       * A layer marked `data-stack-flush` still stacks — it holds, it takes
+       * its order and it compresses under the next one — but it does not open
+       * with the rounded band. `/proyectos/` needs that: its archive has to
+       * hold so the close can rise over it, while the hero and the archive
+       * stay the one continuous sheet that route is built as, with no seam
+       * between them.
+       */
+      if (!('stackFlush' in section.dataset)) {
+        // Both ends share one shape, so every value interpolates in pairs.
+        gsap.fromTo(
+          section,
+          {
+            clipPath: () =>
+              `inset(${bandTop(section)}px 2.5% 0px round 5rem 5rem 0rem 0rem)`,
+            borderRadius: '5rem 5rem 0 0',
           },
-        },
-      );
+          {
+            clipPath: 'inset(0px 0% 0px round 0rem 0rem 0rem 0rem)',
+            borderRadius: '0rem',
+            ease: 'none',
+            scrollTrigger: {
+              trigger: section,
+              start: 'top 92%',
+              end: 'top 38%',
+              scrub: 0.6,
+              invalidateOnRefresh: true,
+            },
+          },
+        );
+      }
 
       const nextSection = sections[index + 1];
       // A layer names what compresses with `data-stack-content`; the home

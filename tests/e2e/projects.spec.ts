@@ -37,9 +37,14 @@ test('the close stands in its own scene and offers both routes', async ({
 }) => {
   await page.goto('/proyectos/');
 
-  // The scene is a picture, not a field: the route is still one cream sheet.
+  /*
+   * The close is the route's one change of surface since 2026-09-23: white,
+   * where the hero and the archive are the page's cream. It is also the colour
+   * the scene in front of it was prepared for, so the picture's paper and the
+   * section are the same value and the sculptures carry no rectangle.
+   */
   const close = page.locator('.projects-close');
-  await expect(close).toHaveCSS('background-color', 'rgb(252, 238, 218)');
+  await expect(close).toHaveCSS('background-color', 'rgb(255, 255, 255)');
 
   // It is drawn as two wings sharing one decorative file, so the picture's
   // near-white centre is never laid over the page's white.

@@ -83,9 +83,13 @@
 
 /* =============================================================== hero === */
 
+/*
+ * A stack layer: `stack-section` owns its position and its order, so it holds
+ * while the archive rises over it, and `SectionStack.ts` publishes the index.
+ * Declaring `position: relative` here would quietly cancel that sticky, which
+ * is exactly what it used to do.
+ */
 .projects-hero {
-  position: relative;
-  z-index: 0;
   display: grid;
   min-block-size: 100vh;
   min-block-size: 100svh;
@@ -302,13 +306,15 @@
 /* ============================================================ gallery === */
 
 /*
- * The same sheet the hero stands on: no lift, no radius, no rule. The
- * archive simply begins under the title, and the only change of surface on
- * the route is the black close.
+ * The same sheet the hero stands on: no lift, no radius, no rule. The archive
+ * simply begins under the title, and the only change of surface on the route
+ * is the white close.
+ *
+ * It is a stack layer too, so it holds once its foot is on screen and the
+ * close rises over it. Position and order come from `stack-section`; setting
+ * them here would cancel the sticky.
  */
 .projects-gallery {
-  position: relative;
-  z-index: 1;
   background: var(--color-background);
   color: var(--color-brand-ink);
 }
@@ -673,6 +679,24 @@
   display: none;
 }
 
+/*
+ * The stack, and what this route does not take from it.
+ *
+ * The hero and the archive are stack layers so that each one holds while the
+ * next rises over it, but they are one continuous sheet and must not show a
+ * seam: the rounded band `stack-section` opens with belongs to the close alone
+ * here. The archive also keeps its own height, since it is as tall as the work
+ * in it and never one screen.
+ */
+.projects-hero,
+.projects-gallery {
+  border-radius: 0;
+}
+
+.projects-gallery {
+  min-block-size: 0;
+}
+
 /* ============================================================== close === */
 
 /*
@@ -718,19 +742,37 @@
   --pj-cta-band: clamp(9rem, max(26svh, 42vw), 20rem);
   /* How far it rides up over the section before it, the `/servicios/` figure. */
   --pj-cta-lift: clamp(1.25rem, 5vw, 2rem);
-  position: relative;
-  /* Over the gallery, which is 1: the close is what rises. */
-  z-index: 2;
+  /*
+   * A real stack layer since 2026-09-23 (client direction), exactly as the
+   * `/servicios/` close is: the section carries `stack-section`, which sticks
+   * it, gives it the screen's height, the rounded band it opens with and the
+   * clip that makes the band real. Only what is this route's own is set here.
+   *
+   * The layer before it holds — the archive on the demo build, the hero on the
+   * standard one, both now stack layers too — so this rises over a section
+   * that has stopped instead of scrolling beside it. That was the difference:
+   * the geometry was already right and nothing was ever sticky.
+   */
   isolation: isolate;
   display: grid;
   align-content: center;
-  /* A whole screen, like the `/servicios/` close. */
+  /*
+   * A whole screen at every width. `stack-section` gives the layers their
+   * height, but it releases it under 48rem, where the stack stops being
+   * sticky — and this section has to fill the screen on a phone too, which is
+   * what it was asked for.
+   */
   min-block-size: max(38rem, 100svh);
   margin-block-start: calc(-1 * var(--pj-cta-lift));
   padding-block: clamp(3.5rem, 8vw, 7rem);
-  /* The rounded band the stack opens with is only real if it clips. */
-  overflow: clip;
-  background: var(--color-background);
+  /*
+   * White, not the page's cream (client direction). It is also what the
+   * picture in front of it was prepared for: `npm run media:projects` lifts
+   * the scene's paper to pure `--color-white`, so on this surface the
+   * derivative's ground and the section are the same value and the sculptures
+   * read with no rectangle around them.
+   */
+  background: var(--color-white);
   color: var(--color-brand-ink);
   text-align: center;
 }
