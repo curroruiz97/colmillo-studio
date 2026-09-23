@@ -106,14 +106,32 @@ test('the hero publishes the official loop over a full first screen', async ({
   // The loop is decorative: it carries no name into the accessibility tree.
   await expect(video).toHaveAttribute('aria-hidden', 'true');
 
-  // White canvas; the ring and the scroll dot carry the brand orange.
+  // Cream canvas; the ring and the scroll dot carry the brand orange.
   await expect(page.locator('.hero')).toHaveCSS(
     'background-color',
-    'rgb(255, 255, 255)',
+    'rgb(252, 238, 218)',
   );
   await expect(page.locator('.hero__media-frame')).toHaveCSS(
     'background-color',
-    'rgb(255, 255, 255)',
+    'rgb(252, 238, 218)',
+  );
+
+  /*
+   * The loop's paper is baked opaque white, so it is multiplied onto that
+   * cream and the frame is isolated to keep the blend off the decor behind the
+   * hero. Both halves matter: without the blend the page shows a white
+   * rectangle, and without the isolation the orange ring runs through the
+   * drawing. The still is blended the same way, for reduced motion.
+   */
+  for (const selector of ['.hero__media', '.hero__poster']) {
+    await expect(page.locator(selector)).toHaveCSS(
+      'mix-blend-mode',
+      'multiply',
+    );
+  }
+  await expect(page.locator('.hero__media-frame')).toHaveCSS(
+    'isolation',
+    'isolate',
   );
   await expect(page.locator('.hero__shape--ring')).toHaveCSS(
     'border-top-color',
@@ -929,12 +947,14 @@ test('the Instagram control folds from the hero into the corner', async ({
 test('every route carries one wordmark and one folding Instagram control', async ({
   page,
 }) => {
-  for (const { path, theme } of [
-    { path: '/', theme: 'light' },
-    { path: '/studio/', theme: 'dark' },
-    { path: '/servicios/', theme: 'dark' },
-    { path: '/proyectos/', theme: 'light' },
-    { path: '/contacto/', theme: 'dark' },
+  // The home paints the orange mark (2026-09-22); every other route keeps the
+  // derivative its own tone chooses, and none of them is filtered into colour.
+  for (const { path, theme, mark } of [
+    { path: '/', theme: 'light', mark: 'orange' },
+    { path: '/studio/', theme: 'dark', mark: 'cream' },
+    { path: '/servicios/', theme: 'dark', mark: 'cream' },
+    { path: '/proyectos/', theme: 'light', mark: 'black' },
+    { path: '/contacto/', theme: 'dark', mark: 'cream' },
   ]) {
     await page.goto(path);
 
@@ -944,12 +964,11 @@ test('every route carries one wordmark and one folding Instagram control', async
     await expect(logo).toHaveAttribute('href', '/');
     await expect(logo).toHaveAttribute('data-theme', theme);
     await expect(logo.locator('img')).toHaveCount(1);
-    await expect(logo.locator('img')).toHaveAttribute(
+    await expect(logo.locator('img'), path).toHaveAttribute(
       'src',
-      theme === 'dark'
-        ? '/assets/brand/colmillo-wordmark-cream.png'
-        : '/assets/brand/colmillo-wordmark-black.png',
+      `/assets/brand/colmillo-wordmark-${mark}.png`,
     );
+    await expect(logo.locator('img'), path).toHaveCSS('filter', 'none');
     const readLogo = () =>
       logo.evaluate((element) => {
         const rect = element.getBoundingClientRect();

@@ -42,6 +42,8 @@ const BITE_EDGES: Edge[] = ['bottom', 'left', 'right'];
  *   picture as it arrives. At most three on a page, budgeted by the renderer.
  * - Pressure: the shared dent under a fine pointer, only where a module asked
  *   for it.
+ * - The three chapters need nothing from here: they are native disclosures,
+ *   so they open, close and announce themselves on their own.
  * - The sticky story, the image sequence, the chapter index with the route's
  *   progress, and the next project growing to the full width.
  *

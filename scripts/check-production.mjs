@@ -24,6 +24,23 @@ const forbidden = [
   'Capas en Tensión',
   'Caso de demostración técnica',
   'Sin cliente: demostración interna',
+  /*
+   * The demonstration case studies' invented client names (2026-09-23). Every
+   * project in `src/data/caseStudies.ts` carries one, and they are listed here
+   * in full: the template prints a client's name as a real brand, so a demo
+   * string that now looks like a client must be caught exactly like a demo
+   * slug or title.
+   */
+  'Cerámica Nava',
+  'Lácteos Brío',
+  'Tinta Meridiana',
+  'Ferretería Ovalle',
+  'Textil Arganza',
+  'Hormigones Sela',
+  'Banca Lindero',
+  'Radio Peñalta',
+  'Zapatillas Kime',
+  'Editorial Quiebro',
   'fallback provisional',
   'listado de servicios aprobado',
   'Texto provisional de demostración',

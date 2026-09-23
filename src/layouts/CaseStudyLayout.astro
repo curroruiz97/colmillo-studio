@@ -2,6 +2,10 @@
 /**
  * The shell every case study shares.
  *
+ * The route carries its own header (`CaseStudyHeader.astro`), which centres
+ * the wordmark between the way back to the archive and the Instagram control,
+ * so the global corner mark is switched off here and nowhere else.
+ *
  * Its whole job is to turn a project's theme into the surface the page stands
  * on, so a study's identity is data and never a rule written per pathname:
  *
@@ -48,6 +52,7 @@ const canvas = `html:has([data-case-study]){background:${theme.background};--col
   ogImage={study.seo.image}
   ogImageAlt={study.seo.imageAlt}
   headerTheme={dark ? 'dark' : 'light'}
+  hideLogo
 >
   <style slot="head" is:inline set:html={canvas}></style>
 

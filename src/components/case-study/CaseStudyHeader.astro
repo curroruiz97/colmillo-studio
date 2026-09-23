@@ -1,0 +1,57 @@
+---
+/**
+ * The project template's own header, and the only route that has one.
+ *
+ * Three slots across the top, in the reference's arrangement: the way back to
+ * the archive on the left, the wordmark in the middle, and the Instagram
+ * control on the right. That third slot is not drawn here — the global control
+ * already lives in that corner on every route and is left exactly as it is;
+ * the header only reserves the room so the mark stays optically centred and
+ * the two never meet.
+ *
+ * It is fixed, so the way out of a project is always one click away however
+ * far down the page the reader is, and it carries the project's own background
+ * rather than a colour of its own: a case study sets `--cs-bg`, and the header
+ * has to belong to whichever project it is standing on.
+ *
+ * The route hides the global corner wordmark (`hideLogo` on the layout), so
+ * there is exactly one mark on the page and it is this one.
+ */
+import { brandWordmark } from '@/config/assets';
+import { primaryNavigation } from '@/config/navigation';
+import type { CaseStudyTheme } from '@/data/caseStudy';
+
+interface Props {
+  chrome: CaseStudyTheme['chrome'];
+}
+
+const { chrome } = Astro.props;
+/* The mark follows the project's own surface, exactly as the global one does
+   on every other route. No filter: each colour is its own validated file. */
+const mark = chrome === 'dark' ? brandWordmark.cream : brandWordmark.black;
+
+/* Taken from the menu rather than written here, so the way back cannot drift
+   from the archive's own route. */
+const archive = primaryNavigation.find((item) => item.href === '/proyectos/');
+---
+
+<header class="cs-header" data-cs-header>
+  <a class="cs-header__back" href={archive?.href ?? '/proyectos/'}>
+    <span class="cs-header__back-label">{archive?.label ?? 'Proyectos'}</span>
+  </a>
+
+  <a class="cs-header__logo" href="/" aria-label="Colmillo Studio, inicio">
+    <img
+      class="cs-header__mark"
+      src={mark.src}
+      width={mark.width}
+      height={mark.height}
+      alt=""
+      decoding="async"
+      fetchpriority="high"
+    />
+  </a>
+
+  {/* The room the global Instagram control stands in. */}
+  <span class="cs-header__slot" aria-hidden="true"></span>
+</header>

@@ -43,7 +43,7 @@
   --pj-pad-start: var(--page-gutter);
 
   overflow-x: clip;
-  background: var(--color-white);
+  background: var(--color-background);
 }
 
 @media (min-width: 48rem) {
@@ -89,7 +89,7 @@
   display: grid;
   min-block-size: 100vh;
   min-block-size: 100svh;
-  background: var(--color-white);
+  background: var(--color-background);
   color: var(--color-brand-ink);
 }
 
@@ -142,23 +142,51 @@
   box-shadow: inset 0 0 0 1px rgb(18 16 15 / 0.09);
 }
 
-/* With the loop the frame is only the picture: no plate, radius or ground. */
+/*
+ * With the loop the frame is only the picture: no plate and no radius. It does
+ * carry the page colour, but as the blend's backdrop rather than as a ground -
+ * it is the same value as the sheet, so nothing reads as a plate. `isolation`
+ * keeps the blend inside this box, and the one-pixel spread covers the row the
+ * background does not quite reach when the frame lands on a fractional pixel.
+ * See the asset rule below.
+ */
 .projects-hero[data-hero-media] .projects-hero__frame {
   aspect-ratio: var(--pj-hero-w) / var(--pj-hero-h);
   border-radius: 0;
-  background: none;
-  box-shadow: none;
+  background: var(--color-background);
+  isolation: isolate;
+  box-shadow: 0 0 0 1px var(--color-background);
 }
 
 /*
  * The loop fills the frame at its own proportion — `contain`, so no head,
- * hand or floating frame is ever cropped and nothing is stretched — and its
- * outer 8% fades into the sheet. That band is not decoration: the file's
- * ground is #f4f2ee, a shade under the route's white, so a hard-edged
- * rectangle of it would read as a pale panel behind the drawing. The drawing
- * itself keeps at least 8.1% of empty ground on every side of every frame
- * (measured in Chromium, `src/config/assets.ts`), so the band only ever
- * touches ground. No filter, tint or blend goes near the ink.
+ * hand or floating frame is ever cropped and nothing is stretched.
+ *
+ * Its paper is published as delivered and is not the page: measured across the
+ * clip it sits at about rgb(243, 241, 237), drifting a level or two either way
+ * rather than holding flat. On the cream sheet that read as a pale, cool panel
+ * behind the drawing (2026-09-23, reported by the user), which the edge fade
+ * below softened but could not remove.
+ *
+ * So the paper is composited out instead, in two steps, without re-encoding
+ * the client's file:
+ *
+ * 1. `brightness` lifts it until every one of its values clips to white. The
+ *    clip is the point: the paper is not flat, and a per-channel map onto an
+ *    exact value would leave its drift a level short. The factor clears the
+ *    darkest paper measured (a blue channel of 235) with room to spare.
+ * 2. `multiply` then drops that white onto the frame's cream, for which white
+ *    is the identity, so the paper becomes the page exactly. Black ink is
+ *    untouched, because anything multiplied by zero is zero.
+ *
+ * The cost is deliberate and small: the lift also clips the drawing's lightest
+ * tones into the paper, which on line art drawn on that paper is what should
+ * happen, and raises its midtones by the same factor.
+ *
+ * The outer 8% still fades. With the paper now exactly the page the band has
+ * nothing left to hide, so it is kept only as belt and braces at the edge; the
+ * drawing keeps at least 8.1% of empty ground on every side of every frame
+ * (measured in Chromium, `src/config/assets.ts`), so it never touches ink.
  */
 .projects-hero[data-hero-media] .page-media__asset {
   inset: 0;
@@ -166,6 +194,8 @@
   block-size: 100%;
   object-fit: contain;
   object-position: 50% 50%;
+  filter: brightness(1.09);
+  mix-blend-mode: multiply;
   mask-image:
     linear-gradient(to right, transparent, #000 8%, #000 92%, transparent),
     linear-gradient(to bottom, transparent, #000 8%, #000 92%, transparent);
@@ -272,14 +302,14 @@
 /* ============================================================ gallery === */
 
 /*
- * The same white the hero stands on: no lift, no radius, no rule. The
+ * The same sheet the hero stands on: no lift, no radius, no rule. The
  * archive simply begins under the title, and the only change of surface on
  * the route is the black close.
  */
 .projects-gallery {
   position: relative;
   z-index: 1;
-  background: var(--color-white);
+  background: var(--color-background);
   color: var(--color-brand-ink);
 }
 
@@ -309,7 +339,7 @@
 .projects-filters__inner {
   /* A short, quiet band: the gallery's air belongs to the pictures. */
   padding-block: clamp(1.5rem, 3vw, 2.25rem) clamp(1rem, 2vw, 1.5rem);
-  background: var(--color-white);
+  background: var(--color-background);
   transition: box-shadow var(--duration-medium) linear;
 }
 
@@ -700,7 +730,7 @@
   padding-block: clamp(3.5rem, 8vw, 7rem);
   /* The rounded band the stack opens with is only real if it clips. */
   overflow: clip;
-  background: var(--color-white);
+  background: var(--color-background);
   color: var(--color-brand-ink);
   text-align: center;
 }

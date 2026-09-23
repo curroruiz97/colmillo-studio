@@ -20,13 +20,23 @@ export interface BrandImage {
 /**
  * Validated Colmillo wordmark derivatives.
  *
- * Both files are checked by `scripts/check-brand-assets.mjs`, so the intrinsic
- * dimensions declared here are the ones the checker enforces. Consumers must
- * render them at their natural ratio.
+ * All three files are checked by `scripts/check-brand-assets.mjs`, so the
+ * intrinsic dimensions declared here are the ones the checker enforces.
+ * Consumers must render them at their natural ratio.
+ *
+ * `orange` is the mark the client made definitive on 2026-09-22, written by
+ * `npm run media:brand` from their original (2170x725, 495 KB): the same
+ * lockup as the other two, cropped to its drawn box, scaled to the black
+ * derivative's drawn width so one CSS width gives both the same letter size,
+ * and given the shared 12 px clear space. Its drawn ink measures rgb(199, 84,
+ * 41) on average, within a few units of `--color-brand-orange` (#cd5730). It
+ * is taller than the black mark because `studio` sits lower in the master;
+ * nothing was stretched. Used by the home alone (`SiteLogo.astro`).
  */
 export const brandWordmark: {
   black: BrandImage;
   cream: BrandImage;
+  orange: BrandImage;
 } = {
   black: {
     src: '/assets/brand/colmillo-wordmark-black.png',
@@ -37,6 +47,11 @@ export const brandWordmark: {
     src: '/assets/brand/colmillo-wordmark-cream.png',
     width: 865,
     height: 232,
+  },
+  orange: {
+    src: '/assets/brand/colmillo-wordmark-orange.png',
+    width: 906,
+    height: 257,
   },
 };
 
@@ -53,6 +68,21 @@ export const brandWordmark: {
  * of the loop inside it, so it fits the existing 4:3 hero frame unchanged.
  * Audio dropped. The earlier `hero-*-white` loop files stay beside them,
  * unpublished. Exact commands in `docs/EXECUTION_STATE.md` (2026-09-14).
+ *
+ * THIS SET IS DELIBERATELY THE WHITE ONE, AND MUST STAY WHITE (2026-09-22).
+ * The light surface went back to `--color-brand-cream`, and rather than
+ * re-encode the client's final master, the hero composites it:
+ * `hero-section.css` blends the loop and its still with
+ * `mix-blend-mode: multiply` inside an isolated frame. White is that
+ * operator's identity, so the baked paper drops out and the cream shows
+ * through it exactly, while the ink stays ink. A cream-baked hero would be
+ * the wrong file here — it would multiply cream by cream and darken the
+ * frame — which is why `npm run check:hero` pins the hero to the `-white`
+ * set for as long as the blend is in the stylesheet.
+ *
+ * The blend also absorbs what an exact bake cannot: the codec's one-to-three
+ * level drift across the flat paper, which would otherwise draw its own faint
+ * rectangle on a flat page.
  */
 export const heroMedia: MotionMedia = {
   desktop: {
@@ -81,10 +111,12 @@ export interface LoopMedia extends MotionMediaSource {
  *
  * Derived from `public/assets/video estudio.mp4` by
  * `scripts/prepare-studio-media.mjs`: cropped to the drawing's rows, its paper
- * unmixed onto `--color-white` (the ink and the orange keep their values),
+ * moved onto `--color-brand-cream` (the ink and the orange move by at most 2%),
  * rising from and sinking back into the paper over eight frames at each end so
- * the wrap is seamless, audio dropped. The unsuffixed cream set beside them is
- * the previous delivery, kept for reference.
+ * the wrap is seamless, audio dropped. Both papers are derived from the same
+ * master by the same script; the `-white` set beside them is the one the site
+ * published while the light surface was white (2026-09-10 to 2026-09-22) and
+ * is kept for reference.
  * One resolution serves every width: 1280 px is what a phone at 3x needs, and
  * the whole file is smaller than one hero variant.
  *
@@ -92,9 +124,9 @@ export interface LoopMedia extends MotionMediaSource {
  * there so the still and the first played frame are the same.
  */
 export const studioMedia: LoopMedia = {
-  webm: '/assets/motion/studio/studio-loop-white.webm',
-  mp4: '/assets/motion/studio/studio-loop-white.mp4',
-  poster: '/assets/motion/studio/studio-poster-white.webp',
+  webm: '/assets/motion/studio/studio-loop.webm',
+  mp4: '/assets/motion/studio/studio-loop.mp4',
+  poster: '/assets/motion/studio/studio-poster.webp',
   posterTime: 8 / 24,
   width: 1280,
   height: 512,

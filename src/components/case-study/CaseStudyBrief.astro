@@ -1,0 +1,83 @@
+---
+/**
+ * THE PROJECT TEMPLATE — the whole of a case study page.
+ *
+ * One composition, identical on every project (client direction, 2026-09-23,
+ * after `ps21.works`). Two columns across the full width of the screen:
+ *
+ *   left   the brief — the project's name, the client it was made for, the
+ *          three chapters, and the way on to Contacto;
+ *   right  the work — the pieces the project supplied, one under the other.
+ *
+ * There is no hero, no module sequence and no next-project stage. A project is
+ * its name, its story in three parts and its work, and every project is read
+ * the same way.
+ *
+ * THE CHAPTERS are native `<details>`, open on arrival: the reference's own
+ * widget. They need no script at all — the whole case is on the page, each
+ * chapter under its own heading, and a reader who wants to skim folds one
+ * away. Only the marker is drawn by us; the element keeps its semantics, its
+ * keyboard behaviour and the state a screen reader announces.
+ *
+ * THE COLUMN. Each piece takes the studio's pressure dent under a fine
+ * pointer, the same one the archive's cards and the Studio portraits use, so
+ * the work folds under the cursor instead of sitting flat.
+ *
+ * The brief holds its place on a wide screen while the column scrolls beside
+ * it, so the name, the chapters and the way out stay with the reader.
+ */
+import CaseStudyMedia from './CaseStudyMedia.astro';
+import type { CaseStudy } from '@/data/caseStudy';
+
+interface Props {
+  study: CaseStudy;
+}
+
+const { study } = Astro.props;
+const beats = study.spine;
+---
+
+<section class="cs-brief" aria-labelledby="cs-title">
+  <div class="cs-brief__inner">
+    <div class="cs-brief__copy" data-cs-brief>
+      <header class="cs-brief__head">
+        <h1 class="cs-brief__title" id="cs-title">{study.title}</h1>
+        {study.client && <p class="cs-brief__client">{study.client}</p>}
+      </header>
+
+      {
+        beats.length > 0 && (
+          <div class="cs-chapters-list">
+            {beats.map((beat) => (
+              <details class="cs-chapter" id={`caso-${beat.id}`} open>
+                <summary class="cs-chapter__summary">
+                  <h2 class="cs-chapter__label">{beat.label}</h2>
+                  <span class="cs-chapter__mark" aria-hidden="true" />
+                </summary>
+                <div class="cs-chapter__body">
+                  {beat.body.map((paragraph) => (
+                    <p class="cs-chapter__text">{paragraph}</p>
+                  ))}
+                </div>
+              </details>
+            ))}
+          </div>
+        )
+      }
+
+      <a class="bite-button cs-brief__cta" href="/contacto/" data-magnetic>
+        <span>Sé el siguiente</span>
+      </a>
+    </div>
+
+    {
+      study.showcase.length > 0 && (
+        <div class="cs-brief__work">
+          {study.showcase.map((media) => (
+            <CaseStudyMedia media={media} press class="cs-brief__piece" />
+          ))}
+        </div>
+      )
+    }
+  </div>
+</section>

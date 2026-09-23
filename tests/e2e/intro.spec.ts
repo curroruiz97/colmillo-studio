@@ -136,6 +136,39 @@ test('only the home plays the intro, and a deep link skips it', async ({
   await expect(page.locator('[data-home-intro]')).toBeHidden();
 });
 
+test('the word is the brand orange and the seed inside the O is ink', async ({
+  page,
+}) => {
+  /*
+   * Inverted on 2026-09-22 (client direction): COLMILLO used to be ink with an
+   * orange seed in the counter of the final O. Now the word carries the brand
+   * orange the home's wordmark carries, and the seed is the ink that used to
+   * be the word, so it still reads against the ground it sits on. Nothing else
+   * about the sequence changed, and no frame paints the old pairing.
+   */
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('html')).toHaveAttribute('data-intro', 'full');
+
+  const letters = page.locator('.home-intro__letter');
+  await expect(letters.first()).toHaveCSS('fill', 'rgb(205, 87, 48)');
+  const fills = await letters.evaluateAll((nodes) =>
+    nodes.map((node) => getComputedStyle(node).fill),
+  );
+  expect(new Set(fills)).toEqual(new Set(['rgb(205, 87, 48)']));
+
+  // The seed against the cream ground it opens onto, and the ground itself.
+  await expect(page.locator('[data-intro-seed]')).toHaveCSS(
+    'fill',
+    'rgb(18, 16, 15)',
+  );
+  await expect(page.locator('.home-intro__ground')).toHaveCSS(
+    'fill',
+    'rgb(252, 238, 218)',
+  );
+
+  await expectHandedBack(page);
+});
+
 test('reduced motion shows the still wordmark briefly and never expands the O', async ({
   page,
 }) => {

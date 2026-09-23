@@ -102,12 +102,18 @@ export interface CaseStudyTheme {
   chrome: 'light' | 'dark';
 }
 
-/** The studio's own colours: what a project gets when it asks for nothing. */
+/**
+ * The studio's own colours: what a project gets when it asks for nothing.
+ * The ground is the site's light surface (`--color-brand-cream`) and the
+ * recessed field is `--color-brand-cream-deep`, which keeps the plates and
+ * quiet fields readable against it; the neutral #f2ede7 they used while the
+ * site was white is within 1.02:1 of cream and would disappear on it.
+ */
 export const CASE_STUDY_THEME: CaseStudyTheme = {
-  background: '#ffffff',
+  background: '#fceeda',
   foreground: '#12100f',
   accent: '#cd5730',
-  surface: '#f2ede7',
+  surface: '#ead2b4',
   secondary: '#9d2d22',
   chrome: 'light',
 };
@@ -138,6 +144,81 @@ export function resolveTheme(
     ),
     chrome: theme?.chrome === 'dark' ? 'dark' : 'light',
   };
+}
+
+/* ----------------------------------------------------------------- spine --- */
+
+/**
+ * THE SPINE — the one structure every case study shares.
+ *
+ * The modules below are art direction: a project chooses them and their order,
+ * so two pages never read alike. The spine is the opposite, and deliberately
+ * so (client direction, 2026-09-23): every project answers the same three
+ * questions, in the same order, under the same names, so the portfolio can be
+ * read as a set rather than as a series of one-offs.
+ *
+ *   Estrategia   what we thought
+ *   Ejecución    what we made
+ *   Resultados   what it did
+ *
+ * An author cannot rename, reorder or add a beat; the canonical order below is
+ * the only one there is. The one thing a project decides is how much of it it
+ * can answer yet: a beat with no approved copy is simply not rendered, and a
+ * project with none at all publishes exactly the page it publishes today. That
+ * is the rule that keeps the template honest — it never writes a narrative a
+ * project has not been given.
+ */
+export interface CaseStudyFigure {
+  /** The figure as it is to be read, with its unit: "+128%", "4,5 M", "12". */
+  value: string;
+  /** What it counts. Never a claim the client has not approved. */
+  label: string;
+}
+
+export interface CaseStudyBeatInput {
+  body: string[];
+  /**
+   * The piece of work that takes the held frame while this beat is being
+   * read. Without one the beat keeps whatever the previous beat put there.
+   */
+  media?: CaseStudyMedia | undefined;
+  /**
+   * Only on `results`, and only ever verifiable, approved numbers. The studio
+   * does not invent a metric, and a beat with none is complete without them.
+   */
+  figures?: CaseStudyFigure[] | undefined;
+}
+
+/** What an author fills in. The keys are the template; there are no others. */
+export interface CaseStudySpineInput {
+  strategy?: CaseStudyBeatInput | undefined;
+  execution?: CaseStudyBeatInput | undefined;
+  results?: CaseStudyBeatInput | undefined;
+}
+
+export type CaseStudyBeatKey = keyof CaseStudySpineInput;
+
+/** The canonical order, its anchors and its names. Not data: the template. */
+export const CASE_STUDY_BEATS: {
+  key: CaseStudyBeatKey;
+  id: string;
+  label: string;
+}[] = [
+  { key: 'strategy', id: 'estrategia', label: 'Estrategia' },
+  { key: 'execution', id: 'ejecucion', label: 'Ejecución' },
+  { key: 'results', id: 'resultados', label: 'Resultados' },
+];
+
+/** A beat, resolved: always numbered, always named, always with a frame. */
+export interface CaseStudyBeat {
+  key: CaseStudyBeatKey;
+  id: string;
+  label: string;
+  /** Its place in the canonical order, from 1, for the numeral and the rail. */
+  index: number;
+  body: string[];
+  media: CaseStudyMedia;
+  figures: CaseStudyFigure[];
 }
 
 /* --------------------------------------------------------------- modules --- */
@@ -339,6 +420,18 @@ export interface CaseStudy {
   /** The project's own headline beside the metadata. Its idea in one line. */
   headline: string | null;
   intro: string[];
+  /**
+   * The fixed narrative every project shares, already numbered and with its
+   * frame resolved. Empty when the project has no approved copy for any beat,
+   * and the route then simply does not render the section.
+   */
+  spine: CaseStudyBeat[];
+  /**
+   * The pieces that stand beside the brief, in order. Two is the shape the
+   * template is built for — an image and a film, or two images — but the
+   * column takes whatever a project supplies.
+   */
+  showcase: CaseStudyMedia[];
   hero: CaseStudyHero;
   theme: CaseStudyTheme;
   layout: CaseStudyLayout;
@@ -357,6 +450,8 @@ export interface CaseStudyInput {
   client?: string | undefined;
   headline?: string | undefined;
   intro?: string[] | undefined;
+  spine?: CaseStudySpineInput | undefined;
+  showcase?: CaseStudyMedia[] | undefined;
   deliverables?: string[] | undefined;
   hero?:
     | {
@@ -416,6 +511,48 @@ function fromRecordMedia(
 }
 
 /**
+ * The spine, resolved against the canonical order.
+ *
+ * Three rules, and they are the whole of it:
+ *
+ *   1. a beat with no approved body copy does not exist — nothing is written
+ *      on a project's behalf, so the section grows as a project is signed off
+ *      rather than appearing full of placeholders on day one;
+ *   2. the order and the names come from `CASE_STUDY_BEATS`, never from the
+ *      author, so every project reads the same way;
+ *   3. a beat with no media of its own keeps the frame the previous beat put
+ *      there, and the first beat falls back to the hero's own piece. The held
+ *      frame is therefore never empty and never shows anything the project did
+ *      not already supply.
+ */
+function resolveSpine(
+  input: CaseStudySpineInput | undefined,
+  heroMedia: CaseStudyMedia,
+): CaseStudyBeat[] {
+  if (!input) return [];
+  let frame = heroMedia;
+  const beats: CaseStudyBeat[] = [];
+  for (const beat of CASE_STUDY_BEATS) {
+    const authored = input[beat.key];
+    const body = authored?.body?.filter((line) => line.trim().length > 0) ?? [];
+    if (body.length === 0) continue;
+    frame = authored?.media ?? frame;
+    beats.push({
+      key: beat.key,
+      id: beat.id,
+      label: beat.label,
+      /* The numeral is the beat's place in the template, not in this page, so
+         a project that can only answer the last question is still "03". */
+      index: CASE_STUDY_BEATS.indexOf(beat) + 1,
+      body,
+      media: frame,
+      figures: beat.key === 'results' ? (authored?.figures ?? []) : [],
+    });
+  }
+  return beats;
+}
+
+/**
  * The complete case study for a project.
  *
  * Anything the author did not supply is taken from the record the archive
@@ -433,6 +570,10 @@ export function resolveCaseStudy(
       : project.narrative.length > 0
         ? project.narrative
         : [project.summary];
+
+  /* One value for both the hero and the spine's first frame. */
+  const heroMedia: CaseStudyMedia =
+    input?.hero?.media ?? fromRecordMedia(project.cover, 0, 'cinematic');
 
   const modules: CaseStudyModule[] =
     input?.modules && input.modules.length > 0
@@ -453,11 +594,23 @@ export function resolveCaseStudy(
     deliverables: input?.deliverables ?? [],
     headline: input?.headline ?? null,
     intro,
-    hero: {
-      media:
-        input?.hero?.media ?? fromRecordMedia(project.cover, 0, 'cinematic'),
-      variant: input?.hero?.variant ?? 'full',
-    },
+    spine: resolveSpine(input?.spine, heroMedia),
+    /*
+     * What the column shows when a project has not directed it: the cover the
+     * archive already holds and the first piece of its gallery. Both are
+     * approved media that already exist, so the template is complete on the
+     * day a project lands and nothing is invented to fill it.
+     */
+    showcase:
+      input?.showcase && input.showcase.length > 0
+        ? input.showcase
+        : [
+            heroMedia,
+            ...project.gallery
+              .slice(0, 1)
+              .map((media, index) => fromRecordMedia(media, index + 1)),
+          ],
+    hero: { media: heroMedia, variant: input?.hero?.variant ?? 'full' },
     theme: resolveTheme(input?.theme),
     layout: input?.layout ?? 'editorial',
     modules,

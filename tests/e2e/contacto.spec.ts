@@ -73,19 +73,19 @@ test('the brief rises over the hero, which stays underneath', async ({
       document.querySelector(selector)!.getBoundingClientRect().top;
     return { hero: top('.contact-hero'), sheet: top('[data-contact-brief]') };
   });
-  // The hero is held at the top of the screen while the white sheet covers it.
+  // The hero is held at the top of the screen while the cream sheet covers it.
   expect(Math.round(boxes.hero)).toBe(0);
   expect(boxes.sheet).toBeGreaterThan(0);
   expect(boxes.sheet).toBeLessThan(await page.evaluate(() => innerHeight));
 
   await expect(page.locator('[data-contact-brief]')).toHaveCSS(
     'background-color',
-    'rgb(255, 255, 255)',
+    'rgb(252, 238, 218)',
   );
   // The footer belongs to the sheet, not to the hero.
   await expect(page.locator('.site-footer')).toHaveCSS(
     'background-color',
-    'rgb(255, 255, 255)',
+    'rgb(252, 238, 218)',
   );
 });
 
@@ -187,7 +187,7 @@ test('the service pills work from the keyboard and paint the choice', async ({
   );
   await expect(chosen).toHaveCSS('background-color', 'rgb(205, 87, 48)');
   const other = page.locator('input[value="digital"] + .contact-choice__pill');
-  await expect(other).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+  await expect(other).toHaveCSS('background-color', 'rgb(252, 238, 218)');
 });
 
 test('validation answers under each field and never in a dialog', async ({

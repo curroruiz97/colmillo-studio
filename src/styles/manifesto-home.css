@@ -70,6 +70,9 @@
   color: var(--color-brand-orange);
   font-family: var(--font-handwritten);
   font-size: calc(var(--manifesto-mark) * var(--word-scale));
+  /* It is an `em` for emphasis, not for slant: the protagonist is set roman
+     (2026-09-22, client direction). Everything else about it is unchanged. */
+  font-style: normal;
   font-weight: 500;
   letter-spacing: -0.02em;
   text-transform: none;
@@ -98,9 +101,18 @@
   margin-block-start: clamp(0.5rem, 3vw, 1.5rem);
 }
 
-/* The hero's bite button, with the same ink slab under it. */
+/* The hero's bite button with the same ink slab under it, given more presence
+   on 2026-09-22 (client direction): taller, wider, more optical padding and a
+   slightly larger label. The bite language itself is untouched — the same
+   orange, the same ink border, the same offset slab, and the same pressure on
+   hover, which is a border-radius and a label scale and therefore independent
+   of the size. Only this button grows: `.bite-button` is shared with the hero
+   and the other routes. */
 .manifesto-home__button {
-  max-inline-size: min(100%, 24rem);
+  min-block-size: 5rem;
+  max-inline-size: min(100%, 27rem);
+  padding: 1.35rem 3.1rem;
+  font-size: clamp(1.15rem, 1.3vw, 1.4rem);
   box-shadow: 0 0.4rem 0 var(--color-brand-ink);
 }
 
@@ -125,8 +137,9 @@
     margin-inline-start: 30%;
   }
 
+  /* On "Morder."'s left edge, like every other width. */
   .manifesto-home__word--marca {
-    margin-inline-start: 6%;
+    margin-inline-start: 0;
   }
 
   .manifesto-home__figure {
@@ -210,10 +223,12 @@
     margin-inline-start: 0;
   }
 
+  /* The band's own inline start, so the protagonist shares the vertical guide
+     "Morder." stands on instead of stepping in from it (2026-09-22). */
   .manifesto-home__word--marca {
     position: absolute;
     inset-block-start: 42%;
-    inset-inline-start: 12%;
+    inset-inline-start: 6%;
   }
 
   /* Anchored by its top-left corner, so any extra size grows down and to the
@@ -229,9 +244,10 @@
   }
 
   .manifesto-home__cta {
-    /* Anchored under "Dejar marca." rather than to the floor of the stage. */
+    /* Anchored under "Dejar marca." rather than to the floor of the stage, so
+       it follows it onto the band's guide. */
     inset-block-start: 64%;
-    inset-inline-start: 12%;
+    inset-inline-start: 6%;
     margin-block-start: 0;
   }
 }

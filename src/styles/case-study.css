@@ -666,6 +666,370 @@
   scroll-margin-block-start: clamp(2rem, 8vh, 5rem);
 }
 
+/* ============================================================= header === */
+
+/*
+ * The project template's own header: the way back to the archive on the left,
+ * the wordmark in the middle, and the room the global Instagram control stands
+ * in on the right. It is fixed, so the way out of a project is always one
+ * click away, and it takes the project's own background because a case study
+ * brings its own surface with it.
+ */
+
+.cs-header {
+  /*
+   * The band has to contain the global Instagram control, which is fixed in
+   * that corner on every route and is not moved for this one. Its own offset
+   * and height are repeated here so the two cannot drift apart: the control
+   * then sits exactly centred in the band, with the same air above and below.
+   */
+  --cs-ig-top: clamp(1.25rem, 2.4vw, 1.75rem);
+  --cs-ig-height: 3.25rem;
+
+  position: fixed;
+  z-index: var(--z-social);
+  inset-block-start: 0;
+  inset-inline: 0;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  min-block-size: calc(var(--cs-ig-top) * 2 + var(--cs-ig-height));
+  /* The right slot is the Instagram control's; the middle stays optically
+     centred because the two outer tracks are equal. */
+  padding-inline: max(var(--page-gutter), env(safe-area-inset-left, 0px));
+  background: var(--cs-bg);
+  border-block-end: 1px solid color-mix(in srgb, var(--cs-fg) 12%, transparent);
+  color: var(--cs-fg);
+}
+
+.cs-header__back {
+  justify-self: start;
+  color: inherit;
+  font-size: clamp(0.85rem, 1.5vw, 1.35rem);
+  font-weight: 950;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+/* The archive's name takes the underline the rest of the site gives a link,
+   drawn from nothing on approach so it reads as an invitation back. */
+.cs-header__back-label {
+  padding-block-end: 0.2em;
+  background: linear-gradient(currentColor, currentColor) no-repeat 0 100% / 0
+    2px;
+  transition: background-size var(--duration-medium) var(--ease-bite);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cs-header__back:hover .cs-header__back-label {
+    background-size: 100% 2px;
+  }
+}
+
+.cs-header__back:focus-visible,
+.cs-header__logo:focus-visible {
+  border-radius: 0.25rem;
+  outline: var(--focus-ring);
+  outline-offset: 6px;
+}
+
+/*
+ * The mark is centred between the two outer tracks, so on a narrow screen it
+ * has only half the room between the archive's label and the Instagram
+ * control. It is sized to keep clear of both there and to take the size it was
+ * asked for from about a tablet up.
+ */
+.cs-header__logo {
+  justify-self: center;
+  display: block;
+  inline-size: clamp(4.5rem, 14vw, 10rem);
+  line-height: 0;
+}
+
+.cs-header__mark {
+  display: block;
+  block-size: auto;
+  inline-size: 100%;
+}
+
+/* Never narrower than the Instagram control, so the mark cannot drift off
+   centre when the label beside it is long. */
+.cs-header__slot {
+  justify-self: end;
+  inline-size: clamp(6rem, 10vw, 9rem);
+}
+
+/*
+ * Under about 384px the three do not fit across the screen at all: the label,
+ * the mark and the Instagram control together are wider than the viewport, and
+ * a centred mark would land underneath the control. The mark therefore stops
+ * being centred there and follows the label instead, at the size that clears
+ * the control. It is the one width where the arrangement gives, and it gives
+ * on the centring rather than on either of the two links.
+ */
+@media (max-width: 24rem) {
+  .cs-header {
+    grid-template-columns: auto 1fr;
+    gap: 0.75rem;
+  }
+
+  .cs-header__logo {
+    justify-self: start;
+    inline-size: 3rem;
+  }
+
+  .cs-header__slot {
+    display: none;
+  }
+}
+
+/* ============================================================== brief === */
+
+/*
+ * The page. The brief on one side, the work on the other, and nothing else:
+ * no hero, no module sequence, no next-project stage, the same composition on
+ * every project.
+ *
+ * It runs the full width of the screen, held only by the page gutter, which is
+ * the reference's own arrangement — the work is the point, so it is given the
+ * room rather than a measure.
+ */
+
+.cs-brief {
+  /*
+   * One line each for the name and the client is the brief's whole shape, so
+   * both are set well under the route's display scale. A project whose name
+   * genuinely cannot fit still wraps rather than overflowing: forcing one line
+   * would either push the page sideways or make the type unreadable.
+   */
+  --cs-brief-title: clamp(2.25rem, 4.2vw, 4.25rem);
+  --cs-brief-client: clamp(1.5rem, 2.6vw, 2.6rem);
+
+  /* Clears the fixed header, from the same geometry the header is built on. */
+  padding-block: calc(
+      clamp(1.25rem, 2.4vw, 1.75rem) * 2 + 3.25rem + clamp(1.5rem, 4vh, 3.5rem)
+    )
+    var(--cs-space);
+  padding-inline: max(var(--page-gutter), env(safe-area-inset-left, 0px))
+    calc(var(--page-gutter) + var(--edge-rail-clearance));
+}
+
+.cs-brief__inner {
+  display: grid;
+  gap: clamp(3rem, 7vw, 5rem);
+}
+
+/* ---------------------------------------------------------- the title --- */
+
+.cs-brief__head {
+  margin-block-end: clamp(2rem, 5vw, 3.5rem);
+}
+
+.cs-brief__title {
+  margin: 0;
+  font-size: var(--cs-brief-title);
+  font-weight: 900;
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+
+/*
+ * The client under the project's name: the campaign is the headline and the
+ * brand it was made for is the answer to it. Never invented — a project with
+ * no approved client simply has no line.
+ */
+.cs-brief__client {
+  margin: clamp(0.35rem, 1vw, 0.6rem) 0 0;
+  font-size: var(--cs-brief-client);
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+/* ------------------------------------------------------- the chapters --- */
+
+/*
+ * Native disclosures, open on arrival: the reference's own widget. They need
+ * no script — the whole case is on the page, each chapter under its own
+ * heading, and a reader who wants to skim folds one away. Only the marker is
+ * drawn here; the element keeps its semantics, its keyboard behaviour and the
+ * state it announces.
+ */
+.cs-chapter__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block-end: clamp(0.5rem, 1.1vw, 0.8rem);
+  border-block-end: 1px solid color-mix(in srgb, var(--cs-fg) 22%, transparent);
+  cursor: pointer;
+  list-style: none;
+  transition: border-color var(--duration-medium) linear;
+}
+
+.cs-chapter__summary::-webkit-details-marker {
+  display: none;
+}
+
+.cs-chapter__summary::marker {
+  content: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cs-chapter__summary:hover {
+    border-block-end-color: var(--cs-accent);
+  }
+}
+
+.cs-chapter__summary:focus-visible {
+  border-radius: 0.2rem;
+  outline: var(--focus-ring);
+  outline-offset: 4px;
+}
+
+.cs-chapter__label {
+  margin: 0;
+  font-size: clamp(1.3rem, 2.2vw, 2rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+/*
+ * The marker: an arrow that turns over as the chapter folds away, so open and
+ * closed are one movement and the control never changes size.
+ */
+.cs-chapter__mark {
+  position: relative;
+  flex: none;
+  inline-size: clamp(1rem, 1.6vw, 1.35rem);
+  aspect-ratio: 1;
+  transition: rotate var(--duration-medium) var(--ease-bite);
+}
+
+.cs-chapter__mark::before,
+.cs-chapter__mark::after {
+  position: absolute;
+  background: currentColor;
+  content: '';
+}
+
+/* The shaft. */
+.cs-chapter__mark::before {
+  inset-block: 0 0;
+  inset-inline-start: calc(50% - 1px);
+  inline-size: 2px;
+}
+
+/* The head, two strokes folded into a point. */
+.cs-chapter__mark::after {
+  inset-block-end: 0;
+  inset-inline: 25%;
+  aspect-ratio: 1;
+  background: none;
+  border-inline-end: 2px solid currentColor;
+  border-block-end: 2px solid currentColor;
+  rotate: 45deg;
+}
+
+.cs-chapter[open] .cs-chapter__mark {
+  rotate: 180deg;
+}
+
+.cs-chapter__body {
+  padding-block: clamp(0.9rem, 1.8vw, 1.35rem) 0;
+}
+
+.cs-chapter__text {
+  margin: 0 0 1em;
+  font-size: var(--cs-body);
+  line-height: 1.55;
+}
+
+.cs-chapter__text:last-child {
+  margin-block-end: 0;
+}
+
+.cs-chapter + .cs-chapter {
+  margin-block-start: clamp(1.5rem, 3vw, 2.25rem);
+}
+
+/*
+ * The fold. Where a browser can interpolate a disclosure to its own height the
+ * body opens and closes; where it cannot, it simply appears. Reduced motion
+ * never animates it.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  html:not([data-motion='reduced']) .cs-chapter::details-content {
+    overflow: clip;
+    block-size: 0;
+    opacity: 0;
+    transition:
+      block-size var(--duration-medium) var(--ease-bite),
+      opacity var(--duration-fast) linear,
+      content-visibility var(--duration-medium);
+    transition-behavior: allow-discrete;
+  }
+
+  html:not([data-motion='reduced']) .cs-chapter[open]::details-content {
+    block-size: auto;
+    opacity: 1;
+  }
+}
+
+/* ------------------------------------------------------------ the cta --- */
+
+.cs-brief__cta {
+  margin-block-start: clamp(2.5rem, 5vw, 3.5rem);
+  box-shadow: 0 0.4rem 0 var(--cs-fg);
+}
+
+/* ----------------------------------------------------------- the work --- */
+
+.cs-brief__work {
+  display: grid;
+  align-content: start;
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.cs-brief__piece {
+  inline-size: 100%;
+}
+
+/* --------------------------------------------------- wide: two zones --- */
+
+@media (min-width: 64rem) {
+  .cs-brief__inner {
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1fr);
+    column-gap: clamp(3rem, 6vw, 6rem);
+    align-items: start;
+  }
+
+  /*
+   * The brief holds its place while the work scrolls beside it, so the name,
+   * the chapters and the way out stay with the reader. It is the shorter
+   * column, so it is the one that sticks.
+   */
+  .cs-brief__copy {
+    position: sticky;
+    inset-block-start: clamp(7rem, 15vh, 10rem);
+  }
+}
+
+/*
+ * A short window cannot hold the brief and read it at once, so it stops
+ * holding and the page becomes the plain document it is underneath.
+ */
+@media (min-width: 64rem) and (max-height: 40rem) {
+  .cs-brief__copy {
+    position: static;
+  }
+}
+
 /* ============================================================ modules === */
 
 .cs-module {

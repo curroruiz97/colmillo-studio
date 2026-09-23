@@ -17,7 +17,7 @@ test('the archive publishes its hero and its close, and no unapproved piece', as
   ).toBeVisible();
   await expect(page.locator('.projects-hero')).toHaveCSS(
     'background-color',
-    'rgb(255, 255, 255)',
+    'rgb(252, 238, 218)',
   );
   await expect(page.locator('.projects-hero__frame')).toHaveCount(1);
 
@@ -37,9 +37,9 @@ test('the close stands in its own scene and offers both routes', async ({
 }) => {
   await page.goto('/proyectos/');
 
-  // The scene is a picture, not a field: the route is still one white sheet.
+  // The scene is a picture, not a field: the route is still one cream sheet.
   const close = page.locator('.projects-close');
-  await expect(close).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+  await expect(close).toHaveCSS('background-color', 'rgb(252, 238, 218)');
 
   // It is drawn as two wings sharing one decorative file, so the picture's
   // near-white centre is never laid over the page's white.

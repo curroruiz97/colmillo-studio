@@ -1,6 +1,6 @@
 /* COLMILLO HERO
  *
- * A single white canvas. The client loop is the only thing that is allowed to
+ * A single cream canvas. The client loop is the only thing that is allowed to
  * be loud; the wordmark, the CTA and the scroll hint are placed around a large
  * field of empty paper and never compete with it.
  *
@@ -14,7 +14,7 @@
  * Two shapes carry the visual language and nothing more: a solid ink disc
  * entering from the bottom-left and an open orange ring bleeding off the
  * top-right. Both sit behind the loop, whose box is filled with the page colour
- * so nothing shows through the drawing's transparent paper.
+ * and isolated, so nothing shows through the drawing's paper.
  *
  * A third shape, a hairline orange ellipse, was removed on 2026-09-10. Once the
  * loop's box became opaque the trace was cut dead at two invisible vertical
@@ -27,8 +27,8 @@
   --hero-media-inline: 62vw;
   --hero-gap: clamp(1.25rem, 3.5vh, 2.5rem);
   --hero-logo-inline: var(--brand-logo-inline);
-  /* The 906x242 wordmark, rounded so the budget never under-reserves it. */
-  --hero-logo-block: calc(var(--hero-logo-inline) / 3.7);
+  /* The 906x257 orange wordmark, rounded so the budget never under-reserves it. */
+  --hero-logo-block: calc(var(--hero-logo-inline) / 3.5);
   /* The dot plus its travel, with a little air underneath. */
   --hero-scroll-block: 1.75rem;
   --hero-scroll-travel: 1.1rem;
@@ -141,7 +141,7 @@
   justify-self: start;
   align-self: start;
   inline-size: var(--hero-logo-inline);
-  aspect-ratio: 906 / 242;
+  aspect-ratio: 906 / 257;
 }
 
 /*
@@ -179,12 +179,35 @@
 .hero__media-frame {
   position: relative;
   /*
-   * The loop has a real alpha channel, so without this the decor behind it -
-   * the thin orange trace in particular - shows straight through the drawing's
-   * empty paper. Filling the box with the page colour is invisible against the
-   * surface and keeps the decor behind the loop instead of across it.
+   * The page colour, and the surface the drawing is composited onto.
+   *
+   * The 2026-09-14 master has no alpha: the loop and its still frame carry
+   * their paper baked in as opaque white. Both are therefore blended with
+   * `multiply` below, for which white is the identity - the paper drops out
+   * and this background shows through it exactly, while the ink stays ink.
+   *
+   * `isolation` is what makes that safe. It turns the frame into its own
+   * blending group, so the drawing multiplies against this cream and nothing
+   * else; without it the paper would go transparent all the way down to the
+   * decor behind the hero and the orange ring would run across the drawing -
+   * the very thing this background was added to prevent.
+   *
+   * `HeroMotion.ts` fades and scales this frame on scroll. The blend resolves
+   * inside the group first, so that still behaves exactly as before.
    */
   background: var(--color-background);
+  isolation: isolate;
+  /*
+   * The blend's backdrop, widened by a pixel. The frame's height is driven by
+   * the viewport, so its box regularly lands on a fractional pixel (229.5px at
+   * 390 wide). The drawing is rasterised to the device grid slightly outside
+   * that, and on the row the background does not quite reach it had nothing
+   * cream to multiply against and its white came through as a hairline along
+   * the edge. This spread costs no layout and is invisible - it is the page
+   * colour on the page colour - and it guarantees the paper always has the
+   * page underneath it.
+   */
+  box-shadow: 0 0 0 1px var(--color-background);
   /* Height first: the smaller of the height budget and the height implied by
      the width cap. Width always follows from the ratio, so the frame is exactly
      the drawing and never letterboxes. */
@@ -204,14 +227,29 @@
   block-size: 100%;
   /* The drawing must never be cropped. */
   object-fit: contain;
+  /*
+   * Baked white paper onto the cream page (see `.hero__media-frame`). Multiply
+   * keeps every drawn value where it is - black ink stays black, because
+   * multiplying by zero is zero - and takes only the paper, because
+   * multiplying by white returns the backdrop untouched. Nothing is filtered,
+   * tinted or softened, so the drawing stays exactly as delivered and
+   * perfectly sharp.
+   *
+   * It also absorbs what an exact colour match cannot: a lossy codec drifts
+   * one to three levels across a large flat field, and a paper that decodes at
+   * 253 instead of 255 would show its own rectangle against a flat page. Under
+   * multiply that same drift darkens the cream by well under a percent.
+   */
+  mix-blend-mode: multiply;
 }
 
 /*
- * The loop has a real alpha channel, so anything left underneath it shows
- * through its background. The still frame is therefore only rendered where the
- * loop is not: under reduced motion (see `reduced-motion.css`). Every other
- * visitor gets the same file through the video's own `poster` attribute, so
- * hiding it here costs no extra request.
+ * The two are never painted at once. Multiply blends with everything below it
+ * inside the frame, so a still left under the running loop would show through
+ * its paper and put two frames of the animation on screen together. The still
+ * is therefore rendered only where the loop is not: under reduced motion (see
+ * `reduced-motion.css`). Every other visitor gets the same file through the
+ * video's own `poster` attribute, so hiding it here costs no extra request.
  */
 .hero__poster {
   z-index: 0;

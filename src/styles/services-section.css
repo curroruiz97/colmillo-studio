@@ -53,11 +53,20 @@
 }
 
 .services-section__title {
-  max-inline-size: 12ch;
   margin: 0;
-  /* An editorial heading, not a poster: clearly smaller than the manifesto,
-     the hero and the service names it introduces. */
-  font-size: clamp(2.9rem, 5.6vw, 5rem);
+  /*
+   * An editorial heading, not a poster: clearly smaller than the manifesto,
+   * the hero and the service names it introduces.
+   *
+   * It sits on one line at every width (2026-09-22, client direction). What
+   * used to break it over two was a `max-inline-size` of 12ch here and 8ch
+   * from 48rem, so both are gone and the size is tuned instead to fit the
+   * zone it stands in - the binding widths are 320 and, at the other end,
+   * 1440, where the line was four pixels too long. No `nowrap`: if a future
+   * licensed face is wider than the system stack, the heading should fall
+   * back to two lines rather than push the page sideways.
+   */
+  font-size: clamp(2rem, 5vw, 4.5rem);
   letter-spacing: -0.04em;
   line-height: 0.95;
 }
@@ -340,10 +349,6 @@
     padding-inline: clamp(1.5rem, 4.5vw, 5.5rem) 0;
   }
 
-  .services-section__title {
-    max-inline-size: 8ch;
-  }
-
   /* Sized by its column, capped near 1.5x the old drawn width; width only, so
      the aspect ratio is the file's own and nothing is cropped. A little
      narrower than the column and centred in it, so it sits in the middle of
@@ -356,7 +361,8 @@
 
   .services-section__list {
     row-gap: clamp(6rem, 16svh, 11rem);
-    /* The first service starts level with the heading's second line. */
+    /* The first service starts a measured step below the heading, which is
+       one line since 2026-09-22. */
     padding-block-start: clamp(3rem, 8svh, 6rem);
   }
 
@@ -414,8 +420,10 @@
    * side of the pair, inside equal side padding, centre the pair on the
    * viewport rather than on the left-anchored shell. The side padding equals
    * the shell's gutter plus the section's indent, so the heading keeps the
-   * exact line it had. The upper spacer is lighter than the lower one, so the
-   * pair sits a little above the middle of the room the heading leaves.
+   * exact line it had. The upper spacer is the heavier of the two, so the
+   * pair - the art and the service's copy together, their relationship
+   * unchanged - sits a little below the middle of the room the heading leaves
+   * (2026-09-23, client direction; it used to sit a little above it).
    */
   .services-section[data-services-enhanced] .services-section__inner {
     /*
@@ -437,7 +445,7 @@
       minmax(0, 1fr) auto minmax(0, 30rem)
       minmax(0, 1fr);
     grid-template-rows:
-      auto minmax(clamp(2rem, calc(20svh - 7.5rem), 6rem), 0.85fr) auto
+      auto minmax(clamp(2rem, calc(20svh - 7.5rem), 6rem), 1.2fr) auto
       minmax(0, 1fr) auto;
     column-gap: clamp(2.5rem, 4.5vw, 5rem);
     align-items: center;
@@ -529,7 +537,7 @@
   /* Both headings keep their wide-screen size from about 950 px of height and
      step down with the window below it. */
   .services-section[data-services-enhanced] .services-section__title {
-    font-size: clamp(2.6rem, min(5.6vw, 10.5svh), 5rem);
+    font-size: clamp(2rem, min(5vw, 10.5svh), 4.5rem);
   }
 
   .services-section[data-services-enhanced] .service-entry__title {

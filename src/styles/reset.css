@@ -36,6 +36,22 @@ svg {
   max-inline-size: 100%;
 }
 
+/*
+ * No type on this site is ever slanted (client direction, 2026-09-22). These
+ * elements keep their meaning — `em` still marks emphasis for a screen reader,
+ * `cite` still marks a title — and only lose the browser's default slant, so
+ * markup and future Markdown content stay free to use them. This sits in the
+ * reset layer, so a section may still set a slant deliberately; none does.
+ */
+em,
+i,
+cite,
+dfn,
+var,
+address {
+  font-style: normal;
+}
+
 button,
 input,
 textarea,

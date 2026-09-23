@@ -59,12 +59,34 @@ const module = z
   // guard rail's; they pass through untouched.
   .catchall(z.unknown());
 
+/**
+ * One beat of the shared spine. The template names the beats, so the keys
+ * below are the only ones there are: an author fills them in, and cannot
+ * rename, reorder or add to them. `figures` is read on `results` alone and
+ * must carry approved, verifiable numbers — never an invented metric.
+ */
+const beat = z
+  .object({
+    body: z.array(z.string()),
+    media: z.object({}).catchall(z.unknown()).optional(),
+    figures: z
+      .array(z.object({ value: z.string(), label: z.string() }))
+      .optional(),
+  })
+  .optional();
+
 export const caseStudyFields = {
   caseStudy: z
     .object({
       client: z.string().optional(),
       headline: z.string().optional(),
       intro: z.array(z.string()).optional(),
+      /* The fixed narrative every project shares (`src/data/caseStudy.ts`). */
+      spine: z
+        .object({ strategy: beat, execution: beat, results: beat })
+        .optional(),
+      /* The pieces beside the brief: an image and a film, or two images. */
+      showcase: z.array(z.object({}).catchall(z.unknown())).optional(),
       deliverables: z.array(z.string()).optional(),
       hero: z
         .object({

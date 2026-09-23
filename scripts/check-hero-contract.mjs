@@ -22,8 +22,11 @@ const requiredHeroTokens = [
 ];
 const requiredMotionTokens = [
   'IntersectionObserver',
-  'entry.target.play()',
-  'entry.target.pause()',
+  // Since 2026-09-22 the loop is started and parked through the shared
+  // `VideoLoop.ts` helper, which retries a refused autoplay at the first
+  // gesture. The contract is unchanged: the observer's entry still decides.
+  'playLoop(entry.target)',
+  'stopLoop(entry.target)',
   "dataset.motion === 'reduced'",
 ];
 
@@ -39,14 +42,24 @@ if (missing.length > 0) {
 }
 
 /*
- * The hero and Studio loops are delivered pre-composited for the page colour:
- * their paper is mapped onto a colour baked into the preparation script. Two
- * things must therefore hold, or the drawing's own paper stops matching the
- * page behind it and reads as a rectangle:
+ * The hero and Studio loops are delivered pre-composited: their paper is
+ * mapped onto a colour baked into the preparation script. Two things must
+ * hold, or the drawing's own paper stops matching the page behind it and reads
+ * as a rectangle.
  *
- * 1. every baked paper colour equals the token it claims to be;
- * 2. the published files are the set baked for `--color-background`
- *    (`-white` files on white, the unsuffixed originals on cream).
+ * 1. Every baked paper colour equals the token it claims to be.
+ *
+ * 2. The published files match how each loop is composited on the page, and
+ *    the two are composited differently since 2026-09-22:
+ *
+ *    - The Studio loop is laid straight on the section, so its files must be
+ *      the set baked for `--color-background` (`-white` on white, the
+ *      unsuffixed originals on cream).
+ *    - The home hero is blended with `mix-blend-mode: multiply` inside an
+ *      isolated frame (`hero-section.css`). White is that operator's identity,
+ *      so the hero needs the `-white` set whatever the page colour is; a
+ *      paper-matched bake would be the wrong file there, because on cream it
+ *      would multiply cream by cream and darken the whole frame.
  */
 const tokens = await readFile('src/styles/tokens.css', 'utf8');
 const assets = await readFile('src/config/assets.ts', 'utf8');
@@ -101,17 +114,39 @@ if (!surface) {
 const published = [
   ...assets.matchAll(/'\/assets\/motion\/(?:hero|studio)\/[^']+'/g),
 ].map((match) => match[0].slice(1, -1));
-const mismatched = published.filter((path) =>
-  surface.suffix
-    ? !path.includes(`${surface.suffix}.`)
-    : path.includes('-white.'),
-);
+const heroFiles = published.filter((path) => path.includes('/hero/'));
+const studioFiles = published.filter((path) => path.includes('/studio/'));
+
+/*
+ * The hero blends, so it is checked against the multiply identity rather than
+ * against the page. The rule is read from the stylesheet instead of assumed:
+ * if the blend is ever removed, the hero falls back to the Studio's rule.
+ */
+const heroCss = await readFile('src/styles/hero-section.css', 'utf8');
+const heroBlends = /mix-blend-mode:\s*multiply/.test(heroCss);
+if (heroBlends && !/isolation:\s*isolate/.test(heroCss)) {
+  throw new Error(
+    'hero-section.css blends the hero with multiply but never isolates the frame, so the paper would show the decor behind the hero. Add "isolation: isolate" to .hero__media-frame.',
+  );
+}
+const heroSurface = heroBlends ? surfaces['color-white'] : surface;
+
+const wrongPaper = (paths, target) =>
+  paths.filter((path) =>
+    target.suffix
+      ? !path.includes(`${target.suffix}.`)
+      : path.includes('-white.'),
+  );
+const mismatched = [
+  ...wrongPaper(heroFiles, heroSurface),
+  ...wrongPaper(studioFiles, surface),
+];
 if (published.length === 0 || mismatched.length > 0) {
   throw new Error(
-    `The page is ${surface.name} but these loop files are baked for another paper:\n${mismatched.join('\n')}\nRegenerate with "--paper=${surface.name}" and point src/config/assets.ts at them.`,
+    `These loop files are baked for the wrong paper:\n${mismatched.join('\n')}\nThe Studio loop needs the ${surface.name} set for the ${surface.name} page; the hero is blended with multiply, so it needs the ${heroSurface.name} set.`,
   );
 }
 
 process.stdout.write(
-  `Responsive hero contract passed: desktop/mobile WebM+MP4, poster, dimensions, viewport pause, reduced-motion fallback, and ${published.length} hero/Studio files baked for the ${surface.name} page.\n`,
+  `Responsive hero contract passed: desktop/mobile WebM+MP4, poster, dimensions, viewport pause, reduced-motion fallback, ${heroFiles.length} hero files baked ${heroSurface.name} and ${heroBlends ? 'multiplied onto' : 'laid on'} the ${surface.name} page, and ${studioFiles.length} Studio files baked ${surface.name}.\n`,
 );

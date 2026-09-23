@@ -8,6 +8,7 @@ const signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
 const assets = [
   ['colmillo-wordmark-black.png', 906, 242],
   ['colmillo-wordmark-cream.png', 865, 232],
+  ['colmillo-wordmark-orange.png', 906, 257],
 ];
 
 function paeth(left, above, upperLeft) {

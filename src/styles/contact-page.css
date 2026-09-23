@@ -28,15 +28,15 @@
 
 /*
  * The charcoal reaches the canvas on this route only, so an overscroll above
- * the hero shows the hero's own room rather than a white flash. The footer is
- * given its white back explicitly, because it belongs to the sheet.
+ * the hero shows the hero's own room rather than a light flash. The footer is
+ * given the sheet's colour explicitly, because it belongs to the sheet.
  */
 html:has([data-contact-page]) {
   background: #1f1f1f;
 }
 
 html:has([data-contact-page]) .site-footer {
-  background: var(--color-white);
+  background: var(--color-background);
   color: var(--color-brand-ink);
 }
 
@@ -62,7 +62,7 @@ html:has([data-contact-page]) .site-footer {
 
   position: relative;
   overflow-x: clip;
-  background: var(--color-white);
+  background: var(--color-background);
 }
 
 @media (min-width: 48rem) {
@@ -262,7 +262,7 @@ html:has([data-contact-page]) .site-footer {
   min-block-size: 100svh;
   border-start-start-radius: var(--cn-sheet-radius);
   border-start-end-radius: var(--cn-sheet-radius);
-  background: var(--color-white);
+  background: var(--color-background);
   color: var(--color-brand-ink);
 }
 
@@ -520,7 +520,8 @@ html:has([data-contact-page]) .site-footer {
   padding: 0.55rem 1.4rem;
   border: var(--border-width) solid var(--color-brand-ink);
   border-radius: 1.35rem 1.7rem 1.45rem 1.85rem;
-  background: var(--color-white);
+  /* The sheet's own colour: an unchosen pill is an outline, not a chip. */
+  background: var(--color-background);
   color: var(--color-brand-ink);
   font-size: clamp(0.95rem, 1.1vw, 1.0625rem);
   font-weight: 800;

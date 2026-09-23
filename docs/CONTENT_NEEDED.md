@@ -22,6 +22,63 @@
   `public/assets/fonts/more-sugar/`.
 - Confirmation of body text font.
 
+## Media Baked For The White Surface (opened 2026-09-22)
+
+The light surface went back to cream `#fceeda` (client direction). Three
+delivered assets had a light paper baked into the pixels for the white surface.
+The home hero was solved in CSS the same day and needs nothing; the two on
+`/proyectos/` are still open. No media file has been reprocessed.
+
+1. **Home hero loop — RESOLVED 2026-09-22, no re-export needed.** The loop and
+   its still are composited with `mix-blend-mode: multiply` inside an isolated
+   frame (`hero-section.css`). The delivered paper measures a flat `255`
+   (97.9% of paper pixels exactly white; every edge row and column 255 across
+   the clip on both encodes), and white is multiply's identity, so the paper
+   drops out exactly and the ink is untouched. The `-white` set is therefore
+   the correct file and must stay: a cream bake would multiply cream by cream
+   and darken the frame. `npm run check:hero` pins this.
+   Should a re-export ever be wanted anyway, the recipe is the 2026-09-14 one
+   in `docs/EXECUTION_STATE.md` with only the flatten target changed — same
+   crop `2832:2124:504:18`, same white-point lift of the first 5.42 s, same
+   encoder settings and poster frame. `scripts/prepare-hero-media.mjs
+   --paper=cream` does NOT do it: it is built for the superseded
+   `media-src/WEB.webm` and that master's crop, and the unsuffixed
+   `hero-desktop|mobile.*` files on disk are that superseded delivery.
+
+2. **`/proyectos/` hero loop — RESOLVED 2026-09-23, no re-export needed.**
+   `video hero proyectos.mp4` is still published exactly as delivered; the
+   paper is composited out in CSS instead. Its ground measures about
+   rgb(243, 241, 237) and drifts a level or two, so unlike the home hero it
+   cannot be multiplied straight onto the page — that would darken it. It is
+   therefore lifted with `brightness(1.09)` first, which clips the whole of
+   that drifting range to white, and only then multiplied onto the frame's
+   cream (`projects-page.css`). Measured on the rendered page at 1920, 1440
+   (DPR 2), 1366 and 390 (DPR 2), and under reduced motion: the paper inside
+   the frame is exactly rgb(252, 238, 218), the same value as the sheet.
+   The ground being a shade off the page is still a defect of the master and
+   is listed below; a client re-delivery on cream would let the lift go.
+
+3. **`/proyectos/` close scene.** `npm run media:projects` lifts the master's
+   paper to pure `#ffffff` (`PAPER_FLOOR = 251`, `LIFT = 255/251`), which is
+   what made the picture edgeless on the white sheet. On cream the two wings
+   now read as a white band across the section: their top and bottom fade,
+   but the outer ends run to the screen edge. Fix: give
+   `scripts/prepare-projects-media.mjs` a cream paper target and regenerate.
+   The lift itself was already pending approval.
+
+The close scene is the one still open. The hero's lift-then-multiply is not a
+drop-in for it: that picture is a WebP still whose paper was already lifted to
+pure white by `npm run media:projects`, so it needs no lift — but its wings run
+to the screen edge, and a blend there would have to be checked against the
+copy that sits in the picture's gap. A paper-matched derivative (giving
+`scripts/prepare-projects-media.mjs` a cream target) remains the cleaner fix.
+
+Unaffected: the home Studio loop, which was repointed to its existing cream
+bake (`studio-loop.webm/.mp4`, `studio-poster.webp` — same master, same
+script, only the paper target differs); the manifesto and services
+illustrations, which carry real alpha; and every asset on an ink, charcoal or
+orange surface.
+
 ## Motion Assets
 
 Received on 2026-09-10:

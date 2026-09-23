@@ -8,15 +8,22 @@
 
 .home-intro {
   --intro-ground: var(--color-brand-ink);
-  --intro-mark: var(--color-brand-cream);
+  /*
+   * COLMILLO is set in the brand orange on either ground since 2026-09-22
+   * (client direction), to match the orange wordmark the home hands over to.
+   * The seed inside the counter is the inverse: it has to read against the
+   * ground it sits on, which is what the letters used to be.
+   */
+  --intro-mark: var(--color-brand-orange);
+  --intro-seed: var(--color-brand-cream);
 
   display: none;
 }
 
-/* Ink letters on the page's own light ground, so the O opens onto the same colour. */
+/* The page's own light ground, so the O opens onto the same colour. */
 .home-intro[data-intro-theme='cream'] {
   --intro-ground: var(--color-background);
-  --intro-mark: var(--color-brand-ink);
+  --intro-seed: var(--color-brand-ink);
 }
 
 html[data-intro] {
@@ -65,7 +72,7 @@ html[data-intro-state='portal'] .home-intro {
 }
 
 .home-intro__seed {
-  fill: var(--color-brand-orange);
+  fill: var(--intro-seed);
   opacity: 0;
 }
 

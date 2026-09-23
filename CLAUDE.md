@@ -178,13 +178,26 @@ Colors from `src/styles/tokens.css`:
 - red `#9d2d22`;
 - white `#ffffff`.
 
-Since 2026-09-10 (client direction) every light surface is white through
-`--color-background`; cream stays for type, borders and details on the ink
-surfaces. The hero and Studio loops are baked for the background colour
-(`-white` files, enforced by `check:hero`). White, ink and orange surfaces
-create editorial contrast. Rounded stacked
+Since 2026-09-22 (client direction) every light surface is cream `#fceeda`
+through `--color-background`, which reverses the 2026-09-10 move to white;
+cream also stays for type, borders and details on the ink surfaces. Change the
+light ground in `tokens.css` alone — no section names a light colour of its
+own, except the `/servicios/` layers, which must name cream because that route
+overrides `--color-background` to ink. Cream, ink and orange surfaces create
+editorial contrast. Rounded stacked
 layers, pressure edges, cutouts and restrained deformation carry the visual
 language. Do not add unrelated palettes/effects. Maintain sufficient contrast.
+
+The hero and Studio loops are pre-composited, and `check:hero` enforces how
+each one meets the page. The Studio loop is laid straight on the section, so it
+uses its cream bake. The home hero is blended instead: `hero-section.css`
+multiplies the loop and its still onto the page inside an isolated frame, so it
+keeps the `-white` set of the 2026-09-14 delivery deliberately — white is
+multiply's identity. Do not "fix" the hero by pointing it at a cream bake, and
+do not remove the blend, the `isolation` or the frame's one-pixel background
+spread without regenerating the media; `check:hero` and `foundations.spec.ts`
+guard all of it. Two client assets on `/proyectos/` still have light paper baked
+in (`docs/CONTENT_NEEDED.md`).
 
 Typography:
 
@@ -391,7 +404,9 @@ licenses and publication approval before enabling client material.
   in the top-left corner of every route's first screen at the home hero's
   size; not fixed, it scrolls away with the page. Each
   route passes `headerTheme` (`light` default; `/studio/` and `/servicios/`
-  are `dark`); the home hero keeps an empty `.hero__logo` box of the same size.
+  are `dark`) and may override the derivative with `logoMark="orange"`, which
+  only the home does; the home hero keeps an empty `.hero__logo` box of the
+  same size, sized to the mark that route paints.
 - Surface-aware cursor; the system reduced-motion preference is the only motion
   source (the sticky header and the manual motion toggle were both removed on
   2026-09-10 at the user's request).
@@ -402,7 +417,11 @@ licenses and publication approval before enabling client material.
   muerda" -> Contacto on the right) and a round back button reverses the same
   timeline (`GoodbyePanorama.ts`). Portrait screens use a photo band with the
   copy below. Photo approval and side A copy are still open.
-- Validated black/cream wordmark PNGs.
+- Validated black/cream/orange wordmark PNGs. The orange one
+  (`colmillo-wordmark-orange.png`, written by `npm run media:brand` from the
+  client original preserved in `media-src/`) is the home's mark since
+  2026-09-15's global wordmark was recoloured on 2026-09-22; every other route
+  keeps the derivative its tone chooses. No mark is ever filtered into colour.
 - Production/demo Playwright matrices and integrity/link/asset/brand/hero/release
   checks.
 - Temporary Vercel demo authorization and rollback context documented.

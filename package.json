@@ -19,6 +19,7 @@
     "check:links": "node scripts/check-links.mjs",
     "check:manifest": "node scripts/check-manifest-idempotence.mjs",
     "check:hero": "node scripts/check-hero-contract.mjs",
+    "media:brand": "node scripts/prepare-brand-logo.mjs",
     "media:hero": "node scripts/prepare-hero-media.mjs",
     "media:studio": "node scripts/prepare-studio-media.mjs",
     "media:services": "node scripts/prepare-services-media.mjs",

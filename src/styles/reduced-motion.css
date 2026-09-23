@@ -91,8 +91,9 @@ html[data-motion='reduced'] .edge-menu[data-state='open'] .edge-menu__panel {
 
 /*
  * Reduced motion swaps the loop for its still frame. The poster is hidden by
- * default because the loop is transparent: leaving it underneath would show
- * two frames of the animation at once.
+ * default because the loop multiplies over whatever is under it: leaving the
+ * still there would show two frames of the animation at once. The still is
+ * blended the same way, so it meets the cream exactly as the loop does.
  */
 html[data-motion='reduced'] .hero__media {
   display: none;

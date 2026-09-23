@@ -5,7 +5,7 @@ repository state, not an aspirational roadmap.
 
 ## Last Updated
 
-2026-09-14 (latest session at the end of this file)
+2026-09-22 (latest session at the end of this file)
 
 ## Current Phase
 
@@ -4883,3 +4883,911 @@ serves 200 (560 bytes) with the retry. A Pixel 7 sweep of `/`, `/studio/`,
 every loop on screen was already running on arrival with no gesture; with Low
 Power Mode simulated every loop was parked on arrival and running after one
 tap, including the home Studio loop further down the page.
+
+## 2026-09-22 - The Home's Orange Wordmark, And The Loader Inverted
+
+Client direction, home only: the wordmark in the hero's top-left corner and
+the entry loader both carry the definitive orange mark, and the seed inside
+the final O inverts with them. No other route changes.
+
+### The asset
+
+The client's original arrived as `public/assets/brand/logo colmillo naranja.png`
+(2170x725 RGBA, 495 KB): the same lockup as the validated black and cream marks
+— COLMILLO over `studio` — in the brand orange, with a wide transparent margin.
+Its drawn ink measures rgb(199, 84, 41) on average, within a few units of
+`--color-brand-orange` (#cd5730); nothing on the page needed a new token.
+
+It was preserved byte for byte (sha256 verified) in `media-src/` beside the
+other originals and removed from `public/`, where it was unreferenced and would
+have shipped 495 KB into every build. `npm run media:brand`
+(`scripts/prepare-brand-logo.mjs`) writes the published derivative from it and
+reads `media-src/` first, exactly like the other `media:*` scripts.
+
+The derivative, `public/assets/brand/colmillo-wordmark-orange.png`, follows the
+contract the other two marks are held to: cropped to its drawn box, scaled to
+the black derivative's drawn width (882 px) so one CSS width gives both the
+same letter size stroke for stroke, an even 12 px transparent margin, 8-bit
+RGBA, non-interlaced — 906x257, 103 KB. It is trimmed twice: the master carries
+a band of all but invisible pixels (alpha 1-2) above the mark, which is ink to
+the first trim and nothing once the 2.4x downscale has averaged it away, so the
+scaled mark is measured again before the margin is added. No colour was
+touched: no matte, no background, no recolour, and no CSS filter anywhere.
+`check:brand` now validates all three files.
+
+It is 6% taller than the black mark, because `studio` sits lower in the master.
+Nothing was stretched; the hero's reserved box follows it (`aspect-ratio:
+906 / 257`, `--hero-logo-block` over 3.5), so the row still matches the mark
+the home paints.
+
+### Scope
+
+`SiteLogo.astro` takes a new `mark` prop (`auto` | `orange`) that overrides the
+tone, passed through `BaseLayout` as `logoMark`. Only `src/pages/index.astro`
+sets it. `/studio/`, `/servicios/`, `/contacto/` keep the cream derivative,
+`/proyectos/` and the legal pages the black one, and the edge menu's own cream
+wordmark is untouched on every route including the home.
+
+### The loader
+
+`home-intro.css` only. `--intro-mark` is now `--color-brand-orange` on either
+ground, and the seed moved to its own `--intro-seed`, which carries what the
+letters used to: ink on the light ground, cream on the ink one. The letters and
+the seed are the only things that changed colour. The ground, the plug, the
+geometry, the letter-by-letter timing, the pressure, the iris, the growth, the
+easing, the hero handover and the reduced-motion path are all as they were —
+not one line of `HomeIntro.ts` or `HomeIntro.astro` was touched.
+
+Because the ground and the plug keep `--intro-ground`, the expansion has no new
+seam: the O's ring is orange, the counter opens onto the same white the page
+already is, and the black seed reads against it until it fades at the growth.
+
+### Verified
+
+- `astro check` 164 files, 0 errors; `eslint` clean; Prettier clean on every
+  touched file (the repository-wide check still reports its pre-existing
+  line-ending mismatch in untouched files).
+- `check:assets`, `check:brand` (three marks), `check:hero`, `build` 9 pages,
+  `build:demo` 19 pages, `check:production` 84 files / 196,093 JS bytes,
+  `check:links` — all passing.
+- `playwright test` 100 passed / 10 skipped; demo config 186 passed / 75
+  skipped. Two tests were extended: the per-route wordmark test now asserts the
+  mark each route paints and that no `filter` is involved, and a new intro test
+  asserts the orange word, the ink seed and the white ground.
+- Scratch sweep of a fresh load at 1440x900, 1366x768 and 390x844 (3x, touch):
+  one wordmark per page, the orange derivative at its natural 906x257, `filter:
+  none`, CLS 0 at every size. Every fill the overlay painted across the whole
+  sequence, sampled per frame, was exactly three: white ground, rgb(205, 87,
+  48) letters, rgb(18, 16, 15) seed — so no frame carries the old pairing.
+  Frames captured at the tension, the iris and the growth confirm the black
+  seed inside the orange O and a clean orange ring opening onto the hero. The
+  temporary scripts live only in the session scratchpad.
+
+### Corrected from the session above
+
+`scripts/check-hero-contract.mjs` was failing since `2e6143c`: it asserts the
+hero loop is driven by the IntersectionObserver entry and still looked for the
+literal `entry.target.play()` / `entry.target.pause()`, which that commit
+replaced with `playLoop(entry.target)` / `stopLoop(entry.target)`. The push was
+made after running the checks individually, and that one was missed. The
+contract is unchanged in substance, so the checker now looks for the current
+spelling and passes; `npm run validate` still stops earlier, at the
+pre-existing `format:check`, which is why it did not surface on its own.
+
+### Open
+
+- Nothing was committed, pushed or deployed.
+
+## 2026-09-22 - Three Adjustments To The Home Manifesto
+
+Client direction, `src/styles/manifesto-home.css` alone. `IntroSection.astro`
+and `ManifestoMotion.ts` were not touched, so the scroll choreography of
+"Morder. / Presionar. / Romper.", the illustration and every reveal are exactly
+as they were.
+
+- **"Dejar marca." on "Morder."'s guide.** It used to step in from the margin
+  the three black concepts start at. The desktop band is absolute at
+  `inset-inline: 6% 4%` of the canvas, so the protagonist now takes that same
+  6% instead of 12%, and the tablet rule drops its 6% indent for 0. Mobile
+  already shared the grid's start edge. The CTA moved with it, because its
+  anchor is "under Dejar marca." rather than the stage floor. Measured at
+  1440x900, 1366x768, 834x1112 and 390x844: the two left edges differ by 0 px
+  at every one. What is aligned is the element box; once the licensed faces
+  arrive, optical side bearings may want a small manual nudge, since the two
+  lines are set in different faces.
+- **Roman, not italic.** The protagonist is an `<em>`, which is where the slant
+  came from; it now carries `font-style: normal`. Colour (#cd5730), size, face
+  and weight unchanged.
+- **A larger button.** Only `.manifesto-home__button`, never the shared
+  `.bite-button`: `min-block-size` 4 -> 5rem, padding 1.05/2 -> 1.35/3.1rem,
+  label `clamp(1.15rem, 1.3vw, 1.4rem)` over the inherited body size, measure
+  24 -> 27rem. Rendered 221x80 at 1440 against the hero CTA's 64 px height.
+  The bite language is untouched: same orange, same ink border, same
+  `0 0.4rem 0` ink slab, and the hover pressure is a border-radius plus a
+  label scale, so it is independent of the size.
+
+### Verified
+
+- `astro check` 164 files 0 errors, `eslint` clean, Prettier clean on both
+  touched files.
+- `build` 9 pages, `build:demo` 19 pages, `check:production` 84 files /
+  196,093 JS bytes, `check:links`, `check:brand`, `check:hero` — all passing.
+- `playwright test` 100 passed / 10 skipped; demo config 186 passed / 75
+  skipped. The finished-poster test now also asserts the two left edges and the
+  CTA's, the protagonist's `font-style: normal` and #cd5730, and that the
+  button is taller than the hero CTA while keeping the orange, the ink border
+  and the ink slab.
+- Scratch measurement and screenshots at the four sizes above: left-edge delta
+  0 everywhere, no horizontal overflow, and the poster reads as intended. The
+  temporary script lives only in the session scratchpad.
+
+### Open
+
+- Nothing was committed, pushed or deployed. The branding work recorded in the
+  session above is still uncommitted in the same tree.
+
+
+## 2026-09-22 Session: Light Surface Returned To Cream
+
+User request: a global background change — every light section that the
+2026-09-10 pass turned white goes back to the brand cream `#fceeda`; dark,
+charcoal and orange surfaces stay exactly as they are. No blind search and
+replace, no structural, copy, layout, motion or media changes, and the hero
+video explicitly not to be reprocessed. Run while another terminal held
+uncommitted work on the orange wordmark (`SiteLogo.astro`, `BaseLayout.astro`,
+`index.astro`, `hero-section.css`, `home-intro.css`, `manifesto-home.css`,
+`assets.ts`, `scripts/prepare-brand-logo.mjs`, `package.json`, three specs);
+none of it was touched or reverted.
+
+### How the change was made
+
+The repository already routes every light surface through one token, so the
+change is one declaration plus the places that named white directly.
+
+- `src/styles/tokens.css`: `--color-background: var(--color-brand-cream)`.
+  That alone moves `:root`, `body`, the whole home (hero, hero media frame,
+  manifesto, Studio, contact), the shared footer and the home intro's `cream`
+  ground. `--color-white` is untouched and still `#ffffff`.
+- `--color-white` -> `--color-background` where the value meant "the light page
+  surface": `contact-page.css` (route, brief sheet, footer, unchosen radio
+  pill), `legal-page.css` (the sheet), `projects-page.css` (route, hero,
+  gallery, sticky filter band, close).
+- `/servicios/` cannot use the token — the route overrides `--color-background`
+  to ink so the black reaches the document — so its light layers name cream:
+  `--layer-bg` and the two light plates in the hero's empty-slot stack.
+- `src/data/caseStudy.ts`: the default studio theme (what a project with no
+  theme of its own gets) is now cream. Its `surface` moved from `#f2ede7` to
+  `--color-brand-cream-deep` `#ead2b4`, because `#f2ede7` on cream is 1.02:1
+  and the recessed plates would have vanished. Projects that declare a theme
+  are untouched, which the two demo case studies verify.
+- `SeoHead.astro`: `theme-color` `#ffffff` -> `#fceeda`.
+- `src/config/assets.ts`: `studioMedia` repointed to its existing cream bake
+  (`studio-loop.webm/.mp4`, `studio-poster.webp`) — same master, same script,
+  only `--paper` differs, so no file was generated.
+
+### Deliberately left white
+
+Text and controls, not grounds: the goodbye stage's white type, borders and
+outlines on the photograph's black; `--sv-light` `#f5f5f5` on the `/servicios/`
+dark layers and its close button; the `/proyectos/` quiet CTA (white fill,
+orange slab, by design); the accent layer's white button on orange;
+`ContactSection.astro`'s `#fff` SVG gradient stops and stroke; the skip link.
+`--color-white` itself is unchanged.
+
+### The open media mismatch (the hero half was closed the same day — see the
+### session after this one)
+
+`npm run check:hero` fails, correctly and by design: it pairs the published
+loop files with `--color-background`, and the hero is still on the
+`hero-final-*-white` set whose paper is an opaque `#ffffff`. The home hero
+therefore shows a hard-edged white 4:3 rectangle on the cream. The user asked
+for the video not to be reprocessed in this pass, so the check was left to
+report the truth rather than being weakened. Two more assets have light paper
+baked in: the `/proyectos/` hero loop (`#f4f2ee` ground, edges already masked)
+and the `/proyectos/` close scene (paper lifted to pure white by
+`npm run media:projects`, now a white band across the section). All three, with
+their exact remedies, are in `docs/CONTENT_NEEDED.md`.
+
+### Contrast after the change (measured in Chromium)
+
+Ink 18.97 -> 16.61:1, soft ink 15.75 -> 13.78:1, red 7.42 -> 6.49:1 — all
+comfortable. `--color-accent-text` `#b54d2a` 5.17 -> 4.53:1, still over AA for
+normal text but with almost no margin. Brand orange `#cd5730` 4.20 -> 3.67:1;
+it still clears AA for large text, and the one place it carries small text is
+the legal pages' index numbers 01-09 at 14.4 px bold, which needed 4.5:1 and
+already failed at 4.20:1 on white. Pre-existing, now worse, and reported to the
+user rather than fixed: changing it is a branding decision.
+
+### Verification (actually run)
+
+- `astro check` 164 files, 0/0/0; ESLint clean; Prettier clean on all fourteen
+  changed files; `build` 9 pages; `check:production` passed (84 files, 196,093
+  JS bytes); `check:links` 9 files; `check:manifest` passed; `check:assets`
+  prelaunch as before; `check:brand` unchanged (three wordmarks).
+  `check:hero` fails on the five hero files, as described above.
+- Playwright: 100 passed / 10 skipped (`dist`, desktop Chromium + Pixel 7) and
+  186 passed (`dist-demo`, fine 1440, touch 834, touch 390). Surface
+  assertions updated to `rgb(252, 238, 218)` in `contacto`, `projects`,
+  `projects.demo`, `foundations`, `intro` and `demo` specs, plus the Studio
+  poster name.
+- Preview and dev servers at 1920x1080: every route swept element by element
+  for a computed `rgb(255, 255, 255)` background. Home, `/studio/`,
+  `/servicios/`, `/contacto/` and the three legal routes return none;
+  `/proyectos/` returns only the quiet CTA button, which is intentional.
+  `/servicios/` layers measured cream, orange, ink, cream. `/studio/` stayed
+  `#1f1f1f` throughout, `/contacto/`'s hero `#1f1f1f`, `/servicios/` ink. No
+  white band between sections: the stack pin-spacers are transparent and the
+  sticky/stacking sections are continuous. No horizontal overflow.
+- Screenshots inspected: home hero (the white video rectangle is plainly
+  visible), `/proyectos/` hero and close, `/contacto/` brief, `/aviso-legal/`.
+  Chrome's screenshot injection began timing out partway through, so the
+  remaining viewport coverage came from the Playwright matrices above rather
+  than more manual captures.
+
+Nothing was committed, pushed or deployed.
+
+
+## 2026-09-22 Session: Home Hero Integrated With The Cream By Blending
+
+User request: make the home hero loop sit on the cream without touching the
+composition, the copy, the sizes, the proportions or the video's playback
+attributes, and solve it in the front end first rather than by re-exporting.
+Run with the same uncommitted wordmark work from another terminal in the tree;
+none of it was touched.
+
+### Why the asset allows a CSS solution
+
+Measured before choosing an approach, not assumed. The delivered paper is a
+true flat white, so the multiply operator's identity applies exactly:
+
+- Poster (`hero-final-poster-white.webp`, 1440x1080): 82% of the image is
+  paper; 1,248,469 of its 1,274,900 paper pixels are exactly 255 (97.9%); all
+  four corners and both edge midpoints are 255. The remaining values (254,
+  253, 251, 250, 245) total ~1.3% and sit against the ink, where they are
+  antialiasing rather than a flat-field drift.
+- Both WebM encodes, decoded at 0.2, 3, 6, 9, 12, 15, 18 and 19.5 s: every
+  edge row and column is 255,255,255, with two explained exceptions — the
+  desktop file's last row dips to 250 at t=3 (one row, 2% under multiply,
+  invisible) and its top row reaches 7 at t=12, which is the book that falls
+  in from the top edge, as the 2026-09-14 notes record.
+
+So multiply removes the paper exactly and leaves black ink black (anything
+multiplied by zero is zero). It is also more forgiving than an exact bake: a
+codec that drifts a level or three darkens the cream by well under a percent,
+where a colour-matched file would show its own rectangle.
+
+### What changed
+
+- `src/styles/hero-section.css`: `.hero__media-frame` keeps its
+  `var(--color-background)` and gains `isolation: isolate`;
+  `.hero__poster, .hero__media` gain `mix-blend-mode: multiply`. Nothing else
+  — no filter, no tint, no opacity, no geometry, no new element.
+- The same file also gains `box-shadow: 0 0 0 1px var(--color-background)` on
+  the frame. See the defect below.
+- `scripts/check-hero-contract.mjs`: the paper rule is now per loop. The
+  Studio loop still has to match `--color-background`; the hero is read from
+  the stylesheet and, while it blends, is pinned to the `-white` set whatever
+  the page colour is. The script also fails if the blend is present without
+  the isolation.
+- `tests/e2e/foundations.spec.ts`: asserts the blend on both the loop and the
+  still, and the isolation on the frame.
+- Comments corrected in `hero-section.css`, `reduced-motion.css` and
+  `src/config/assets.ts`, which all still described the superseded loop as
+  having a real alpha channel and the hero as an open mismatch.
+
+### The isolation is load-bearing, and was proved
+
+Without it the paper would go transparent all the way down to `.hero__decor`
+and the orange ring would run across the drawing — the exact defect the
+frame's background was added to prevent in the first place. Proof rather than
+reasoning: a saturated `#ff00ff` block was injected behind the frame and the
+frame rendered completely unchanged, cream paper and all, with no magenta
+through the drawing.
+
+### A real defect the change introduced, found and fixed
+
+At 390x844 a one-CSS-pixel pure-white hairline appeared along the frame's
+bottom edge. Cause: the frame's height follows the viewport and lands on a
+fractional pixel (229.5 px there, bottom at 397.46875), the drawing is
+rasterised to the device grid slightly outside the background's coverage, and
+on that row the blend had no cream backdrop, so the paper's white composited
+straight onto the page. Sampled in the rendered screenshot: device rows 794
+and 795 were 255,255,255 in a field of 252,238,218.
+
+Fixed with `box-shadow: 0 0 0 1px var(--color-background)` on the frame, which
+widens the blend's backdrop by a pixel. It costs no layout, is the page colour
+on the page colour, and scales with the frame under `HeroMotion.ts`.
+
+### Verification (actually run)
+
+- Rendered-pixel sweep of the hero's first screen at 1920x1080, 1440x900 (DPR
+  2), 1366x768, 390x844 (DPR 2) and 390x844 (DPR 3), each in full and reduced
+  motion: **zero pure-white pixels**, and none in the four-pixel band either
+  side of every frame edge. Before the box-shadow the 390 cases reported the
+  hairline, which is how it was caught.
+- Reduced motion inspected separately: the still is blended the same way and
+  meets the cream identically; the figures' white clothing reads as cream
+  paper, which is correct.
+- `astro check` 164 files 0/0/0; ESLint clean; Prettier clean; `build` 9
+  pages; `check:hero` passes and now reports "5 hero files baked white and
+  multiplied onto the cream page, and 3 Studio files baked cream";
+  `check:production` 84 files, 196,093 JS bytes; `check:links` 9 files.
+- Playwright: 100 passed / 10 skipped (`dist`) and 186 passed (`dist-demo`,
+  fine 1440, touch 834, touch 390). The performance spec's CLS and LCP budgets
+  pass, so the extra compositing layer costs nothing measurable.
+
+No media file was created, re-encoded or deleted. Nothing was committed,
+pushed or deployed.
+
+
+## 2026-09-22 Session: All Type Set Roman
+
+User request: globally, any text in italic becomes normal. Nothing else.
+
+Two changes, because the repository had exactly two sources of slant:
+
+- `src/styles/reset.css`: `em, i, cite, dfn, var, address { font-style: normal }`,
+  in the reset layer. This is the global net — it removes the browser's default
+  slant from the elements that carry one, without touching their meaning (`em`
+  still marks emphasis for a screen reader), so markup and any future Markdown
+  client content stay free to use them. Being in the lowest layer, a section
+  could still set a slant deliberately; none does.
+- `src/styles/contact-section.css`: `.contact-bite__line--bite` was the only
+  explicit `font-style: italic` in the codebase — "muerda" in the home contact
+  close. Now roman. Its colour, handwritten font slot, size, weight, letter
+  spacing and the pressure/bite behaviour are untouched.
+
+Already roman before this session and left alone: `.cs-statement__accent`
+(`case-study.css`) and `.manifesto-home__word--marca` (`manifesto-home.css`,
+set roman earlier the same day). The codebase contains only two `<em>` elements
+and no `<i>`, `<cite>`, `<address>`, `<dfn>` or `<var>`.
+
+### Verification (actually run)
+
+- Swept **27 routes** across both builds — the 9 of `dist` plus the 19 of
+  `dist-demo`, including all ten demo case studies and the 404 — reading the
+  computed `font-style` of every element on each, with the edge menu opened so
+  its type was measured too: **zero elements at italic or oblique**.
+- `astro check` 0/0/0; ESLint clean; Prettier clean; both builds (9 and 19
+  pages); `check:hero`, `check:production`, `check:links` pass.
+- Playwright: 100 passed / 10 skipped (`dist`) and 186 passed (`dist-demo`).
+- The contact close inspected at 1440x900: "muerda" upright, same orange, same
+  font slot, same position; layout unchanged.
+
+Nothing was committed, pushed or deployed.
+
+
+## 2026-09-22 Session: Home Services Heading On One Line
+
+User request: "Nuestros servicios", the home services section heading, on a
+single line. Nothing else.
+
+The wrap was deliberate, not accidental: `max-inline-size: 12ch` on
+`.services-section__title`, tightened to `8ch` from 48rem, held the heading to
+two lines. Both caps are gone. Removing them alone is not enough, because at
+the sizes it used to carry the line does not fit — measured, the binding
+widths are 320 (needed 363px in a 280px zone) and 1440, where it was four
+pixels too long. So the size was retuned with it:
+
+- base `clamp(2.9rem, 5.6vw, 5rem)` -> `clamp(2rem, 5vw, 4.5rem)`
+- sticky variant `clamp(2.6rem, min(5.6vw, 10.5svh), 5rem)` ->
+  `clamp(2rem, min(5vw, 10.5svh), 4.5rem)`
+
+Deliberately no `white-space: nowrap`. At 200% text the heading has to be
+allowed to fall back to two lines; forcing one would push the page sideways
+and break the no-horizontal-overflow rule.
+
+The heading is still "clearly smaller than the manifesto, the hero and the
+service names it introduces", which is what its comment asks of it - at 390 it
+is 32px against the service names' 44.8px.
+
+### Side effect worth knowing
+
+`.services-section__head` is a wrapping flex whose documented intent is "the
+heading and its CTA on one line ... when the line is too narrow the button
+wraps under the heading". With the heading now one line, on wide screens the
+line is no longer too narrow, so "Abrir servicios" sits beside the heading
+instead of under it. That is the rule doing what it always said; the rule was
+not touched. On narrow screens the button still wraps under, as before.
+
+### Verification (actually run)
+
+- Measured at 320, 390, 600, 834, 1024, 1280, 1440 and 1920: **one line at
+  every width**, with headroom - the tightest is 320, where the line takes
+  250px of the 280px zone (11% spare). Zero horizontal overflow throughout.
+- 200% text (the repo's own `html { font-size: 200% }` pattern) at 320, 390
+  and 1440: the heading falls back to two lines on the narrow pair and stays
+  on one at 1440, and **document overflow is 0 in all six cases**.
+- `astro check` 0/0/0; ESLint clean; Prettier clean; both builds;
+  `check:production` passes.
+- Playwright: 100 passed / 10 skipped (`dist`) and 186 passed (`dist-demo`).
+- Inspected at 1440x900 and 390x844.
+
+The section is demo-gated (its copy is provisional), so it renders in
+`dist-demo` and `npm run dev` only, not in `dist`.
+
+Nothing was committed, pushed or deployed.
+
+
+## 2026-09-23 Session: Home Services Pair Lowered On The Sticky Stage
+
+User request: in the home services section, lower the image together with its
+content a little. Clarified with the user before touching anything, because
+"baja un poco la imagen con el contenido" could equally have meant lowering the
+art alone against the copy; they confirmed the art and the copy move together,
+their relationship unchanged.
+
+### Where the knob was
+
+On a wide screen with motion the section runs the sticky sequence, whose stage
+is a five-row grid in
+`.services-section[data-services-enhanced] .services-section__inner`: heading,
+upper spacer, the art-and-service pair, lower spacer, readout. The two spacers
+are `fr` tracks, and the upper one was deliberately the lighter of the pair
+(`0.85fr` against `1fr`) so the composition sat a little above the middle of
+the room the heading leaves. Measured first, to confirm the `fr` split was
+actually binding rather than the track's `minmax` floor: at 1280x800,
+1440x900, 1680x1050 and 1440x720 the two spacers came out at exactly 0.85.
+
+`0.85fr` -> `1.2fr`. Nothing else changed: no padding, no margins, no art size,
+no copy, and the art's own bottom margin — the one that centres it on the name
+and description rather than on the rule and glyph beneath them — is untouched,
+so the pair moves as a unit.
+
+### Scope
+
+The rule lives under `[data-services-enhanced]`, so only the sticky stage
+moves. The stacked layout that narrow screens, reduced motion and no-JavaScript
+get is unchanged.
+
+### Verification (actually run)
+
+- The pair drops 13-27px, scaling with the room available: +20px at 1280x800,
+  +23px at 1440x900, +27px at 1680x1050 and 1920x1080, +13px at 1440x720.
+- Clearances at 1280x800, 1440x900, 1440x720, 1366x640, 1280x600 and
+  1920x1080: the art and the service copy stay inside the sticky stage at every
+  one (no clipping), the gap to the foot readout stays between 95 and 239px,
+  and horizontal overflow is 0.
+- `astro check` 0/0/0; ESLint clean; Prettier clean; both builds;
+  `check:production` and `check:hero` pass.
+- Playwright: 100 passed / 10 skipped (`dist`) and 186 passed (`dist-demo`).
+
+Nothing was committed, pushed or deployed.
+
+
+## 2026-09-23 Session: /proyectos/ Hero Paper Composited Onto The Cream
+
+User reported the white ground showing behind the `/proyectos/` hero loop and
+asked for it to take the page colour. This is the second of the three assets
+the 2026-09-22 colour change left with a light paper baked in; the home hero
+was the first.
+
+### Why the home hero's fix was not a drop-in
+
+Measured first. This file's ground is not white: sampled at seven points
+through the clip it sits at about rgb(243, 241, 237) and drifts a level or two
+either way rather than holding flat, while the ink reaches a true 0. Multiplying
+that onto the cream directly would have given rgb(241, 226, 204) — a panel
+darker than the page, not the page.
+
+So the paper is lifted before it is blended:
+
+1. `filter: brightness(1.09)` on `.projects-hero[data-hero-media]
+   .page-media__asset`. The clip to 255 is the point of it: because the paper
+   is not flat, a per-channel map onto an exact value would leave part of the
+   drift a level short, whereas over-lifting puts the whole measured range
+   (down to a blue channel of 235) on white. 1.09 clears 235 with room.
+2. `mix-blend-mode: multiply`, which then drops that white onto the frame's
+   cream exactly, and leaves black ink black.
+
+`.projects-hero[data-hero-media] .projects-hero__frame` gains the page colour
+as the blend's backdrop, `isolation: isolate` to keep the blend inside the box,
+and the same `box-shadow: 0 0 0 1px` cream spread the home hero needed for
+fractional-pixel edges. The frame still reads as no plate, because the colour
+it carries is the sheet's own.
+
+The 8% edge fade is kept, now only as belt and braces — with the paper exactly
+the page it has nothing left to hide. The client's file is untouched.
+
+Cost, accepted deliberately: the lift also clips the drawing's lightest tones
+into the paper (on line art drawn on that paper, what should happen) and raises
+its midtones by 9%. The drawing is black line art, so no saturated colour is
+shifted.
+
+### Verification (actually run)
+
+- Rendered-pixel measurement at 1920x1080, 1440x900 (DPR 2), 1366x768,
+  390x844 (DPR 2) and 1440x900 under reduced motion (the poster): the paper
+  inside the frame is **exactly rgb(252, 238, 218)** at all six sample points
+  in every case, identical to the page measured outside the frame. The
+  commonest light value inside the frame is that same cream by three orders of
+  magnitude; the few hundred pixels at 217/216/215 blue are antialiasing
+  against the ink.
+- `astro check` 0/0/0; ESLint clean; Prettier clean; `build` 9 pages;
+  `check:production` 84 files; `check:links` 9 files.
+- Playwright: 100 passed / 10 skipped (`dist`) and 186 passed (`dist-demo`),
+  the performance spec's CLS and LCP budgets included, so the filter on the
+  playing video costs nothing measurable.
+- Inspected at 1440x900 and 390x844: the pale panel is gone and the drawing
+  sits directly on the sheet.
+
+`docs/CONTENT_NEEDED.md` item 2 is closed. Item 3, the `/proyectos/` close
+scene, is still open and is not the same fix.
+
+Nothing was committed, pushed or deployed.
+
+
+## 2026-09-23 Session: The Case Study Template — "El caso"
+
+User request: the client wants one shared template for every project page (not
+`/proyectos/`, the per-project page), citing `ps21.works` as the reference.
+Study how they build it, carry the idea over to Colmillo, improve it and keep
+the site's visual language.
+
+### What the reference actually does
+
+Read on `/case/tik-tok` and confirmed identical on a second case, so it is a
+template and not one art direction:
+
+- `grid grid-cols-1 lg:grid-cols-2` — the narrative in one column, the work in
+  the other, the media column `position: sticky` at 90px.
+- The narrative is three native `<details open>`: ESTRATEGIA, EJECUCIÓN,
+  RESULTADOS, each a bold uppercase label with a rule under it and a body at
+  24px. The same three on every case.
+- A huge typographic header: project name, then the client's name under it in a
+  light weight.
+- A black full-width CTA, and legal links. No next project.
+
+What is strong in it: the radical consistency (learn the format once, skim any
+case), text and work side by side, and results as a first-class chapter. What
+is weak: the media column is one static image for the whole page and never
+answers the chapter being read; there is no sense of place or progress; the
+narrow layout duplicates the media in the markup; the numbers — by far the most
+valuable content — are buried in prose; and the case is a dead end.
+
+### What was built
+
+A new section, `CaseStudySpine.astro`, between the introduction and the
+modules. It is the same on every project and an author cannot change it:
+`CASE_STUDY_BEATS` owns the order and the names, and the frontmatter key is a
+fixed `{ strategy, execution, results }` rather than a list.
+
+The improvements on the reference, in order of how much they matter:
+
+1. **The held piece answers the beat.** Each beat and its piece are one row of
+   the same grid and the pieces are `position: sticky`, so a piece holds the
+   frame while its beat is read and the next rises over it as the beat ends.
+   That is the site's own stacked-layer language, and because it is layout it
+   survives with no JavaScript. Consecutive beats sharing a piece are grouped
+   server-side and it spans their rows, so nothing is drawn twice.
+2. **The numbers are lifted out of the prose** into `figures` on `results`,
+   set large over an accent rule, and counted up as they arrive.
+3. **A progress rail** down the section, so the reader knows where they are.
+4. **The beat being read is marked** — by its rule and numeral only. Dimming
+   the other beats' copy was considered and rejected: it buys a focus effect
+   with the contrast of the text.
+5. **One markup for both layouts.** The narrow screen collapses the grid to one
+   column and the document order is already the reading order: a beat, then the
+   work it is about. Nothing is duplicated.
+6. **No dead end** — the route's existing next-project stage already follows.
+
+### Content integrity
+
+The spine can only ever be as complete as the project is: a beat with no
+approved body copy is not rendered, and a project with no `spine` publishes
+exactly the page it did before. Nothing is written on a project's behalf.
+
+The two demonstration studies were given a spine so the section can be seen,
+and its copy describes the demonstration itself. Its figures are facts about
+the template ("3 tiempos en la plantilla", "14 módulos disponibles después",
+"0 datos de cliente en esta página") — deliberately not invented client
+metrics, which `src/data/caseStudies.ts` has never carried and must not start
+carrying.
+
+### A defect found and fixed during the work
+
+The counters first wrote a zero into the DOM at mount and animated up from it.
+A folded `<details>` has no height, so a beat a visitor folds before reaching
+it can leave its trigger unfired — and the figure would then have read "0"
+permanently, which on a page of client results is the worst failure this
+section could have. The zero is now written by the tween itself
+(`fromTo` + `immediateRender: false`), so the approved value stands until the
+count actually starts and again the moment it ends. Verified by folding
+`Resultados` before scrolling to it: the figures read 3, 14, 0 throughout.
+
+The counter also refuses to run at all unless it can rebuild the author's
+string character for character from the parsed number, so a figure is never
+shown in a format nobody approved.
+
+### Verification (actually run)
+
+- Behaviour at 1440x900: the rail fills 0.143 → 0.519 → 0.896 across the three
+  beats, exactly one beat is marked at a time and it tracks the reading
+  position, the frames hand over at the sticky offset, and the figures land on
+  the values written in the document. No console errors.
+- **No JavaScript**: the section renders, all three beats present, all three
+  disclosures open, figures at their written values.
+- **Keyboard**: the summary takes focus and Enter toggles it.
+- **Reduced motion**: no counting and no movement; the rail and the marking
+  stay, because they are information rather than decoration.
+- Layout at 1440 (light and dark themes) and 390: one column on the narrow
+  screen with the reading order beat-then-piece, and zero horizontal overflow
+  at every size.
+- `astro check` 165 files 0/0/0; ESLint clean; Prettier clean on every changed
+  file; both builds (9 and 19 pages); `check:production` 84 files, 198,228 JS
+  bytes; `check:links`; `check:hero`.
+- Playwright: 100 passed / 10 skipped (`dist`) and 186 passed (`dist-demo`).
+
+### Two things to know
+
+- **The JavaScript budget's largest asset is nearly full.** 148,838 bytes
+  against a 150,000 limit — 1,162 bytes of headroom. That is the shared bundle
+  (GSAP and ScrollTrigger) and this work did not touch it; the spine's code
+  went into the route chunk, which grew to 7,247 bytes. Total is 198,228 of
+  220,000. The next feature that needs shared motion code will hit the cap.
+- **`foundations.spec.ts` "closes … from outside the panel" is flaky**, on
+  mobile-chromium, failing roughly one run in three. Confirmed pre-existing by
+  a controlled experiment: with the spine's CSS block temporarily removed and
+  the site rebuilt, the same test failed 2 of 6 runs — identical to with it. It
+  then passed 100/100 on the restored build. It is a timing-sensitive click on
+  the scrim, not a regression from this work, and it is worth stabilising on
+  its own.
+
+Nothing was committed, pushed or deployed.
+
+
+## 2026-09-23 Session: The Project Template Rebuilt On The Reference
+
+The spine section built earlier the same day was rejected: the client wants the
+reference's own structure, not an interpretation of it. This replaces it.
+
+### What the route is now
+
+`/proyectos/<slug>/` is one composition, top to bottom, identical on every
+project:
+
+- **Its own header** (`CaseStudyHeader.astro`), fixed: `Proyectos` back to the
+  archive on the left, the wordmark centred, and the room the global Instagram
+  control stands in on the right. The route hides the global corner wordmark
+  (`hideLogo`, a new prop on `BaseLayout`), so there is exactly one mark on the
+  page. The header takes the project's own `--cs-bg`, so it belongs to whatever
+  project it is standing on, and its mark follows the project's surface.
+- **The brief**: the project's name at display size, the client under it in a
+  light weight, the three chapters as tabs, and a bite button to Contacto
+  reading *Sé el siguiente*.
+- **The work** in the column beside it: `showcase`, a new field — an image and
+  a film, or two images, or whatever a project supplies. Each piece takes the
+  studio's pressure dent under a fine pointer, which is the fold on hover that
+  was asked for.
+- **The next project**, unchanged.
+
+Removed from the page: the hero, the metadata block, the introduction, the
+Markdown prose and the whole module sequence. `CaseStudySpine.astro` was
+deleted outright — it was this session's own work and it is gone.
+
+### The tabs, and why they are built the way they are
+
+The document ships three plain `<section>`s, each under its own `<h2>`, so with
+no JavaScript the whole case is on the page and reads in order. The chunk then
+reveals the strip, hides the repeated headings and adds the roles, the
+selection and the keyboard behaviour (`initTabs`): arrows move between chapters
+and wrap, Home and End reach the ends, only the chapter on stage is in the tab
+sequence. Nothing calls itself a tab until something can make it behave like
+one.
+
+### Two defects found during the work
+
+1. **The tab strip was visible with JavaScript off.** The markup hides it with
+   the `hidden` attribute, but the attribute is only the user agent's
+   `display: none`, and the stylesheet's own `display: flex` beat it — so the
+   state without a script showed three buttons that could switch nothing. Found
+   by the rewritten spec, not by hand: the manual check had read the `hidden`
+   property rather than the computed visibility. Fixed with an explicit
+   `.cs-tabs__list[hidden] { display: none }`.
+2. **The Instagram control hung out of the header band** by 12px at every
+   width. The header's height is now derived from that control's own offset and
+   height, repeated as custom properties, so the two cannot drift: the control
+   sits exactly centred in the band (measured at 1440: band 0–108, control
+   28–80).
+
+### Verification (actually run)
+
+- Structure at 1440: header present, `Proyectos` → `/proyectos/`, the mark
+  centred to within 2px of the viewport's middle, the global corner mark gone
+  (0), the Instagram control present (1) and inside the band; h1 the project,
+  the client under it, three tabs with roles and roving `tabindex`, one panel
+  visible, the CTA reading *Sé el siguiente* → `/contacto/`, two pieces with
+  press frames, zero heroes, zero modules, zero horizontal overflow, no console
+  errors.
+- Tabs by pointer and by keyboard, including the wrap and Home/End.
+- The fold on hover: the piece's surface takes the organic `clip-path`.
+- With JavaScript off: all three chapters visible under their own headings, the
+  strip hidden, the name, the work and both ways out all real.
+- Light project and dark project: same structure, the theme and the header's
+  mark following the project.
+- `astro check` 166 files 0/0/0; ESLint clean; Prettier clean; both builds;
+  `check:production` 84 files, 197,833 JS bytes; `check:links`.
+- Playwright: 100 passed / 10 skipped (`dist`) and 183 passed (`dist-demo`).
+  `case-study.demo.spec.ts` was rewritten for the template — it is no longer a
+  comparative spec, because the point is no longer that two projects differ.
+  `demo.spec.ts`'s case-study selectors were updated with it.
+
+### Still to decide
+
+The module subsystem is now dead code: `src/components/case-study/modules/`
+(14 blocks), `CaseStudyModules`, `CaseStudyHero`, `CaseStudyIntro`,
+`CaseStudyChapters`, their sections of `case-study.css`, and `initSticky`,
+`initSequence`, `initBite`, `initReveals` and `initChapters` in the route's
+chunk. Nothing imports them and nothing renders them. They were kept rather
+than deleted so the direction can still be reversed cheaply; removing them is a
+deliberate pass of its own and is listed at the end of `docs/CASE_STUDIES.md`.
+
+The known flaky `foundations.spec.ts` edge-menu test failed once in this
+session's runs and passed on the re-run, as before. It remains unrelated to
+this work (controlled experiment recorded in the previous entry).
+
+Nothing was committed, pushed or deployed.
+
+
+## 2026-09-23 Session: The Project Template, Second Pass
+
+Client notes on the template built earlier the same day. All of them applied.
+
+- **The header** — `Proyectos` is larger (0.85–1.35rem, from a flat label
+  size) and the wordmark is larger (4.5–10rem, from 5–7rem).
+- **The provisional flag is gone** from the project page. The demonstration is
+  still fenced off by `check-production.mjs`, whose forbidden markers cover
+  every demo slug, title and now the invented client names, so none of it can
+  reach `dist/` — the guard, not the banner, is what keeps the boundary.
+- **The content runs the full width**, held only by the page gutter, instead of
+  being capped at the route's measure.
+- **The name and the client each sit on one line.** Both were sized down for
+  it (title 2.25–4.25rem, client 1.5–2.6rem). Neither is forced with `nowrap`:
+  a project whose name genuinely cannot fit wraps rather than pushing the page
+  sideways.
+- **The chapters are disclosures, not tabs** — the reference's own widget.
+  Native `<details open>`, so they need no script at all; `initTabs` was
+  removed from the route's chunk, which took the JavaScript back to 196,093
+  bytes.
+- **The next-project stage is gone**, with its plumbing: the route no longer
+  computes a `next` project or its picture.
+
+### The invented clients
+
+The demo's client line read "Sin cliente: demostración interna", which the
+template now sets as a real client's name. Replaced with invented brands —
+`Cerámica Nava` and `Tinta Meridiana` — at the user's request. Both were added
+to the forbidden markers in `scripts/check-production.mjs` in the same change,
+so a demonstration string that now looks like a real client still cannot reach
+`dist/`. The demo copy that said "esta página no tiene cliente" was corrected
+with it, along with the copy that still described the chapters as tabs.
+
+### A defect found and fixed
+
+The enlarged wordmark collided with the global Instagram control on a phone.
+Measured across 320, 360, 390, 430, 600, 834, 1024, 1440 and 1920: at 320 the
+mark overlapped the control by 19px and at 360 by 3px. Under about 384px the
+label, a centred mark and the control are together wider than the screen, so
+there the mark stops being centred and follows the label at a size that clears
+the control. Every width now has positive clearance on both sides — the
+tightest is 320, at 12px and 9px — with no horizontal overflow anywhere. The
+clearance is now asserted in `case-study.demo.spec.ts`, so it cannot regress
+silently.
+
+### Verification (actually run)
+
+- Title and client on one line at 390, 1440 and 1920; content full width (at
+  1920 the brief spans 56–1840); `Proyectos` at 21.6px and the mark at 160px on
+  a wide screen; three disclosures, all open; zero tabs, zero next-project
+  stages, zero flags; no overflow and no page errors, on the light project and
+  the dark one.
+- `astro check` 166 files 0/0/0; ESLint clean; Prettier clean; both builds;
+  `check:production` 84 files, 196,093 JS bytes; `check:links`; `check:hero`.
+- Playwright: 100 passed / 10 skipped (`dist`) and 180 passed (`dist-demo`).
+  Three tests in `demo.spec.ts` asserted the flag and the previous/next
+  navigation and were rewritten for the two ways out the template actually has;
+  `case-study.demo.spec.ts` moved from tabs to disclosures.
+
+The module subsystem remains dead code, now with `CaseStudyNext.astro` and the
+`related` field joining it. Listed at the end of `docs/CASE_STUDIES.md`; still
+kept rather than deleted so the direction stays reversible.
+
+Nothing was committed, pushed or deployed.
+
+
+## 2026-09-23 Session: The Template Applied To Every Project
+
+Template approved. The archive's ten provisional projects now all carry it, so
+the portfolio reads as one product instead of two authored pages and eight
+fallbacks.
+
+### How
+
+`src/data/caseStudies.ts` was rewritten around a single `demoStudy()` factory.
+It takes a client, three sentences and two compositions and returns the
+template; a caller cannot produce a different shape, so the uniformity is
+structural rather than something a future session has to remember. All ten
+projects go through it.
+
+Two of them keep the palettes they already had, so the demonstration still
+shows the surface changing under an unchanged structure; the other eight take
+the studio's own colours. Every project keeps its own two abstract
+compositions, chosen to suit its title.
+
+### The invented clients, and the guard
+
+The template prints the client as a real brand name, so each project needed
+one: Cerámica Nava, Lácteos Brío, Tinta Meridiana, Ferretería Ovalle, Textil
+Arganza, Hormigones Sela, Banca Lindero, Radio Peñalta, Zapatillas Kime and
+Editorial Quiebro. All ten were added to the forbidden markers in
+`scripts/check-production.mjs` in the same change — a demonstration string that
+now looks like a client has to be caught exactly like a demo slug or title.
+
+Not assumed: the guard was given a positive control. `Zapatillas Kime` was
+appended to `dist/index.html`, `check:production` failed with
+`Production marker "Zapatillas Kime" found in index.html`, the file was
+restored and the check passed again.
+
+Every project also still opens its Estrategia with `Caso de demostración
+técnica`, which is both a forbidden marker and the only place the pages now
+admit they are a demonstration, since the route no longer carries a flag.
+
+### Verification (actually run)
+
+- All ten pages walked at 1440: identical shape on every one — the header, one
+  `h1`, a client line, the three chapters in order and all open, two pieces,
+  the CTA to `/contacto/`, the name and the client each on a single line, zero
+  horizontal overflow and no page errors.
+- That walk is now a test rather than a one-off: `case-study.demo.spec.ts`
+  replaced the old "a project with no authored study" case — which no longer
+  exists, since all ten are authored — with two that iterate the whole archive
+  and refuse any page that differs in shape or wraps either line.
+- `astro check` 166 files 0/0/0; ESLint clean; Prettier clean; both builds;
+  `check:production` 84 files, 196,093 JS bytes; `check:links`.
+- Playwright: 100 passed / 10 skipped (`dist`) and 183 passed (`dist-demo`).
+
+### Note
+
+The automatic fallback in `resolveCaseStudy()` is now exercised by no
+demonstration page, because every demo project is authored. It is still the
+path an approved project takes on the day its entry lands with no case study
+written, and it still resolves the template with the project's cover and
+gallery beside the brief — but nothing in the browser suite covers it any more.
+Worth a fixture if that path ever matters enough.
+
+Nothing was committed, pushed or deployed.
+
+
+## 2026-09-23 Session: One Ground For Every Project
+
+Client direction: every project page on the same background, `#fceeda`.
+
+Eight of the ten were already there — they take `CASE_STUDY_THEME`, whose
+background became the brand cream in the 2026-09-22 colour change. The two
+outliers were the palettes the demonstration carried on purpose,
+`demo-fauce-elastica` on `#f7f3ec` and `demo-rastro-naranja` on `#121417`.
+Both overrides are gone, along with the `theme` field on the `DemoStudy`
+factory, so a demonstration cannot declare a surface at all: the assertion in
+the edit refuses any `theme` key or hex colour surviving in that file's code.
+
+The per-project palette is untouched in the model and still validated, so an
+approved project can still take a surface of its own; nothing in the archive
+does.
+
+Two things followed from it. `demo-rastro-naranja`'s Resultados copy still
+described "una superficie oscura" and was rewritten. And the spec's
+light-versus-dark test had nothing left to compare, so it was replaced by one
+that walks all ten and requires the article, the document canvas, the route's
+header and the footer to be the same cream on every one — an overscroll at
+either end included.
+
+### Verification (actually run)
+
+- All ten pages measured: `rgb(252, 238, 218)` on `html`, on the article and on
+  the header, on every one, with the black wordmark throughout since every
+  surface is now light.
+- `astro check` 166 files 0/0/0; ESLint clean; Prettier clean; both builds;
+  `check:production` 84 files, 196,093 JS bytes; `check:links`.
+- Playwright: 100 passed / 10 skipped (`dist`) and 183 passed (`dist-demo`).
+
+Nothing was committed, pushed or deployed.

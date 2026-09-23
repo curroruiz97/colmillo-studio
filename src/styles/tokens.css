@@ -9,11 +9,17 @@
   --color-white: #ffffff;
 
   /*
-   * Every light surface is pure white (client direction, 2026-09-10). Cream
+   * Every light surface is the brand cream again (client direction,
+   * 2026-09-22), which reverses the 2026-09-10 move to pure white. Cream also
    * remains a brand colour for type, borders and details on the dark surfaces;
-   * light surfaces take this token rather than naming a colour.
+   * light surfaces take this token rather than naming a colour, so this line
+   * is the only place the light ground is chosen.
+   *
+   * `npm run check:hero` reads this declaration: the hero and Studio loops are
+   * pre-composited for the page colour, so their published files must be the
+   * set baked for whatever this resolves to.
    */
-  --color-background: var(--color-white);
+  --color-background: var(--color-brand-cream);
   --color-text: var(--color-brand-ink);
   --color-accent: var(--color-brand-orange);
   --color-accent-text: var(--color-brand-orange-aa);

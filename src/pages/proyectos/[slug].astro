@@ -2,10 +2,12 @@
 /**
  * /proyectos/[slug]/ — the case study.
  *
- * One page for every project, assembled from the project's own data rather
- * than written per project: hero, metadata and introduction, the modules the
- * project chose in the order it chose them, and the next project filling the
- * screen. The model, its fallbacks and the authoring guide are
+ * One template, identical on every project (client direction, 2026-09-23):
+ * the route's own header and the brief beside the work. There is no hero, no
+ * module sequence and no next-project stage — a project is its name, its story
+ * in three parts and its pieces, and every project is read the same way.
+ * `CaseStudyBrief.astro` is the whole composition; the way on is the button to
+ * Contacto inside it, and the way back is the header's own link. The model, its fallbacks and the authoring guide are
  * `src/data/caseStudy.ts` and `docs/CASE_STUDIES.md`.
  *
  * Content follows the archive exactly: the standard build publishes approved
@@ -15,26 +17,16 @@
  * the rest through the automatic fallback — which is exactly what an approved
  * project looks like on the day its entry lands.
  *
- * Previous/next wrap around the published order, so the portfolio has no dead
- * end, and a project links to its own approved `related` entry first when it
- * declares one.
+ * The way out of a project is the header's link back to the archive and the
+ * button on to Contacto; the route carries no previous/next of its own.
  */
-import CaseStudyChapters from '@/components/case-study/CaseStudyChapters.astro';
-import CaseStudyHero from '@/components/case-study/CaseStudyHero.astro';
-import CaseStudyIntro from '@/components/case-study/CaseStudyIntro.astro';
-import CaseStudyModules from '@/components/case-study/CaseStudyModules.astro';
-import CaseStudyNext from '@/components/case-study/CaseStudyNext.astro';
-import { getCollection, render } from 'astro:content';
+import CaseStudyBrief from '@/components/case-study/CaseStudyBrief.astro';
+import CaseStudyHeader from '@/components/case-study/CaseStudyHeader.astro';
+import { getCollection } from 'astro:content';
 import { contentAvailability } from '@/config/content';
-import {
-  resolveCaseStudy,
-  type CaseStudyChapter,
-  type CaseStudyInput,
-  type CaseStudyMedia,
-} from '@/data/caseStudy';
+import { resolveCaseStudy, type CaseStudyInput } from '@/data/caseStudy';
 import { caseStudies } from '@/data/caseStudies';
 import {
-  DEMO_NOTICE,
   demoMode,
   demoProjects,
   normalizeProject,
@@ -52,23 +44,9 @@ export async function getStaticPaths() {
   const projects = demoMode ? demoProjects : entries.map(normalizeProject);
 
   return projects.map((project, index) => {
-    const authored = caseStudies[project.slug];
-    /*
-     * The stage at the end of the page: the project's own first `related`
-     * entry when it declares one and that entry is published, otherwise the
-     * next in the published order. The list wraps, so the archive is a loop
-     * and never ends on a dead end.
-     */
-    const declared = authored?.related?.find((slug) =>
-      projects.some((candidate) => candidate.slug === slug),
-    );
-    const next =
-      projects.find((candidate) => candidate.slug === declared) ??
-      projects[(index + 1) % projects.length];
-
     return {
       params: { slug: project.slug },
-      props: { project, entry: entries[index], next },
+      props: { project, entry: entries[index] },
     };
   });
 }
@@ -76,10 +54,10 @@ export async function getStaticPaths() {
 /*
  * The props are inferred from `getStaticPaths` above, so this page declares no
  * `Props` interface of its own: one source of truth for what a project route
- * receives. There is no "previous" link by design — the next project fills the
- * screen and the archive is one click under it (`CaseStudyNext.astro`).
+ * receives. There is no previous/next navigation by design since 2026-09-23 —
+ * the archive is one click away in the route's own header.
  */
-const { entry, next, project } = Astro.props;
+const { entry, project } = Astro.props;
 
 /*
  * Approved frontmatter first, then a registered demonstration study, then the
@@ -89,50 +67,9 @@ const authored: CaseStudyInput | undefined =
   (entry?.data.caseStudy as CaseStudyInput | undefined) ??
   caseStudies[project.slug];
 const study = resolveCaseStudy(project, authored);
-
-/*
- * The approved Markdown body, if the entry has one. It is the client's own
- * prose and is rendered after the modules, inside the page's reading measure.
- */
-const rendered = entry ? await render(entry) : null;
-const Content = rendered?.Content;
-
-const chapters: CaseStudyChapter[] = study.modules
-  .map((module) => module.chapter)
-  .filter((chapter): chapter is CaseStudyChapter => chapter !== undefined);
-
-/** The next project's own hero, when it has one, so the stage is its picture. */
-const nextMedia: CaseStudyMedia | undefined = next
-  ? (caseStudies[next.slug]?.hero?.media ??
-    (next.cover.src
-      ? {
-          kind: 'image',
-          src: next.cover.src,
-          width: next.cover.width,
-          height: next.cover.height,
-          alt: '',
-        }
-      : { kind: 'art', variant: 'layers' }))
-  : undefined;
 ---
 
 <CaseStudyLayout study={study} description={project.summary}>
-  {study.chapters && <CaseStudyChapters chapters={chapters} />}
-
-  <CaseStudyHero
-    study={study}
-    notice={project.demo ? DEMO_NOTICE : undefined}
-  />
-  <CaseStudyIntro study={study} />
-  <CaseStudyModules modules={study.modules} />
-
-  {
-    Content && (
-      <div class="cs-shell cs-prose">
-        <Content />
-      </div>
-    )
-  }
-
-  {next && nextMedia && <CaseStudyNext next={next} media={nextMedia} />}
+  <CaseStudyHeader chrome={study.theme.chrome} />
+  <CaseStudyBrief study={study} />
 </CaseStudyLayout>

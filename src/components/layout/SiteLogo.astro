@@ -10,17 +10,30 @@
  *
  * The route declares the tone of its hero through the layout's `headerTheme`:
  * a light surface gets the black derivative, a dark one the cream derivative.
+ *
+ * A route may ask for the orange mark instead through `mark="orange"`, which
+ * overrides the tone. Only the home does, since 2026-09-22 (client direction);
+ * every other route keeps the derivative its tone chooses. No filter is
+ * involved anywhere: each colour is its own validated file.
  */
 import { brandWordmark } from '@/config/assets';
 
 export type HeaderTheme = 'light' | 'dark';
+/** `auto` follows the route's tone; `orange` overrides it. */
+export type LogoMark = 'auto' | 'orange';
 
 interface Props {
   theme?: HeaderTheme;
+  mark?: LogoMark;
 }
 
-const { theme = 'light' } = Astro.props;
-const mark = theme === 'dark' ? brandWordmark.cream : brandWordmark.black;
+const { theme = 'light', mark: choice = 'auto' } = Astro.props;
+const mark =
+  choice === 'orange'
+    ? brandWordmark.orange
+    : theme === 'dark'
+      ? brandWordmark.cream
+      : brandWordmark.black;
 const isHome = Astro.url.pathname === '/';
 ---
 

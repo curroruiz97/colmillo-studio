@@ -8,13 +8,16 @@
  *
  *   hero       black     #0d0d0b   "Servicios." (the loop's own ground;
  *                                  charcoal #1f1f1f while the slot is empty)
- *   Estrategia white
+ *   Estrategia cream     #fceeda
  *   Identidad  orange    #cd5730
  *   Digital    black     #12100f
- *   Contenido  white
+ *   Contenido  cream     #fceeda
  *   close      black
  *
- * Contrast: ink on white ≈ 18.9:1, ink at 72% on white ≈ 7.4:1, ink on the
+ * The light layers cannot take `--color-background`: this route overrides it
+ * to ink so the black reaches the document, so they name the cream token.
+ *
+ * Contrast: ink on cream ≈ 16.4:1, ink at 72% on cream ≈ 6.5:1, ink on the
  * orange ≈ 4.5:1 (so the orange layer sets every text in full ink), #f5f5f5 on
  * black ≈ 18:1, white at 68% on black ≈ 9:1. Brand orange is only used for
  * marks, rules and large type.
@@ -247,7 +250,7 @@ html:has([data-services-page])[data-surface-tone='accent']
 
 /*
  * The empty slot: four plates stacked at the frame's foot, in the order of
- * the layers below (white, orange, black, white), each a little lower and
+ * the layers below (cream, orange, black, cream), each a little lower and
  * slightly off the one behind it.
  */
 .services-hero__plate {
@@ -259,7 +262,7 @@ html:has([data-services-page])[data-surface-tone='accent']
 .services-hero__plate:nth-child(1) {
   inset-inline: 18% 12%;
   block-size: 74%;
-  background: var(--color-white);
+  background: var(--color-brand-cream);
 }
 
 .services-hero__plate:nth-child(2) {
@@ -278,7 +281,7 @@ html:has([data-services-page])[data-surface-tone='accent']
 .services-hero__plate:nth-child(4) {
   inset-inline: 15% 19%;
   block-size: 20%;
-  background: var(--color-white);
+  background: var(--color-brand-cream);
 }
 
 /*
@@ -356,7 +359,7 @@ html:has([data-services-page])[data-surface-tone='accent']
 /* ============================================================= layers === */
 
 .service-layer {
-  --layer-bg: var(--color-white);
+  --layer-bg: var(--color-brand-cream);
   --layer-text: var(--color-brand-ink);
   --layer-muted: rgb(18 16 15 / 0.72);
   --layer-line: rgb(18 16 15 / 0.16);

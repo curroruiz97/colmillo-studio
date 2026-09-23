@@ -3,7 +3,10 @@ import Footer from '@/components/layout/Footer.astro';
 import EdgeMenu from '@/components/layout/EdgeMenu.astro';
 import InstagramBadge from '@/components/layout/InstagramBadge.astro';
 import SeoHead from '@/components/layout/SeoHead.astro';
-import SiteLogo, { type HeaderTheme } from '@/components/layout/SiteLogo.astro';
+import SiteLogo, {
+  type HeaderTheme,
+  type LogoMark,
+} from '@/components/layout/SiteLogo.astro';
 import '@/styles/index.css';
 
 interface Props {
@@ -17,6 +20,18 @@ interface Props {
    * one.
    */
   headerTheme?: HeaderTheme;
+  /**
+   * Which validated wordmark the route paints. `auto` follows `headerTheme`;
+   * `orange` asks for the orange derivative whatever the tone. Only the home
+   * sets it.
+   */
+  logoMark?: LogoMark;
+  /**
+   * Drops the global corner wordmark, for a route that carries its own. Only
+   * `/proyectos/<slug>/` does: its header centres the mark between its own
+   * "Proyectos" link and the Instagram control, which both stay.
+   */
+  hideLogo?: boolean;
   ogImage?: string | undefined;
   ogImageAlt?: string | undefined;
   ogType?: 'website' | 'article';
@@ -27,7 +42,9 @@ const {
   description,
   noindex,
   hideNavigation = false,
+  hideLogo = false,
   headerTheme = 'light',
+  logoMark = 'auto',
   ogImage,
   ogImageAlt,
   ogType,
@@ -52,7 +69,11 @@ const {
   <body>
     <a class="skip-link" href="#contenido">Saltar al contenido</a>
     <slot name="overlay" />
-    {!hideNavigation && <SiteLogo theme={headerTheme} />}
+    {
+      !hideNavigation && !hideLogo && (
+        <SiteLogo theme={headerTheme} mark={logoMark} />
+      )
+    }
     {!hideNavigation && <EdgeMenu />}
     {!hideNavigation && <InstagramBadge />}
     <main id="contenido" tabindex="-1">

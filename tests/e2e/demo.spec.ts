@@ -118,9 +118,16 @@ test('development demo exposes its provisional projects and flags each one', asy
   }
   await expect(page.locator('[data-project-item]')).toHaveCount(10);
 
+  /*
+   * The project template stopped carrying the provisional flag on 2026-09-23
+   * (client direction). The demonstration is still fenced off by
+   * `check-production.mjs`, whose forbidden markers include every demo slug,
+   * title and invented client, so none of it can reach `dist/`.
+   */
   await page.goto('/proyectos/demo-fauce-elastica/');
+  await expect(page.locator('.cs-flag')).toHaveCount(0);
   await expect(
-    page.getByText('DEMO FICTICIA — NO PUBLICAR').first(),
+    page.getByRole('heading', { level: 1, name: 'Fauce Elástica' }),
   ).toBeVisible();
 });
 
@@ -195,7 +202,7 @@ test('the edge tab turns ink over the orange service layer and back', async ({
   await expect(tab).toHaveCSS('background-color', ORANGE);
 });
 
-test('project detail, previous/next and history navigation work', async ({
+test('a project detail and its two ways out, across history', async ({
   page,
 }) => {
   const errors = await collectConsoleErrors(page);
@@ -203,16 +210,18 @@ test('project detail, previous/next and history navigation work', async ({
   await expect(
     page.getByRole('heading', { level: 1, name: 'Fauce Elástica' }),
   ).toBeVisible();
-  await expect(
-    page.getByText('DEMO FICTICIA — NO PUBLICAR').first(),
-  ).toBeVisible();
-  await page.getByRole('link', { name: /Siguiente.*Pulso Molar/ }).click();
-  await expect(page).toHaveURL(/demo-pulso-molar/);
+
+  /*
+   * Since 2026-09-23 the template has no previous/next stage: a project leads
+   * back to the archive through its own header, and on to Contacto through the
+   * button that closes the brief.
+   */
+  await page.locator('.cs-brief__cta').click();
+  await expect(page).toHaveURL(/\/contacto\/$/);
   await page.goBack();
   await expect(page).toHaveURL(/demo-fauce-elastica/);
-  await page.goForward();
-  await expect(page).toHaveURL(/demo-pulso-molar/);
-  await page.getByRole('link', { name: 'Todos los proyectos' }).click();
+
+  await page.locator('.cs-header__back').click();
   await expect(page).toHaveURL(/\/proyectos\/$/);
   expect(errors).toEqual([]);
 });
@@ -243,14 +252,14 @@ test('project pages and the rail remain usable without JavaScript', async ({
   await expect(
     page.getByRole('heading', { level: 1, name: 'Fauce Elástica' }),
   ).toBeVisible();
-  const nextProject = page.getByRole('link', {
-    name: /Siguiente.*Pulso Molar/,
-  });
+
+  // The way back out of a project is real with no script behind it.
   await Promise.all([
-    page.waitForURL(/demo-pulso-molar/),
-    nextProject.evaluate((link: HTMLAnchorElement) => link.click()),
+    page.waitForURL(/\/proyectos\/$/),
+    page
+      .locator('.cs-header__back')
+      .evaluate((link: HTMLAnchorElement) => link.click()),
   ]);
-  await expect(page).toHaveURL(/demo-pulso-molar/);
   await context.close();
 });
 
@@ -583,20 +592,15 @@ test('fixed controls do not cover project copy or navigation', async ({
 }) => {
   await page.goto('/proyectos/demo-fauce-elastica/');
   const menu = page.locator('[data-edge-tab]');
-  // The case study's own copy since the route was rebuilt (2026-09-16): the
-  // project's name in the hero, its metadata and its introduction.
+  // The case study's own copy since the template was rebuilt (2026-09-23):
+  // the project's name, the client it was made for, the chapter strip and the
+  // chapter on stage.
   const copy = page.locator(
-    '.cs-hero__title, .cs-meta__term, .cs-meta__value, .cs-intro__headline, .cs-intro__text',
+    '.cs-brief__title, .cs-brief__client, .cs-chapter__label, .cs-chapter__text',
   );
   await expect(page.locator('[data-motion-toggle]')).toHaveCount(0);
   await expectNoOverlap(menu, copy);
   await expectNoOverlap(page.locator('[data-instagram]'), copy);
-
-  await page.locator('[data-cs-next]').scrollIntoViewIfNeeded();
-  await expectNoOverlap(
-    menu,
-    page.locator('.cs-next__title, .cs-next__route, .cs-next__aside'),
-  );
 });
 
 test('reduced motion keeps all project content available', async ({ page }) => {
@@ -1332,6 +1336,12 @@ test('the home manifesto builds its composition without scaling the type', async
   expect(final.romper!.left).toBeGreaterThan(final.presionar!.right);
   expect(final.romper!.right).toBeLessThanOrEqual(final.band!.right);
   expect(final.marca!.top).toBeGreaterThan(final.morder!.bottom);
+  // The protagonist returns to the guide "Morder." stands on, and the button
+  // follows it there (2026-09-22, client direction).
+  expect(Math.abs(final.marca!.left - final.morder!.left)).toBeLessThanOrEqual(
+    2,
+  );
+  expect(Math.abs(final.cta!.left - final.morder!.left)).toBeLessThanOrEqual(2);
   // The file carries wide transparent margins, so the box may reach under
   // "Dejar marca."; the drawn ink, which starts 310/1600 into the image, must
   // keep clear air from it.
@@ -1349,6 +1359,27 @@ test('the home manifesto builds its composition without scaling the type', async
   ]) {
     expect(await isUnscaled(page, selector), selector).toBe(true);
   }
+
+  // Orange and roman: it is an `em` for emphasis, never for slant.
+  const marca = page.locator("[data-manifesto-word='marca']");
+  await expect(marca).toHaveCSS('font-style', 'normal');
+  await expect(marca).toHaveCSS('color', 'rgb(205, 87, 48)');
+
+  // The button has more presence than the shared one, in the same language:
+  // orange, ink border, ink slab offset under it.
+  const button = page.locator('.manifesto-home__button');
+  const hero = page.locator('.hero__cta');
+  const [buttonBox, heroBox] = await Promise.all([
+    button.boundingBox(),
+    hero.boundingBox(),
+  ]);
+  expect(buttonBox!.height).toBeGreaterThan(heroBox!.height);
+  await expect(button).toHaveCSS('background-color', 'rgb(205, 87, 48)');
+  await expect(button).toHaveCSS('border-top-color', 'rgb(18, 16, 15)');
+  await expect(button).toHaveCSS(
+    'box-shadow',
+    'rgb(18, 16, 15) 0px 6.4px 0px 0px',
+  );
 });
 
 test('the home manifesto is a finished poster under reduced motion', async ({
@@ -1463,7 +1494,7 @@ test('the studio spread pairs an editorial headline with the loop', async ({
   await expect(section.getByRole('heading', { level: 2 })).toHaveText(
     'Tensamos cada idea hasta que muerde.',
   );
-  await expect(section).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+  await expect(section).toHaveCSS('background-color', 'rgb(252, 238, 218)');
 
   // The retired orange composition must stay retired: no seal, no underlined
   // route, no visible development note.
@@ -1592,7 +1623,7 @@ test('the studio loop rests on its poster under reduced motion', async ({
   expect(state.motion).toBe('reduced');
   expect(state.paused).toBe(true);
   expect(state.time).toBe(0);
-  expect(state.poster).toMatch(/studio-poster-white\.webp$/);
+  expect(state.poster).toMatch(/studio-poster\.webp$/);
   expect(state.hidden).toBe(0);
 });
 

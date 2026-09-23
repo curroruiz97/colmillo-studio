@@ -6,7 +6,7 @@ import { expect, test, type Page } from '@playwright/test';
  * covered by `projects.spec.ts`.
  */
 
-const WHITE = 'rgb(255, 255, 255)';
+const CREAM = 'rgb(252, 238, 218)';
 const INK = 'rgb(18, 16, 15)';
 
 async function collectErrors(page: Page) {
@@ -37,12 +37,12 @@ test('the archive opens like the other editorial routes and ends on one door', a
   const errors = await collectErrors(page);
   await page.goto('/proyectos/');
 
-  // Hero: the route's title on a white first screen, with the orange stop.
+  // Hero: the route's title on a cream first screen, with the orange stop.
   const title = page.getByRole('heading', { level: 1, name: 'Proyectos' });
   await expect(title).toBeVisible();
   await expect(page.locator('.projects-hero')).toHaveCSS(
     'background-color',
-    WHITE,
+    CREAM,
   );
   // The hero and the gallery are one sheet: no seam, no rounded lift.
   await expect(page.locator('.projects-hero')).toHaveCSS(
@@ -76,7 +76,7 @@ test('the archive opens like the other editorial routes and ends on one door', a
   ]) {
     await expect(page.locator(selector), selector).toHaveCSS(
       'background-color',
-      WHITE,
+      CREAM,
     );
   }
   await expect(page.locator('.projects-close')).toHaveCSS('color', INK);
