@@ -786,7 +786,15 @@
 }
 
 .projects-close__wing {
-  --pj-cta-h: min(100cqh, clamp(20rem, 42vw, 34rem));
+  /*
+   * The scene covers the section, exactly as the `/servicios/` close does: the
+   * wing takes the whole height and the picture is drawn at that height, so
+   * the two ends reach the top and the bottom edge instead of floating in a
+   * band with the screen empty under them. It used to be capped at 34rem and
+   * centred, which was fine while the section was only as tall as its copy and
+   * left half a screen bare once it became a whole one.
+   */
+  --pj-cta-h: 100cqh;
   --pj-cta-img-w: calc(var(--pj-cta-h) * var(--pj-cta-ratio));
   --pj-cta-depth: calc(var(--pj-cta-img-w) * 0.32);
   --pj-cta-reach: clamp(
@@ -796,47 +804,29 @@
   );
   --pj-cta-shift: calc(var(--pj-cta-depth) - var(--pj-cta-reach));
   position: absolute;
-  /* Centred on the section: the picture's own top and bottom edges are the
-     page's white, so nothing marks where it begins or ends. */
-  inset-block-start: 50%;
-  block-size: var(--pj-cta-h);
-  translate: 0 -50%;
+  inset-block: 0;
   /* Never past the picture's empty middle, whatever the screen's shape. */
   inline-size: min(50cqw, calc(var(--pj-cta-img-w) / 2 - var(--pj-cta-shift)));
   overflow: hidden;
 }
 
 /*
- * Each wing fades on three sides. The inner one is obvious: the picture has to
- * give way to the copy. The top and the bottom are not decoration either — the
- * master is itself a crop, so its sculptures meet its frame, and drawn at less
- * than the section's height that frame would cut a straight edge across the
- * orange in the middle of the sheet. Faded, the sculptures dissolve into the
- * page instead, which is what the hero on this route already does with its own
- * ground.
+ * Each wing fades on its inner edge alone: the picture has to give way to the
+ * copy standing in its gap. The top and the bottom used to fade as well, to
+ * hide the master's own crop where a short wing cut across the sculptures —
+ * a full-height wing has no such edge to hide, and the picture's paper is the
+ * section's white anyway, so its ends simply meet the page.
  */
 .projects-close__wing--start {
   inset-inline-start: 0;
-  -webkit-mask-image:
-    linear-gradient(to right, #000 calc(100% - 7rem), #0000),
-    linear-gradient(to bottom, #0000, #000 14%, #000 86%, #0000);
-  mask-image:
-    linear-gradient(to right, #000 calc(100% - 7rem), #0000),
-    linear-gradient(to bottom, #0000, #000 14%, #000 86%, #0000);
-  -webkit-mask-composite: source-in;
-  mask-composite: intersect;
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 7rem), #0000);
+  mask-image: linear-gradient(to right, #000 calc(100% - 7rem), #0000);
 }
 
 .projects-close__wing--end {
   inset-inline-end: 0;
-  -webkit-mask-image:
-    linear-gradient(to left, #000 calc(100% - 7rem), #0000),
-    linear-gradient(to bottom, #0000, #000 14%, #000 86%, #0000);
-  mask-image:
-    linear-gradient(to left, #000 calc(100% - 7rem), #0000),
-    linear-gradient(to bottom, #0000, #000 14%, #000 86%, #0000);
-  -webkit-mask-composite: source-in;
-  mask-composite: intersect;
+  -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 7rem), #0000);
+  mask-image: linear-gradient(to left, #000 calc(100% - 7rem), #0000);
 }
 
 /* Drawn at the section's own height and three times as wide, which is the
@@ -982,11 +972,12 @@
  */
 @media (orientation: portrait), (max-width: 47.99rem) {
   .projects-close__wing {
-    /* The band is the drawn height here, so everything below it re-derives. */
+    /* The band is the drawn height here, so everything below it re-derives,
+       and the full-height base above has to be undone. */
     --pj-cta-h: var(--pj-cta-band);
     --pj-cta-reach: min(var(--pj-cta-depth), 44cqw);
-    inset-block-start: auto;
-    translate: none;
+    inset-block: auto;
+    block-size: var(--pj-cta-band);
     inline-size: min(
       100cqw,
       calc(var(--pj-cta-img-w) / 2 - var(--pj-cta-shift))

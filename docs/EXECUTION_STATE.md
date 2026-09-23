@@ -5980,3 +5980,44 @@ cream. Invisible, and stated as measured rather than as perfect.
   layer count (2 -> 3) and the new flush/opening split.
 
 Nothing was deployed by hand.
+
+
+## 2026-09-23 Session: The /proyectos/ Closing Scene Covers Its Section
+
+User report: the picture does not look right, it has to cover the container.
+It did not — and the measurement said why.
+
+At 1920x1080 the close was the full screen but each wing was only 742x544,
+drawn from y=66 to y=610. Roughly four hundred pixels of bare white sat under
+the scene. The wings had been capped at `min(100cqh, clamp(20rem, 42vw,
+34rem))` and centred on the section, which was right while the section was
+only as tall as its copy and wrong the moment it became a whole screen.
+
+Compared against `/servicios/`, the route this close is modelled on: there each
+wing is 960x1080 — half the width and the **full height** — with the picture
+drawn at `100cqh * ratio` so the two ends reach the top and bottom edges. The
+`/proyectos/` wings now do the same: `--pj-cta-h` is `100cqh`, the wing is
+`inset-block: 0`, and it takes half the width.
+
+The three-sided fade became an inner-edge fade. The top and bottom gradients
+existed to hide the master's own crop where a short wing cut across the
+sculptures; a full-height wing has no such edge, and the picture's paper is the
+section's white, so its ends simply meet the page. The portrait layout is
+unchanged and still uses bands, so it undoes the new full-height base
+explicitly.
+
+### Verification (actually run)
+
+- Wings now measure 960x1080 at 1920, 720x900 at 1440 — half the width and the
+  whole height, meeting in the middle, covering the section. Portrait keeps its
+  219px bands.
+- What sits behind the copy, sampled on the rendered page either side of the
+  copy's block at 1920, 1440, 1280, 834 and 390: the darkest pixel is
+  rgb(255, 255, 253), so the sculptures never reach the text and its contrast
+  is untouched.
+- `astro check` 0/0/0; ESLint clean; Prettier clean; both builds.
+- Playwright: 102 passed / 10 skipped (`dist`) and 183 passed (`dist-demo`),
+  the existing "the closing scene frames its copy and never pushes the page
+  sideways" among them.
+
+Nothing was deployed by hand.
