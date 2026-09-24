@@ -254,8 +254,16 @@ registers ScrollTrigger and initializes/cleans:
   published by this chunk, so a page without JavaScript shows the complete
   archive and no dead control;
 - `ContactBite.ts`: loads `ContactBiteMotion.ts` on demand for the home contact
-  close (entrance, the soft sculpture's live pose from `ContactSculpture.ts`,
-  pressure on "muerda", bite);
+  close (entrance, the sculpture's live pose from `ContactSculpture.ts`,
+  pressure on "muerda", bite). Since 2026-09-24 the sculpture is a stress ball
+  with nothing cut out of it (client direction), modelled as a real solid and
+  projected analytically to SVG — no WebGL, no mesh. A fine pointer presses it
+  in, rolls it and pulls it out of shape. Nothing on it is ever stroked (client
+  direction, 2026-09-24: folds, a contact rim and wrinkles were each tried and
+  each read as scratches; `demo.spec.ts` guards it). So the press is carried by
+  the dip's two walls and the roll by the ball's own lumps turning through the
+  outline — neither has anything else to show it, so do not quieten them. See
+  `docs/MOTION_SPEC.md`;
 - `MagneticElements.ts`: bounded pointer response with cached bounds.
 
 `VideoLoop.ts` is the shared helper those modules start and park every silent

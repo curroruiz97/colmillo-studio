@@ -42,16 +42,25 @@ test('the home foundation publishes only approved contact channels', async ({
   await expect(page.locator('a[href="#"]')).toHaveCount(0);
 
   const approvedMail = 'mailto:hola@colmillostudio.com';
-  const approvedInstagram = 'https://www.instagram.com/colmillo.studio/';
 
-  // The contact section publishes both approved channels in the document flow.
+  /*
+   * The contact section publishes the approved mail channel in the document
+   * flow, and the way on to the contact route beside it. Since 2026-09-23 it
+   * does not repeat the profile: Instagram is offered once, by the global
+   * control in the top-right corner of every route, which this file checks
+   * where that control is checked.
+   */
   const contactSection = page.locator('#contacto');
   await expect(
     contactSection.locator(`a[href="${approvedMail}"]`),
   ).toBeVisible();
+  await expect(contactSection.locator('a[href="/contacto/"]')).toBeVisible();
   await expect(
-    contactSection.locator(`a[href="${approvedInstagram}"]`),
-  ).toBeVisible();
+    contactSection.locator(`a[href="${APPROVED_INSTAGRAM}"]`),
+  ).toHaveCount(0);
+  await expect(
+    page.locator(`.ig-badge[href="${APPROVED_INSTAGRAM}"]`),
+  ).toHaveCount(1);
 
   // Every published channel must be one of the approved destinations.
   const mailHrefs = await page

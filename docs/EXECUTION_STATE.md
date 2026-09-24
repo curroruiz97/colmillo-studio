@@ -6021,3 +6021,381 @@ explicitly.
   sideways" among them.
 
 Nothing was deployed by hand.
+
+## 2026-09-23 Session: The Contact Close Hands Over Its Navigation And Becomes A Stress Ball
+
+Three requests, one section (`src/components/sections/ContactSection.astro`):
+replace the Instagram button with a Contacto one, since Instagram is already
+in the top-right corner; take the link off the 3D figure, because it is not
+intuitive, keeping the figure; and make that figure behave like a stress ball
+that sinks under the cursor — "algo espectacular".
+
+### The buttons
+
+`actions` is now the approved mail channel followed by `/contacto/`. The pair
+still renders as two of the hero's `bite-button`s, so nothing about their
+shape, colour, shadow, magnetic pull or hover squeeze changed — the browser
+test that asserts they are the hero's button, not a lookalike, still passes.
+`contactChannels.instagram` was not touched; the global badge and the edge
+menu still publish it, which is the point.
+
+### The figure
+
+It was a link. It is now a `<div>`, `aria-hidden`, inert. Everything it wore
+as a control went with it: the pointer cursor, the ink slab it pressed onto,
+the focus ring, the cursor's "Contacto" disc and the `contact-bite__hint`
+note. `.contact-bite__offset` and `.contact-bite__ring` are gone from the
+markup and the stylesheet alike, so this leaves no dead rules behind.
+
+### The squeeze
+
+`ContactSculpture.ts` gained a `squish` term in the body profile, so the give
+is real geometry rather than a transform: a bell under the pointer's angle
+(`FINGER`), a raised rim either side of it (`RIM`), compression along that
+axis and a bulge across it (`COMPRESS`/`POISSON`), plus a small overall
+flatten when the pointer is dead centre and there is no side to push toward.
+The contact shadow spreads and tightens with it and the highlight slides with
+the pressure, because a squashed ball sits on more ground and its light moves.
+
+`ContactBiteMotion.ts` drives it: `power2.out` in 0.12 s going in — a finger
+meets a surface at once — and `elastic.out(1, 0.38)` over 1.15 s coming out,
+so it overshoots and wobbles down. Depth falls from the middle to zero at
+0.85 radii, with `SOFTNESS` 0.68 so it gives quickly and then resists. The
+squeeze is a tween on the state object rather than on a node, so it outlives
+the element unless killed — the cleanup kills it and zeroes `state.squish`.
+Entering the body no longer bites; "muerda" still does.
+
+### Two browser tests had to be rewritten, not adjusted
+
+They asserted the old product, and both would have passed on a broken page:
+
+- `demo.spec.ts` asserted an Instagram link in the section and that the piece
+  is a button (pointer cursor, cursor label, hint, offset, transform, and a
+  click that lands on `/contacto/`).
+- `foundations.spec.ts` asserted that `#contacto` publishes both approved
+  channels in the document flow. It now asserts the mail channel and the route
+  to `/contacto/` there, that the section does **not** repeat the profile, and
+  that the profile is published exactly once by the global `.ig-badge` — which
+  is the real requirement and was previously only implied.
+
+The piece test now measures the stress ball instead of the button: the contact
+shadow's `ry` is a pure function of `squish`, so it reads the depth with no
+help from proximity or from the bite. Middle < rim < rest; the same depth from
+the left and from the right are two different outlines; a moment after the
+pointer leaves the ball is still moving; and it ends on exactly its resting
+outline.
+
+### Verification (actually run)
+
+- `astro check` 0 errors / 0 warnings / 0 hints; ESLint clean; Prettier clean
+  on every file touched.
+- `check:assets`, `check:brand`, `check:hero` pass; `check:production` passes
+  (84 files, 196,703 JS bytes); `check:links` passes.
+- Playwright `dist`: 102 passed / 10 skipped, including the rewritten
+  foundations test and, this run, the intermittently flaky edge-menu one.
+- Playwright `dist-demo`: 183 passed / 69 skipped, including the rewritten
+  contact close and sculpture tests across all three profiles.
+
+Nothing was deployed by hand and nothing was pushed.
+
+## 2026-09-23 Session: The Contact Sculpture Becomes A Solid You Can Turn
+
+Request: make the figure a literal 3D object that can be turned over by holding
+the mouse on it, and that eases back to its original pose after two or three
+seconds without interaction.
+
+### The geometry is the change
+
+`ContactSculpture.ts` was rewritten around a real solid instead of a drawing
+that leans. The body is a ball; each bite is a second ball whose centre sits on
+the body's surface. For a ray through a screen point the body occupies
+`[-zf, zf]` and a cutter `[cz - h, cz + h]`, and the whole renderer is two
+inequalities: the ray misses the solid when `h >= zf + |cz|`, and the cutter's
+far wall is the nearest surface when `cz - h <= zf <= cz + h`. The first carves
+the silhouette — which is why turning the piece changes its outline instead of
+rotating a picture — and the second is the bite's inside.
+
+The rim where two balls meet is a circle in space, so it projects to an
+ellipse. Filled it is the wall, stroked it is the lip, and the body's existing
+clip path trims away exactly the half of it that falls in the opening, which is
+provably the right cut and cost nothing to add. Points are projected into a
+unit disc and then laid over the body's own outline, so the squeeze, the dent
+and the entrance squash deform the bites with the silhouette rather than
+sliding under it. `cavity`/`lip` ellipses are gone; `rims: RimFrame[]` replaces
+them, and a bite facing away reports an empty path.
+
+The light, the shade, the ground shadow and the resting sag stay put under
+rotation. They belong to the room and to gravity, and leaving them alone is
+most of what makes the turn read as a turn.
+
+### Constants chosen by looking, not by taste
+
+- The rest pose is not the old one and cannot be. A spherical bite removes a
+  cap of half-angle `α`, depth `cos α` and half-width `α`, so it cannot be
+  narrow and deep the way the old cylindrical punch was. `BITE_TOWARDS = 0.45`
+  came from rendering the section itself at 0.30 / 0.45 / 0.60: 0.30 kept the
+  old crescent but showed no wall, 0.60 read as a tube.
+- `α = 50°` replaced a first pass at 57°, which at edge-on left a crescent so
+  thin the piece stopped reading as a ball.
+- The second bite (34°) sits half a turn away in yaw, recomputed after
+  `BITE_TOWARDS` changed. A sweep of the full turn confirms the handover: the
+  large bite shows from 345° through 150°, the small one from 165° through
+  330°, and the two gaps are exactly where a bite is edge-on and cutting the
+  silhouette hardest. There is no angle at which the piece is featureless.
+
+### The orbit
+
+`ContactBiteMotion.ts` gained the grip: `pointerdown` on the painted body takes
+pointer capture, moves turn `yaw`/`pitch` at half a turn per body width, pitch
+is clamped short of the poles, and release coasts (`power3.out`, capped) unless
+the pointer had already stopped. 2.5 s later it returns over 1.5 s, normalising
+yaw first so it takes the short way round rather than unwinding three turns.
+The grip is `pointer-events: visiblePainted` on the body with `cursor: grab`,
+both published by the driver as `data-bite-turn`, so no chunk means no grip.
+Touch and reduced motion get none, by design.
+
+### Two tests had to change, and one was mine from this morning
+
+- `demo.spec.ts` asserted that nothing in the piece takes the pointer — true
+  when the figure stopped being a link, false now that it is a handle. It
+  asserts the handle instead, and that only the painted body is one: the
+  corner of its box is not.
+- The reduced-motion test now asserts the honest version: the solid is all
+  there in the served pose, and there is no grip, no grab cursor and no
+  pointer events to go with it.
+- New: "the sculpture is a solid: holding it turns it, and it finds its way
+  back". It reads the turn off *which bites are showing*, which is a pure
+  function of orientation, so it cannot be satisfied by the squeeze, the drift
+  or the pressure — all of which are still running while the piece is held.
+
+### Verification (actually run)
+
+- Offline sweeps of the whole turn (24 orientations, then finer passes over the
+  two handovers) rendered and inspected; a before/after comparison against the
+  previous geometry at full size.
+- On the built page: grab, turn most of the way round (the second bite comes
+  up), squeeze while still holding (both compose), release, and the return —
+  away from home at +2.1 s, home at +4.7 s. No console or page errors.
+- `sculptureFrame` costs 0.361 ms a frame against 0.236 ms before.
+- Budgets: 199,261 total JS of 220,000; largest asset unchanged at 148,864 of
+  150,000; the contact chunk 9,821 bytes.
+- `astro check` 0/0/0; ESLint clean; Prettier clean on every file touched;
+  `check:assets`, `check:brand`, `check:hero`, `check:production`,
+  `check:links` all pass.
+- Playwright `dist`: 102 passed / 10 skipped. `dist-demo`: 184 passed /
+  71 skipped.
+
+### Note
+
+`CLAUDE.md`'s "Current state" line under Git is stale: it says local `main` is
+one commit ahead at `f1e53bf` with an uncommitted `package-lock.json` deletion.
+The tree is in fact level with `origin/main` and clean apart from this work.
+
+Nothing was deployed by hand and nothing was pushed.
+
+## 2026-09-24 Session: The Sculpture Becomes A Stress Ball
+
+Client's report on yesterday's solid: they could not tell what the figure was
+and did not see the point of it. What they wanted instead: a stress ball with
+no hole or anything, still turnable, that can also be stretched, that sinks
+when you click it, and whose folds show more.
+
+### The bites are gone, and that has a consequence
+
+Both cutters, the through-hole test, the rim ellipses and the wall and lip
+gradients are all removed. `boundary()` and its ray march went with them: with
+nothing cut out, the outline is a direct polar evaluation, which is why the
+geometry got cheaper even as it gained folds.
+
+The consequence that had to be designed around, not discovered later: **a ball
+with nothing cut out of it has the same silhouette at every angle**, so the
+roll has no outline to show it. Yesterday the bites did that. Today five
+standing folds do — arcs of circles on the ball, fixed to the surface, drawn
+each as one path twice over (a dark valley, a brighter lip offset away from
+the light). Their arcs are long and their axes spread so no angle leaves the
+ball bare. A fold coming over the horizon now fades in with its own visible
+length, because a two-point stub reads as a scratch, not a crease.
+
+### Press, pull and roll, from one pointer
+
+- Resting on the ball presses it a fifth of the way in (`TOUCH`); holding the
+  button digs in the rest (`PRESSED`). That split is what gives the click
+  something to do — before today, hovering already did the whole squeeze.
+- Dragging while held rolls the ball while the pointer is on it and stretches
+  it once the pointer is past its edge. `grip` fades between the two, so a
+  drag outwards rolls, then rolls less and pulls more, then only pulls.
+- The pull draws a tip, leaves a neck behind it and takes the width from
+  across itself.
+- Press and pull spring back with `elastic.out`; the roll coasts and then goes
+  home 2.5 s later, as before.
+
+### A defect the rewrite exposed
+
+The press used to dent the outline by the pointer's bearing alone, so pressing
+the middle of the ball pulled the silhouette in at that bearing and grew a
+lobe beside it — visible in the first render pass as an appendage on the left.
+It is simply wrong: pushing the middle of a ball drives material away from the
+reader, not sideways. The dent now scales with how far out the finger is, and
+pressing the centre `SPREAD`s the outline instead.
+
+### Tuned by looking, in four passes
+
+1. First pass: folds too faint, the press notch too deep and hooked, and the
+   buckling drawn as concentric rings, which read as a target.
+2. Rings became one rim plus three radial wrinkles that bend as they go.
+3. The rim at 0.4 rad read as a lasso round half the ball; 0.28 reads as the
+   edge of a fingertip. It is closed into a ring while all of it is on the
+   near side and left open once part has gone round, which removed a hook at
+   its ends.
+4. The dip's shading was strengthened and tightened once it stopped competing
+   with the line work, since a depression is carried by its two walls — dark
+   on the side facing the light — more than by any outline.
+
+One chase worth recording: a small ellipse at the pointer that looked like a
+stray mark in the page screenshots turned out to be the site's own custom
+cursor, not the sculpture. Measuring the SVG bounding boxes in the browser
+settled it, after guessing at the geometry had not.
+
+### Tests
+
+- The orbit test became "the ball answers a hand": it checks that resting
+  presses a little, that the click goes several times deeper, that dragging
+  changes **which folds are facing** (a pure function of the roll, so neither
+  the press nor the pull can fake it), and that carrying on past the edge
+  widens the body instead. Its ending is now two polls rather than one,
+  because the outline is home as soon as the press and the pull let go while
+  the roll takes its own 2.5 s — the spec says so too.
+- The reduced-motion test asserts the served folds are there and that no grip,
+  grab cursor or pointer events come with them.
+
+### Verification (actually run)
+
+- Offline renders of twelve states (rest, five roll angles, hover, click in
+  the centre and off it, three pulls), then four states at full size, then the
+  real page at each step of press → roll → pull → release → home.
+- On the built page: hover, click, roll, pull and release all behave, and the
+  ball ends on exactly its resting outline and its resting folds. No console
+  or page errors.
+- Budgets: 201,425 total JS of 220,000; largest asset unchanged at 148,864 of
+  150,000; the contact chunk 11,985 bytes.
+- `astro check` 0/0/0; ESLint clean; Prettier clean on every file touched;
+  `check:assets`, `check:brand`, `check:hero`, `check:production`,
+  `check:links` all pass.
+- Playwright `dist`: 102 passed / 10 skipped. `dist-demo`: 184 passed /
+  71 skipped.
+
+Nothing was deployed by hand and nothing was pushed.
+
+## 2026-09-24 Session (second pass): The Lines Come Off The Ball
+
+Client, on the stress ball from earlier the same day: they like it, but take
+off "esas líneas que tiene como que si estuviera rallado la bola". The five
+standing folds are gone.
+
+### Why they were right, and what it cost
+
+On the page the ball is cropped, so it reads much larger than it does in
+isolation, and at that size a stroked arc is a score in the surface rather
+than a crease in it. The press marks stay — they exist only while something is
+pressing the ball, and they are what makes the click read.
+
+The cost is the thing that had to be handled rather than discovered: **the
+folds were the only thing showing the roll**, because a ball with nothing cut
+out of it has the same silhouette at every angle. Removing them would have
+left `yaw` and `pitch` computed and discarded — dead code and a dead feature,
+three days after it was asked for.
+
+### What carries the roll now
+
+The ball's own unevenness. Three lumps (`LUMPS`) sit at fixed directions on
+the ball, so they turn with it, and each only shows where it reaches the limb:
+the silhouette at a screen bearing is the surface at the limb in that
+direction, so the angle between a lump and that direction is the whole of it.
+Rolling therefore walks the lumps through the outline — nothing drawn, nothing
+added to the resting ball.
+
+It is quiet by nature: at 5-7% of the radius the bounding box moves about 4%
+across a full turn, plain while dragging and subtle in a still. That is the
+honest cost of a ball with no marks on it, and the constraint is now written
+at the top of `ContactSculpture.ts`, in `docs/MOTION_SPEC.md` and in
+`CLAUDE.md`, so nobody later shrinks `LUMPS` as a tidy-up and kills the roll
+without noticing.
+
+### Also
+
+- A fold whose strength rounds to zero now builds no path at all, so at rest
+  the sculpture emits no line geometry and the ring strings are not built
+  every frame either.
+- `Fold`, `defineFold`, `FOLDS`, `FOLD_SAMPLES` and the fold half of the
+  markup and the driver are all removed; `carve()` no longer needs to know
+  where a line sits, only how strongly it shows.
+
+### Tests
+
+The hand test used "which folds are facing" as its roll signal. It now reads
+the roll where it actually lives: it releases the ball with the pointer
+stopped, waits 1.7 s — past the 1.3 s the press and the pull take to spring
+back, and short of the 2.5 s before the roll goes home — and asserts that the
+outline is still off its resting shape while the dip and the rim are provably
+at zero. That window is what separates the turn from the give. The
+reduced-motion test asserts no marks are drawn at all.
+
+### Verification (actually run)
+
+- Eight roll angles rendered and inspected: the ball stays a ball at every one
+  of them, and the outline moves between them. Bounding box across the turn:
+  701-729 of ~715 viewBox units.
+- On the built page: hover, click, roll, pull, release and the return home all
+  behave; no console or page errors; the resting ball has no line on it.
+- Budgets: 200,865 total JS of 220,000; largest asset unchanged at 148,864 of
+  150,000; the contact chunk 11,425 bytes.
+- `astro check` 0/0/0; ESLint clean; Prettier clean on every file touched; all
+  `check:*` pass.
+- Playwright `dist`: 102 passed / 10 skipped. `dist-demo`: 184 passed /
+  71 skipped.
+
+Nothing was deployed by hand and nothing was pushed.
+
+## 2026-09-24 Session (third pass): Nothing Is Stroked On The Ball
+
+Client, on the mark-free ball from the second pass: the circle that appears on
+hover and deepens on click is still one of "esas rajas", and they do not want
+it. That is the rim at the edge of the contact, with its three wrinkles.
+
+### What went, and what it leaves
+
+`carve()`, `smoothLine()`, `basis()`, `cross()`, `onSkin()`, `PRESS_RIM`,
+`WRINKLES`, `RING_SAMPLES`, `WRINKLE_SAMPLES`, `FoldFrame` and the ring half
+of the markup and the driver are all gone. The contact chunk is down from
+11,985 to 9,590 bytes, below where it was before any of this began.
+
+Three kinds of mark have now been tried on this ball and all three read the
+same way. That is the finding worth keeping: at the size the ball is shown —
+cropped, so it reads much larger than in isolation — **a stroked line is a
+scratch on the surface rather than a crease in it**. The rule is now absolute
+and tested: no element inside `[data-bite-sculpture]` carries a `stroke`, at
+rest, on hover, or pressed as hard as it goes. `demo.spec.ts` asserts it at
+all three moments so no later pass can quietly put a line back.
+
+### The press had to be rebuilt around shading
+
+With the rim gone the dip is the only thing that shows a press in the middle
+of the ball, so it was widened from 0.29 to 0.52 of the radius at full press
+and its two walls pushed from 0.10 to 0.17 apart, which is what makes the pair
+read as a slope rather than as a stain. Pressing near the edge still has the
+outline; pressing the centre has `SPREAD` and the dip and nothing else.
+
+### Verification (actually run)
+
+- Twelve states rendered offline (eight roll angles, hover, two clicks, a
+  pull): no line anywhere, the ball stays a ball at every angle, and the click
+  reads as a broad soft depression.
+- On the built page: hover, click, roll, pull, release and the return home all
+  behave, and the stroke count is 0 at every one of those seven moments.
+- Budgets: 199,030 total JS of 220,000; largest asset unchanged at 148,864 of
+  150,000; the contact chunk 9,590 bytes.
+- `astro check` 0/0/0; ESLint clean; Prettier clean; all `check:*` pass.
+- Playwright `dist`: 102 passed / 10 skipped. `dist-demo`: 184 passed /
+  71 skipped.
+
+Nothing was deployed by hand and nothing was pushed.

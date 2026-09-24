@@ -1,6 +1,7 @@
 import type { gsap as GsapCore } from 'gsap';
 import type { ScrollTrigger as ScrollTriggerClass } from 'gsap/ScrollTrigger';
 import {
+  BODY_HALF_W,
   REST_STATE,
   sculptureFrame,
   toBodyUnits,
@@ -28,9 +29,11 @@ export interface MotionTools {
  * - Fine pointer only: the pointer is eased into the sculpture's state (a
  *   heavy follow), and the SVG is redrawn from `ContactSculpture.ts`: it
  *   tilts towards the pointer, dents where the pressure comes from, swells on
- *   the far side and opens its bite near it. The whole piece drifts a few
+ *   the far side and opens its bite near it. Resting the pointer on the body
+ *   squeezes it like a stress ball — see THE SQUEEZE below — and letting go
+ *   springs it back with a wobble. The whole piece drifts a few
  *   pixels after the pointer, and "muerda" gives way 1-3px under the same
- *   pressure. Touching the piece or "muerda" bites: squash, a deeper scoop,
+ *   pressure. Touching "muerda" bites: squash, a deeper scoop,
  *   release.
  *
  * One pointer listener feeds `quickTo`s; the one ticker callback that draws
@@ -63,14 +66,14 @@ export function mountContactBite(
     body: part('body'),
     light: part('light'),
     shade: part('shade'),
-    cavity: part('cavity'),
-    lip: part('lip'),
     shadow: part('shadow'),
+    dipShade: part('dip-shade'),
+    dipLight: part('dip-light'),
   };
   if (!piece || !svg || Object.values(nodes).some((node) => !node)) {
     return () => undefined;
   }
-  const { body, light, shade, cavity, lip, shadow } = nodes as Record<
+  const { body, light, shade, shadow, dipShade, dipLight } = nodes as Record<
     keyof typeof nodes,
     Element
   >;
@@ -90,8 +93,11 @@ export function mountContactBite(
     light.setAttribute('cy', String(frame.light.y));
     shade.setAttribute('cx', String(frame.shade.x));
     shade.setAttribute('cy', String(frame.shade.y));
-    setEllipse(cavity, frame.cavity);
-    setEllipse(lip, frame.lip);
+    setEllipse(dipShade, frame.dip.shade);
+    setEllipse(dipLight, frame.dip.light);
+    const dip = frame.dip.strength.toFixed(3);
+    dipShade.setAttribute('opacity', dip);
+    dipLight.setAttribute('opacity', dip);
     setEllipse(shadow, frame.shadow);
     section.style.setProperty('--press', frame.press.toFixed(3));
     section.style.setProperty('--lean-x', `${drift.x.toFixed(2)}px`);
@@ -107,6 +113,10 @@ export function mountContactBite(
       state.sx,
       state.sy,
       state.bite,
+      state.squish,
+      state.pull,
+      state.yaw,
+      state.pitch,
       drift.x,
       drift.y,
     ]
@@ -311,26 +321,214 @@ export function mountContactBite(
       .to(section, { '--bite': 0, duration: 0.42, ease: 'power2.out' }, 0.18);
   };
 
-  let inside = false;
-  const onMove = (event: PointerEvent) => {
-    if (event.pointerType === 'touch') return;
-    const unit = toBodyUnits(
+  /*
+   * THE HAND.
+   *
+   * Three things a hand does to a stress ball, from one pointer, with no
+   * modifier to learn and nothing to be told:
+   *
+   *   RESTING on it presses it a little. `TOUCH` is barely a fifth of the way
+   *     in, because a pointer that has not been clicked has not committed to
+   *     anything, and because leaving the whole depth to the click is what
+   *     gives the click something to do.
+   *   HOLDING the button digs in the rest of the way: the outline gives where
+   *     the pressure comes from, the skin buckles into a rim and wrinkles
+   *     around the contact, and the dip shades itself.
+   *   DRAGGING while held does one of two things, and the ball decides which
+   *     from where the pointer is. On the ball it rolls, because the surface
+   *     is still under the finger. Past its edge it stretches, because the
+   *     surface is not: the material follows the pointer out into a tip with
+   *     a neck behind it.
+   *
+   * `grip` is that decision, and it is a fade rather than a switch, so a drag
+   * from the middle outwards rolls, then rolls less and pulls more, then only
+   * pulls. Nothing announces the change and nothing needs to.
+   *
+   * Everything springs back. The press and the pull go with `elastic.out`,
+   * because the ball is carrying the energy that was put into it; the push
+   * itself is `power2.out` in a tenth of a second, because a finger meets a
+   * surface at once. The roll coasts to a stop — a flick spins it, a pointer
+   * that stopped before it lifted does not — and `HOME_WAIT` after the last
+   * touch the ball finds its way back to the pose the page was served with,
+   * the short way round, so one spun three times settles rather than
+   * unwinding.
+   *
+   * Reduced motion never reaches here: the module leaves the still pose
+   * alone, and a still ball that cannot be handled is the honest one.
+   */
+  const TOUCH = 0.22;
+  const PRESSED = 1;
+  const SOFTNESS = 0.68;
+  const HOME_WAIT = 2.5;
+  const HOME_TIME = 1.5;
+  const PITCH_LIMIT = 1.05;
+
+  let holding = false;
+  let heldPointer = -1;
+  let touching = false;
+  let lastX = 0;
+  let lastY = 0;
+  let lastAt = 0;
+  let spin = 0;
+  let homeCall: gsap.core.Tween | null = null;
+
+  const clamp = (value: number) => Math.min(1, Math.max(0, value));
+  /** Where the pointer is on the ball, in body radii. */
+  const reachOf = (event: PointerEvent) => {
+    const at = toBodyUnits(
       (event.pageX - box.left) * box.scale,
       (event.pageY - box.top) * box.scale,
     );
-    follow.px(unit.x);
-    follow.py(unit.y);
+    return { at, distance: Math.hypot(at.x, at.y) };
+  };
+  /** Deepest under the middle, nothing past the edge, stiffening as it goes. */
+  const depthAt = (distance: number) =>
+    clamp((0.95 - distance) / 0.68) ** SOFTNESS;
+  /** How much of the ball is still under the pointer: 1 on it, 0 past it. */
+  const gripAt = (distance: number) => clamp((1.12 - distance) / 0.45);
+
+  const squeeze = (amount: number) => {
+    gsap.killTweensOf(state, 'squish');
+    gsap.to(state, {
+      squish: amount,
+      duration: 0.12,
+      ease: 'power2.out',
+      overwrite: 'auto',
+    });
+  };
+  const drawOut = (amount: number) => {
+    gsap.killTweensOf(state, 'pull');
+    gsap.to(state, {
+      pull: amount,
+      duration: 0.18,
+      ease: 'power2.out',
+      overwrite: 'auto',
+    });
+  };
+  const springTo = (squish: number) => {
+    touching = squish > 0;
+    gsap.killTweensOf(state, 'squish,pull');
+    gsap.to(state, {
+      squish,
+      duration: 1.15,
+      ease: 'elastic.out(1, 0.38)',
+      overwrite: 'auto',
+    });
+    gsap.to(state, {
+      pull: 0,
+      duration: 1.3,
+      ease: 'elastic.out(1, 0.32)',
+      overwrite: 'auto',
+    });
+  };
+
+  const stopHoming = () => {
+    homeCall?.kill();
+    homeCall = null;
+    gsap.killTweensOf(state, 'yaw,pitch');
+  };
+
+  const goHome = () => {
+    gsap.killTweensOf(state, 'yaw,pitch');
+    // Rolling is periodic, so coming back is a choice of route: this is the
+    // short one, and the only one that never looks like rewinding.
+    state.yaw = Math.atan2(Math.sin(state.yaw), Math.cos(state.yaw));
+    gsap.to(state, {
+      yaw: 0,
+      pitch: 0,
+      duration: HOME_TIME,
+      ease: 'power2.inOut',
+      overwrite: 'auto',
+    });
+  };
+
+  const onGrab = (event: PointerEvent) => {
+    if (event.pointerType === 'touch' || event.button !== 0) return;
+    holding = true;
+    touching = true;
+    heldPointer = event.pointerId;
+    lastX = event.clientX;
+    lastY = event.clientY;
+    lastAt = event.timeStamp;
+    spin = 0;
+    stopHoming();
+    piece.dataset.held = 'true';
+    piece.setPointerCapture(event.pointerId);
+    // The click on its own, with no movement at all, still digs in.
+    squeeze(depthAt(reachOf(event).distance) * PRESSED);
+    // Without this the drag starts a text selection instead.
+    event.preventDefault();
+  };
+
+  const onDrag = (event: PointerEvent) => {
+    if (!holding || event.pointerId !== heldPointer) return;
+    const rate =
+      (Math.PI / 2) *
+      (box.scale / BODY_HALF_W) *
+      gripAt(reachOf(event).distance);
+    const dx = (event.clientX - lastX) * rate;
+    const dy = (event.clientY - lastY) * rate;
+    lastX = event.clientX;
+    lastY = event.clientY;
+    const elapsed = Math.max(8, event.timeStamp - lastAt);
+    lastAt = event.timeStamp;
+    state.yaw += dx;
+    state.pitch = Math.min(
+      PITCH_LIMIT,
+      Math.max(-PITCH_LIMIT, state.pitch + dy),
+    );
+    // Smoothed, so one stuttering frame cannot decide what the flick was.
+    spin = spin * 0.6 + (dx / elapsed) * 0.4;
+  };
+
+  const onLetGo = (event: PointerEvent) => {
+    if (!holding || event.pointerId !== heldPointer) return;
+    holding = false;
+    heldPointer = -1;
+    delete piece.dataset.held;
+    // It springs back to whatever a pointer merely resting there would do.
+    springTo(depthAt(reachOf(event).distance) * TOUCH);
+    // A pointer that stopped before it lifted was not a flick.
+    const still = event.timeStamp - lastAt > 120;
+    const carry = still ? 0 : Math.max(-1.8, Math.min(1.8, spin * 260));
+    if (Math.abs(carry) > 0.06) {
+      gsap.to(state, {
+        yaw: state.yaw + carry,
+        duration: 0.9,
+        ease: 'power3.out',
+        overwrite: 'auto',
+      });
+    }
+    homeCall = gsap.delayedCall(HOME_WAIT, goHome);
+  };
+
+  const onMove = (event: PointerEvent) => {
+    if (event.pointerType === 'touch') return;
+    const { at, distance } = reachOf(event);
+    follow.px(at.x);
+    follow.py(at.y);
     follow.presence(1);
-    const distance = Math.hypot(unit.x, unit.y);
-    const pull = Math.max(0, 1 - Math.max(0, distance - 1) / 1.2);
-    follow.dx((unit.x / Math.max(1, distance)) * pull * DRIFT);
-    follow.dy((unit.y / Math.max(1, distance)) * pull * DRIFT * 0.7);
-    const nowInside = distance < 0.85;
-    if (nowInside && !inside) bite();
-    inside = nowInside;
+    const lean = Math.max(0, 1 - Math.max(0, distance - 1) / 1.2);
+    follow.dx((at.x / Math.max(1, distance)) * lean * DRIFT);
+    follow.dy((at.y / Math.max(1, distance)) * lean * DRIFT * 0.7);
+
+    const depth = depthAt(distance);
+    if (holding) {
+      squeeze(depth * PRESSED);
+      // Past its own edge the material follows the pointer instead.
+      drawOut(clamp((distance - 1) / 1.15));
+    } else if (depth > 0) {
+      touching = true;
+      squeeze(depth * TOUCH);
+    } else if (touching) {
+      springTo(0);
+    }
   };
   const onLeave = () => {
-    inside = false;
+    // A captured pointer still reports leaving the section; a hand that is
+    // holding the ball has not let go of it.
+    if (holding) return;
+    springTo(0);
     follow.presence(0);
     follow.dx(0);
     follow.dy(0);
@@ -349,11 +547,37 @@ export function mountContactBite(
   section.addEventListener('pointermove', onMove, { passive: true });
   section.addEventListener('pointerleave', onLeave);
   trigger?.addEventListener('pointerenter', onBiteWord);
+  /*
+   * The grip goes on the piece, and the stylesheet only lets the painted body
+   * answer, so the empty corners of its box are never a handle. It is declared
+   * here rather than in the markup because a page whose motion never arrives
+   * must not offer a grip it cannot honour: no chunk, no `data-bite-turn`, no
+   * grab cursor, no pointer events.
+   */
+  piece.dataset.biteHandle = 'true';
+  piece.dataset.cursorLabel = '';
+  piece.addEventListener('pointerdown', onGrab);
+  piece.addEventListener('pointermove', onDrag);
+  piece.addEventListener('pointerup', onLetGo);
+  piece.addEventListener('pointercancel', onLetGo);
 
   return () => {
     section.removeEventListener('pointermove', onMove);
     section.removeEventListener('pointerleave', onLeave);
     trigger?.removeEventListener('pointerenter', onBiteWord);
+    piece.removeEventListener('pointerdown', onGrab);
+    piece.removeEventListener('pointermove', onDrag);
+    piece.removeEventListener('pointerup', onLetGo);
+    piece.removeEventListener('pointercancel', onLetGo);
+    delete piece.dataset.biteHandle;
+    delete piece.dataset.held;
+    delete piece.dataset.cursorLabel;
+    stopHoming();
+    gsap.killTweensOf(state, 'squish,pull');
+    state.squish = 0;
+    state.pull = 0;
+    state.yaw = 0;
+    state.pitch = 0;
     ScrollTrigger.removeEventListener('refresh', remeasure);
     resize.disconnect();
     biting?.kill();

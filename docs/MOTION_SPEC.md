@@ -202,47 +202,123 @@ the section is in sentence case. See `DECISIONS.md`.
   motion bundle. A chunk that fails to load leaves the still composition,
   which is complete.
 - The sculpture is SVG whose geometry comes from `ContactSculpture.ts` (pure,
-  no DOM): a body path, light and shade gradients, the scoop's inner wall, a
-  light lip and a contact shadow. The still pose is rendered on the server;
-  the motion only redraws the same parts from an eased state
-  (`px/py/presence` of the pointer, `sx/sy` squash, `bite` depth). The SVG
-  is `aria-hidden`; the piece is a link to `/contacto/` (see below).
+  no DOM): a body path, light and shade gradients, the dip under the finger
+  and a contact shadow. **Nothing on this ball is ever a stroke** — see below. The still pose is rendered on the
+  server; the motion only redraws the same parts from an eased state
+  (`px/py/presence` of the pointer, `sx/sy` squash, `bite` pinch, `squish`
+  for the press, `pull` for the stretch, `yaw/pitch` for the roll). The SVG
+  is `aria-hidden`, and so is the piece around it: since 2026-09-23 it carries
+  no name, role or focus stop, though a fine pointer can take hold of it (see
+  THE BALL and THE HAND below).
+- **THE BALL** (2026-09-24, client direction). It is a stress ball and nothing
+  else. The bites that were cut out of it on 2026-09-23 are gone, because a
+  bitten form left readers asking what they were looking at and a stress ball
+  asks nobody anything. What is left carries press, pull and roll by one
+  means: the folds in its skin.
+- **No marks, at all.** Three things were tried on the skin and all three
+  were taken out on the client's word (2026-09-24): standing folds across the
+  ball, a ring at the edge of the contact, and wrinkles leaving that ring. At
+  the size the ball is shown — cropped, so it reads much larger than it does
+  in isolation — a stroked line is a scratch **on** the surface rather than a
+  crease **in** it. `demo.spec.ts` guards it now: no element inside
+  `[data-bite-sculpture]` carries a `stroke`, at rest, on hover or pressed
+  as hard as it goes. The press and the roll have to be carried by shading
+  and by the outline, and anything put back has to answer that objection
+  first.
+- **The lumps, and why they are load-bearing.** With no marks on the skin the roll
+  has no marks to show it — and **a ball with nothing cut out of it has the
+  same silhouette at every angle**, which would leave `yaw` and `pitch` with
+  no effect at all. What carries the roll instead is the ball's own shape: it
+  is not perfectly round, and its unevenness belongs to the ball rather than
+  to the room, so it turns with it. A lump only shows where it reaches the
+  limb — the silhouette at a screen bearing is the surface at the limb in that
+  direction, so the angle between the two is the whole calculation — and
+  rolling therefore walks the lumps through the outline. It is a few per cent
+  of the radius and deliberately quiet, but it is the only thing a reader has:
+  **do not make `LUMPS` smaller without replacing what they carry.**
+- **The press.** The outline gives way where the pressure comes from, but only
+  as far as the finger is out towards the edge: pushing the middle of a ball
+  drives the material away from the reader rather than sideways, so there the
+  outline barely moves and `SPREAD` widens it instead. The skin buckles into a
+  dip shades itself: dark on the wall that faces the light, bright on the wall
+  that faces away, because a depression is not a dark spot. That pair, offset
+  across the contact and broad enough to read as a slope rather than a stain,
+  is the whole of the press now, so it is as load-bearing as the lumps are:
+  pressing the middle of the ball has nothing else to show it.
+- **The pull.** Material drawn out past the edge goes into a tip (`TIP`),
+  leaves a neck behind it (`NECK`) and takes the width from across the pull
+  (`ACROSS`), because none of it appears from nowhere.
 - Entrance, once, from `top 70%` with `end: 'max'` and an in-view check:
   lines at 0.1 and 0.2, "muerda" revealed from its left edge
   while it lets go of `scaleX .9 / scaleY 1.08` at 0.34, the sculpture rising
-  from `sx 1.1 / sy .86` and a deeper scoop back into its shape
+  from `sx 1.1 / sy .86` and a pinch back into its shape
   (`back.out(1.5)`, 1.15 s) from 0.3–0.34, the channel buttons at 0.82.
   About 1.8 s end to end, no cartoon bounce. Every tween is a `fromTo`.
 - Fine pointer only: one passive `pointermove` feeds `gsap.quickTo`s
-  (0.95 s follow; 1.2 s drift). The piece turns towards the pointer (light,
-  shade and scoop move; the scoop's parallax changes the silhouette), dents
-  where the pressure comes from and swells on the far side, opens its bite a
-  few units when approached, and drifts at most 18px. It fades out 0.9 radii
+  (0.95 s follow; 1.2 s drift). The piece leans towards the pointer (the light
+  and the shade move with it), dents where the pressure comes from and swells
+  on the far side, and drifts at most 18px. It fades out 0.9 radii
   beyond the body. One `gsap.ticker` callback, registered only while the
   section is on screen, redraws (about 0.8 ms) only when the state changed.
   Leaving returns it to exactly its resting outline.
 - Pressure couples to "muerda": `translateX(-3px * press)` plus a 0.4%
   squeeze, so the word gives way 1-3px.
-- Bite: the pointer entering the body, or touching "muerda": squash to
-  0.95 / 1.045 with a deeper scoop in 0.15 s, release at 0.18 s with
+- Bite: the pointer reaching "muerda": squash to
+  0.95 / 1.045 with an all-over pinch in 0.15 s, release at 0.18 s with
   `back.out(1.7)`; about 0.65 s. "muerda" is squeezed through `--bite`. The
   existing cursor shows its `data-pressed` pose; "muerda" carries an empty
   `data-cursor-label` (active ring, no text).
 - The channels are two of the hero's `bite-button`s side by side under the
-  headline ("Correo ↗", "Instagram ↗"): the same shape, orange, ink border,
+  headline ("Correo ↗", "Contacto"): the same shape, orange, ink border,
   `0 0.4rem 0` ink shadow, magnetic pull and hover squeeze, nothing of their
   own except narrower side padding on phones.
-- The sculpture is a link to `/contacto/`. Only its painted form takes the
-  pointer (`pointer-events: visiblePainted`; the link box and the white around
-  it do not), so the empty corners are never a hit area, and the link's box
-  ends at the stage edge, clear of the fixed rail. CSS only, 160 ms: on hover
-  and keyboard focus the form presses down 6px (`scale .985/.975` from its
-  foot) onto a hard ink shadow in its own silhouette. A pointer gets the
-  cursor's "Contacto" disc (`data-cursor-label="Contacto"`, exactly as on the
-  hero CTA); keyboard focus and touch get "Contacto ↗" set into the piece
-  instead. `:active` presses it 14px, all the way onto the shadow.
-  Keyboard focus also draws an ink ring on the real silhouette. Without hover
-  the note and the shadow stay visible, since they are the only affordance.
+- The sculpture is not a control (2026-09-23, user direction: a 3D figure
+  that quietly opened Contacto was not something a reader could be expected to
+  guess). It is `aria-hidden`, it is a `<div>`, and every button affordance
+  it wore is gone: the ink slab it pressed onto, the focus ring, the cursor's
+  "Contacto" disc and the "Contacto ↗" note set into it. The two buttons above
+  are the way on.
+- **THE HAND** (2026-09-24, client direction). Three things a hand does to a
+  stress ball, from one pointer, with no modifier to learn:
+  - **resting** on it presses it a little. `TOUCH` is barely a fifth of the
+    way in, because a pointer that has not been clicked has not committed to
+    anything, and because leaving the whole depth to the click is what gives
+    the click something to do;
+  - **holding** the button digs in the rest of the way (`PRESSED`), deepest
+    under the middle and nothing past the edge, with `SOFTNESS` 0.68 so it
+    gives quickly and then resists, the way rubber does;
+  - **dragging** while held does one of two things, and the ball decides which
+    from where the pointer is. On the ball it rolls — `yaw` about the
+    vertical, `pitch` about the horizontal, clamped to `±1.05` short of the
+    poles, at half a turn per body width (`BODY_HALF_W`). Past its edge it
+    stretches instead, because the surface is no longer under the finger.
+    `grip` is that decision and it is a fade rather than a switch, so a drag
+    outwards rolls, then rolls less and pulls more, then only pulls. Nothing
+    announces the change and nothing needs to.
+- Everything springs back. The press and the pull go with `elastic.out`,
+  because the ball is carrying the energy that was put into it; the push
+  itself is `power2.out` in 0.12 s, because a finger meets a surface at once.
+  The roll coasts to a stop (`power3.out`, capped at 1.8 rad; a pointer that
+  came to rest before it lifted was not a flick) and, `HOME_WAIT` (2.5 s)
+  after the last touch, finds its way back to the served pose over 1.5 s, the
+  short way round, so a ball spun three times settles rather than unwinding.
+  The springing back and the going home are separate: the press and the pull
+  are finished about 1.3 s after release, and what is still off its resting
+  outline after that is the roll and only the roll — which is how
+  `demo.spec.ts` tells the two apart.
+- The grip is `pointer-events: visiblePainted` on the painted body only, with
+  `cursor: grab`/`grabbing` as the whole affordance — no words, nothing
+  suggesting it goes anywhere. Both are published by the driver
+  (`data-bite-handle`), so a page whose chunk never arrives offers no grip,
+  and reduced motion and touch never get one either.
+- The light, the shade, the ground shadow and the resting sag of the outline
+  do not move with the roll: they belong to the room and to gravity rather
+  than to the object, and keeping them still is most of what makes the roll
+  read as a roll rather than as a picture being rotated. The press, the dip
+  and its ring do not either — they belong to the hand, so they stay under the
+  finger while the ball turns beneath them.
+- The press and the pull are tweens on the state rather than on a node, so
+  `MotionController` kills them explicitly on cleanup.
 - The headline is centred on the stage (the buttons' height mirrored above
   it) and the sculpture's centre sits on the same line. It uses the
   manifesto's word sizes (desktop `clamp(3.06rem, 5.58vw, 5.58rem)`, portrait

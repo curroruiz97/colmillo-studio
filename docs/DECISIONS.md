@@ -2855,3 +2855,202 @@ moves to the definitive domain on Vercel with IONOS keeping only the mailbox,
 or whether the built site is served from Plesk instead — a static build can be,
 and that would remove Vercel from the picture altogether. The answer decides
 what kind of endpoint is even available.
+
+## 2026-09-23 - Contact Close: Contacto Replaces Instagram, And The Figure Stops Being A Button
+
+Decision (user direction, three parts):
+
+1. **The Instagram button becomes Contacto.** The profile is already published
+   in the top-right corner of every route by the global control, so the close
+   was offering it twice and the route it never offered — `/contacto/`, the
+   page with the actual brief — not at all. The buttons are now "Correo ↗" and
+   "Contacto", still two of the hero's `bite-button`s side by side, unchanged
+   in shape, colour and behaviour. `contactChannels.instagram` is untouched:
+   the global badge and the edge menu still read it.
+2. **The figure stops being a link.** It had been the way into `/contacto/`
+   since 2026-09-11, borrowing the buttons' language (an ink slab under it, a
+   pointer cursor, the cursor's "Contacto" disc, a "Contacto ↗" note for
+   keyboard and touch). The user's judgement: a 3D figure that opens a page is
+   not something a reader can be expected to guess. It is now a `<div>`,
+   `aria-hidden`, with nothing in it taking the pointer, and every one of
+   those affordances is gone. This supersedes the sculpture-as-link parts of
+   the 2026-09-10 and 2026-09-11 entries above; the rest of both stands.
+3. **It becomes a stress ball instead.** The client's own reference: it should
+   sink under the cursor. The give is drawn as geometry, not as a transform —
+   a dent under the pointer's angle with a raised rim either side, the body
+   compressed along that axis and bulging across it — so crossing the piece
+   rolls the dent through it rather than switching one on, it is deepest under
+   the middle where the ball is thickest, and letting go overshoots and
+   wobbles down instead of snapping back. See `docs/MOTION_SPEC.md`.
+
+Reason the figure keeps its motion while losing its role: the piece was never
+carrying the navigation — the buttons beside it were, and now one of them says
+Contacto. What it was carrying is the section's whole reason for existing
+(pressure, give, release), and that is exactly what a stress ball is. Removing
+the link removes a guess a reader had to make; it removes nothing to look at.
+
+Rejected: keeping a small "Contacto ↗" note on the figure as a hint, which
+would have re-announced a control that no longer exists; making the ball
+squash uniformly, which reads as a scale rather than as rubber.
+
+## 2026-09-23 - Contact Sculpture: A Real Solid, Turned By Hand
+
+Decision (user direction, same day as the stress ball above): the figure should
+be "una figura 3d literal" that can be turned over by holding the mouse down on
+it, and that eases back to its original pose two to three seconds after the
+reader stops.
+
+**It is modelled, not faked.** `CLAUDE.md` rules out WebGL, and a WebGL figure
+would also have thrown away the server-rendered still pose that no-JavaScript,
+touch and reduced-motion readers get. So the solid is defined analytically and
+projected to SVG: a ball with two smaller balls taken out of it, an orbit
+(`yaw`/`pitch`) applied to the cutters, and the visible surface derived from two
+inequalities per ray — see `docs/MOTION_SPEC.md`. This is more exact than a
+mesh, not less: the silhouette really is the silhouette of the solid, so
+turning it changes the outline. It costs 0.36 ms a frame against 0.24 ms
+before, and 2.6 KB of the contact chunk.
+
+**The rest pose changed, deliberately.** A spherical bite cannot be the shape
+the 2D version drew: a sphere removes a cap, whose depth is `cos α` and whose
+half-width is `α`, so it cannot be both narrow and deep the way a cylindrical
+punch was. The piece is therefore a rounder, more open bite that you can see
+into. `BITE_TOWARDS = 0.45` was chosen by rendering the section itself at
+0.30 / 0.45 / 0.60: 0.30 kept the old crescent but showed almost no wall, 0.60
+turned the crater so far forward that the piece read as a tube.
+
+**There are two bites, and the second is a reward.** One bite alone leaves the
+far side of the object blank for roughly a third of the turn, which reads as
+the interaction having stopped working. The second bite is placed half a turn
+away in yaw — not for symmetry but so that as one goes over the horizon the
+other is already arriving — and it is smaller, so turning the piece over finds
+something rather than repeating something.
+
+**Only a mouse.** The user asked for the mouse ("con el ratón"), and the rest
+of this section is already fine-pointer-only. Touch is left alone deliberately:
+the section is a whole viewport, and a drag handler over that much of a phone
+screen is a scroll hazard for a decoration. Reduced motion gets no grip either,
+and says so — no grab cursor, no pointer events.
+
+Rejected: a WebGL or three.js figure (ruled out, and it would have cost the
+server-rendered pose); rotating the existing flat SVG in CSS `preserve-3d`,
+which is a picture on a turning card and not what was asked for; a quaternion
+trackball, where the extra freedom buys nothing over yaw and pitch and makes
+the return home a slerp rather than two numbers; a canvas ray-tracer, which
+would be per-pixel-correct but blurry at any affordable resolution and would
+leave a reader without JavaScript looking at an empty box.
+
+## 2026-09-24 - Contact Sculpture: A Stress Ball, And Nothing Cut Out Of It
+
+Decision (client direction, the day after the solid was built): "la figura 3d
+no la entiendo bien qué es… no le veo el sentido. Lo que haría yo es que sea
+una bola antiestrés sin agujero ni nada, y además que se pueda girar y todo
+eso, pues que lo puedas estirar, que si haces clic se hunda la esfera un poco,
+y se noten más los pliegues."
+
+**The bites go.** Both of them, and with them the whole cutter/through-hole
+half of the geometry. The judgement is the client's and it is the right one:
+the bitten form was interesting to build and ambiguous to read, and a stress
+ball needs no explaining. The bite stays where it always belonged, in the
+word "muerda", which still bites the type.
+
+**The folds are now load-bearing, not decoration.** This is the consequence
+that had to be designed around rather than discovered later: with nothing cut
+out of it, *a ball has the same silhouette at every angle*, so the roll has no
+outline to show it. Five standing folds carry it instead — arcs of circles on
+the ball, fixed to the surface, with long spans and spread axes so that no
+angle leaves the ball bare. They also happen to be exactly what the client
+asked to see more of.
+
+**Press, pull and roll come from one pointer with nothing to learn.** Resting
+on the ball presses it a fifth of the way in; the click digs in the rest of
+the way, which is what gives the click something to do; dragging while held
+rolls the ball while the pointer is on it and stretches it once the pointer is
+past its edge. That last one is a fade, not a switch, so the change needs no
+announcing.
+
+**A defect the rewrite exposed and fixed.** The press used to dent the outline
+by the pointer's bearing alone, so pressing the middle of the ball pulled the
+silhouette in at that bearing and grew a lobe beside it. It is wrong: pushing
+the middle of a ball drives material away from the reader, not sideways. The
+dent now scales with how far out towards the edge the finger is, and pressing
+the centre `SPREAD`s the outline instead of pulling it in.
+
+Rejected: keeping one small bite "for character", which would have kept the
+question the client is objecting to; concentric rings of buckling around the
+contact, which read as a target drawn on the surface rather than material
+giving way — radial wrinkles leaving a single rim ring read as a press;
+a stateful pool of folds that are laid down where the ball is pressed and
+relax over a few seconds, which would be the best version of this and is worth
+revisiting once the current one has been seen in use.
+
+## 2026-09-24 - Contact Sculpture: No Marks On The Ball, And What Carries The Roll Instead
+
+Decision (client direction, same day): "me gusta, sólo quítale esas líneas que
+tiene como que si estuviera rallado la bola." The five standing folds are out.
+
+They were right about what they were seeing. At the size the ball is drawn on
+the page — cropped, so it reads much larger than it does in isolation — a
+stroked arc reads as a score in the surface rather than a crease in it. The
+press marks stay, because they exist only while something is pressing the ball
+and they are what makes the click read; if those turn out to bother anyone
+too, they go the same way.
+
+**The problem this creates, and the answer.** The folds were not decoration.
+A ball with nothing cut out of it has the same silhouette at every angle, so
+without them `yaw` and `pitch` would compute and then be thrown away: the roll
+would be dead code and a dead feature, three days after it was asked for.
+
+What carries it now is the ball's own shape. It is not perfectly round, and
+its unevenness belongs to the ball rather than to the room, so it turns with
+it. A lump only shows itself where it reaches the limb — the silhouette at a
+screen bearing is the surface at the limb in that direction, so the angle
+between a lump and that direction is the whole calculation — and rolling
+therefore walks the lumps through the outline. Nothing is drawn, nothing is
+added to the resting ball, and the roll survives.
+
+It is quiet: a few per cent of the radius, plain in motion and subtle in a
+still. That is the honest cost of a ball with no marks on it, and it is noted
+at the top of `ContactSculpture.ts` and in `docs/MOTION_SPEC.md` so nobody
+later shrinks `LUMPS` as a tidy-up and silently kills the roll.
+
+Rejected: soft shaded patches fixed to the surface, which on a matte orange
+ball read as stains; keeping one fold "so something moves", which keeps the
+objection; a printed mark on the ball, which would show the roll perfectly and
+is a branding decision, not one to take unasked.
+
+## 2026-09-24 - Contact Sculpture: No Stroke, Anywhere, Ever
+
+Decision (client direction, third pass the same day): "sigue apareciendo como
+esas rajas, me refiero a ese círculo que aparece al pasar el cursor y se hace
+más notorio al hacer clic, eso no lo quiero."
+
+That is the rim around the contact, with the three wrinkles leaving it. Gone,
+along with everything that drew them. Three kinds of mark have now been tried
+on this ball — standing folds, the contact rim, the wrinkles — and all three
+were read the same way: at the size the ball is shown, cropped so that it
+reads much larger than it does in isolation, **a stroked line is a scratch on
+the surface rather than a crease in it**. That is the finding, and it is worth
+more than any of the three attempts.
+
+So the rule is now absolute and tested: no element inside the sculpture
+carries a `stroke`, at rest, on hover, or pressed as hard as it goes.
+`demo.spec.ts` asserts it at each of those three moments, so a later pass
+cannot quietly put a line back without the suite saying so.
+
+**What each gesture is carried by now**, all of it either shading or the
+outline itself:
+
+- the **press** by the dip's two walls — dark on the side facing the light,
+  bright on the side facing away — widened and pushed further apart so the
+  pair reads as a slope rather than a stain, plus the outline giving way when
+  the finger is out towards the edge and `SPREAD` when it is not;
+- the **pull** by the outline alone, which is where it always lived;
+- the **roll** by the ball's own lumps walking through the outline.
+
+Two of those three are load-bearing in the sense that nothing else shows the
+gesture at all — the dip for a press in the middle, the lumps for the roll —
+and both are noted as such in the source and in `docs/MOTION_SPEC.md`.
+
+Rejected: keeping the rim "only while held", which is exactly the state the
+client was objecting to; replacing the strokes with a softer stroke, which is
+the same object with less contrast.

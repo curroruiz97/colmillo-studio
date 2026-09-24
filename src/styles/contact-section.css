@@ -147,8 +147,7 @@
 
 /*
  * The link's own box ends at the stage's edge, clear of the fixed edge rail;
- * the drawing inside it is wider and bleeds off the screen. Only the painted
- * piece takes the pointer.
+ * the drawing inside it is wider and bleeds off the screen.
  */
 .contact-bite__piece {
   position: absolute;
@@ -158,14 +157,9 @@
   display: block;
   inline-size: calc(0.6 * var(--w));
   color: var(--color-brand-ink);
-  text-decoration: none;
   pointer-events: none;
   user-select: none;
   translate: var(--lean-x, 0px) var(--lean-y, 0px);
-}
-
-.contact-bite__piece:focus-visible {
-  outline: none;
 }
 
 .contact-bite__sculpture {
@@ -176,89 +170,37 @@
   overflow: visible;
 }
 
+/*
+ * The piece is not a control (2026-09-23): it stopped being the way into
+ * Contacto, so every button affordance it wore is gone — the ink slab it
+ * pressed onto, the focus ring and the small "Contacto" note. It is an object
+ * instead: a stress ball that can be pressed in, rolled over and pulled out
+ * of shape, all of which is drawn by `ContactSculpture.ts` as real geometry
+ * rather than by a transform here.
+ *
+ * The grab cursor is the whole affordance, and the only one an object like
+ * this can honestly carry: no words, and nothing that suggests it goes
+ * anywhere. It appears only once the motion chunk has said it is there
+ * (`data-bite-handle`), so a page whose script never arrives offers no grip.
+ * `visiblePainted` keeps the empty corners of the piece's box out of it, so
+ * the handle is the body and nothing else; the squeeze is still measured from
+ * the section, which needs no hit area at all.
+ */
+.contact-bite__ground {
+  pointer-events: none;
+}
+
 .contact-bite__form {
-  cursor: pointer;
+  pointer-events: none;
+}
+
+.contact-bite__piece[data-bite-handle] .contact-bite__form {
   pointer-events: visiblePainted;
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-  transition: transform var(--duration-fast) var(--ease-bite);
+  cursor: grab;
 }
 
-.contact-bite__ground,
-.contact-bite__offset,
-.contact-bite__ring {
-  pointer-events: none;
-}
-
-.contact-bite__offset {
-  opacity: 0;
-  transform: translate(0, 16px);
-  transition: opacity var(--duration-fast) linear;
-}
-
-.contact-bite__ring {
-  fill: none;
-  stroke: var(--color-brand-ink);
-  stroke-width: 8;
-  opacity: 0;
-}
-
-/* A small note set into the piece while it is pressed. */
-.contact-bite__hint {
-  position: absolute;
-  inset-block-start: calc(0.86 * var(--w) * 0.5);
-  inset-inline-start: calc(0.52 * var(--w));
-  font-size: clamp(1rem, 1.25vw, 1.35rem);
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  line-height: 1;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  translate: -50% calc(-50% + 0.4rem);
-  transition:
-    opacity var(--duration-fast) linear,
-    translate var(--duration-fast) var(--ease-bite);
-}
-
-/* Hover and keyboard focus: pressed onto its own ink shadow, a clear button. */
-.contact-bite__piece:hover .contact-bite__form,
-.contact-bite__piece:focus-visible .contact-bite__form {
-  transform: translate(0, 6px) scale(0.985, 0.975);
-}
-
-.contact-bite__piece:hover .contact-bite__offset,
-.contact-bite__piece:focus-visible .contact-bite__offset {
-  opacity: 1;
-}
-
-/* A pointer gets the cursor's "Contacto" disc, like the hero CTA; the note
-   set into the piece is for keyboard focus and touch. */
-.contact-bite__piece:focus-visible .contact-bite__hint {
-  opacity: 1;
-  translate: -50% -50%;
-}
-
-.contact-bite__piece:focus-visible .contact-bite__ring {
-  opacity: 1;
-}
-
-/* The press itself: all the way down onto the shadow. */
-.contact-bite__piece:active .contact-bite__form {
-  transform: translate(0, 14px) scale(0.97, 0.955);
-  transition-duration: 90ms;
-}
-
-/* Without hover the note is the only affordance, so it stays. */
-@media (hover: none) {
-  .contact-bite__hint {
-    opacity: 1;
-    translate: -50% -50%;
-  }
-
-  .contact-bite__offset {
-    opacity: 1;
-  }
+.contact-bite__piece[data-held] .contact-bite__form {
+  cursor: grabbing;
 }
 
 /* ------------------------------------------ stacked: phones, portrait --- */

@@ -2,17 +2,34 @@
 /**
  * COLMILLO STUDIO — home contact close: "la última mordida"
  *
- * White, a large headline with the two channels as buttons under it, and one
- * strange orange object beside it that answers the reader and is itself the
- * way into Contacto. The object is a soft, inflated piece with a large piece
- * missing from its left side, turned towards "muerda". Its geometry comes
- * from `ContactSculpture.ts`: the still pose is rendered here, so no
- * JavaScript, touch and reduced motion get exactly the same object, and
- * `ContactBiteMotion.ts` redraws it live on a fine pointer.
+ * White, a large headline with two buttons under it, and one strange orange
+ * object beside it that answers the reader. The object is a soft, inflated
+ * piece with a large piece missing from its left side, turned towards
+ * "muerda". Its geometry comes from `ContactSculpture.ts`: the still pose is
+ * rendered here, so no JavaScript, touch and reduced motion get exactly the
+ * same object, and `ContactBiteMotion.ts` redraws it live on a fine pointer.
  *
- * The channel buttons are the hero's `bite-button`, unchanged. The sculpture
- * is a link to `/contacto/`: only its painted shape takes the pointer, so the
- * white around it never becomes a hit area. All type is in sentence case.
+ * The two buttons are the hero's `bite-button`: the approved address, and the
+ * way into Contacto. Instagram is not among them — the global control in the
+ * top-right corner is already that, on every route.
+ *
+ * The sculpture is NOT a link (2026-09-23, client direction). It used to be
+ * the way into Contacto, which nobody could be expected to guess; the button
+ * beside it says so in words.
+ *
+ * Since 2026-09-24 it is a stress ball and nothing else — no bite, no hole,
+ * at the client's word, because the bitten form left readers asking what they
+ * were looking at. A fine pointer can press it in, roll it over and pull it
+ * out of shape, and the folds in its skin carry all three. It has no name, no
+ * role and no focus stop, so nothing is lost by not reaching it: every route
+ * out of this section is a real button, and the ball is the reward for
+ * staying.
+ *
+ * Its geometry is a real solid — see `ContactSculpture.ts`. The still pose
+ * rendered here is that ball at rest, so no JavaScript, touch and reduced
+ * motion get the same object, simply not moving.
+ *
+ * All type is in sentence case.
  */
 import { contactChannels } from '@/config/contact';
 import { demoMode } from '@/data/projects';
@@ -24,9 +41,19 @@ import {
   sculptureFrame,
 } from '@/scripts/motion/ContactSculpture';
 
-const channels = Object.entries(contactChannels).flatMap(([key, channel]) =>
-  channel.href === null ? [] : [{ key, ...channel, href: channel.href }],
-);
+/*
+ * The section's two routes out: the approved address, and Contacto. Instagram
+ * is deliberately absent — the global badge in the corner is already it.
+ * The address is published only when it exists, so a repository with no
+ * approved channel still shows the Contacto button and never an empty row.
+ */
+const email = contactChannels.email;
+const actions = [
+  ...(email?.href
+    ? [{ label: email.label, href: email.href, external: true }]
+    : []),
+  { label: 'Contacto', href: '/contacto/', external: false },
+];
 
 const rest = sculptureFrame(REST_STATE);
 ---
@@ -58,43 +85,37 @@ const rest = sculptureFrame(REST_STATE);
         </span>
       </h2>
 
+      <ul class="contact-bite__actions" role="list">
+        {
+          actions.map((action) => (
+            <li data-bite-row>
+              <a
+                class="bite-button contact-bite__button"
+                href={action.href}
+                data-magnetic
+                data-cursor-label=""
+              >
+                <span>
+                  {action.label}
+                  {action.external && <span aria-hidden="true"> ↗</span>}
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
       {
-        channels.length > 0 && (
-          <ul class="contact-bite__actions" role="list">
-            {channels.map((channel) => (
-              <li data-bite-row>
-                <a
-                  class="bite-button contact-bite__button"
-                  href={channel.href}
-                  data-magnetic
-                  data-cursor-label=""
-                >
-                  <span>
-                    {channel.label} <span aria-hidden="true">↗</span>
-                  </span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        )
-      }
-      {
-        demoMode && channels.length === 0 && (
+        demoMode && !email?.href && (
           <p class="dev-note" data-dev-placeholder>
-            Los canales se activarán aquí y en el encabezado cuando se confirmen
+            El correo se activará aquí y en el encabezado cuando se confirmen
             los datos públicos.
           </p>
         )
       }
     </div>
 
-    <a
-      class="contact-bite__piece"
-      href="/contacto/"
-      aria-label="Contacto"
-      data-bite-piece
-      data-cursor-label="Contacto"
-    >
+    {/* Decorative and inert: the buttons above are the way on. */}
+    <div class="contact-bite__piece" aria-hidden="true" data-bite-piece>
       <svg
         class="contact-bite__sculpture"
         viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
@@ -133,10 +154,21 @@ const rest = sculptureFrame(REST_STATE);
             <stop offset="0.72" stop-color="#fff" stop-opacity="0"></stop>
             <stop offset="1" stop-color="#fff" stop-opacity="0.16"></stop>
           </linearGradient>
-          <radialGradient id="cb-wall">
-            <stop offset="0.78" stop-color="#12100f" stop-opacity="0"></stop>
-            <stop offset="0.92" stop-color="#12100f" stop-opacity="0.22"></stop>
-            <stop offset="1" stop-color="#12100f" stop-opacity="0.34"></stop>
+          {
+            /* A dip is not a dark spot: the wall facing the light is the one
+              in shadow, and the one facing away from it catches the light.
+              Since 2026-09-24 this pair is the whole of the press: no line is
+              stroked anywhere on this ball. */
+          }
+          <radialGradient id="cb-dip-shade">
+            <stop offset="0" stop-color="#12100f" stop-opacity="0.27"></stop>
+            <stop offset="0.5" stop-color="#12100f" stop-opacity="0.15"></stop>
+            <stop offset="1" stop-color="#12100f" stop-opacity="0"></stop>
+          </radialGradient>
+          <radialGradient id="cb-dip-light">
+            <stop offset="0" stop-color="#fff" stop-opacity="0.38"></stop>
+            <stop offset="0.55" stop-color="#fff" stop-opacity="0.08"></stop>
+            <stop offset="1" stop-color="#fff" stop-opacity="0"></stop>
           </radialGradient>
           <radialGradient id="cb-ground">
             <stop offset="0" stop-color="#12100f" stop-opacity="0.2"></stop>
@@ -151,8 +183,6 @@ const rest = sculptureFrame(REST_STATE);
           rx={rest.shadow.rx}
           ry={rest.shadow.ry}
           data-sculpture="shadow"></ellipse>
-        <!-- The buttons' hard ink shadow, in the piece's own silhouette. -->
-        <use class="contact-bite__offset" href="#cb-body" fill="#12100f"></use>
         <g class="contact-bite__form" data-sculpture="form">
           <use href="#cb-body" fill="#cd5730"></use>
           <g clip-path="url(#cb-clip)">
@@ -160,31 +190,25 @@ const rest = sculptureFrame(REST_STATE);
             <rect width={VIEW_W} height={VIEW_H} fill="url(#cb-light)"></rect>
             <use href="#cb-body" fill="url(#cb-bounce)"></use>
             <ellipse
-              fill="url(#cb-wall)"
-              cx={rest.cavity.cx}
-              cy={rest.cavity.cy}
-              rx={rest.cavity.rx}
-              ry={rest.cavity.ry}
-              data-sculpture="cavity"></ellipse>
+              fill="url(#cb-dip-shade)"
+              opacity={rest.dip.strength.toFixed(3)}
+              cx={rest.dip.shade.cx}
+              cy={rest.dip.shade.cy}
+              rx={rest.dip.shade.rx}
+              ry={rest.dip.shade.ry}
+              data-sculpture="dip-shade"></ellipse>
             <ellipse
-              fill="none"
-              stroke="#fff"
-              stroke-opacity="0.45"
-              stroke-width="6"
-              cx={rest.lip.cx}
-              cy={rest.lip.cy}
-              rx={rest.lip.rx}
-              ry={rest.lip.ry}
-              data-sculpture="lip"></ellipse>
+              fill="url(#cb-dip-light)"
+              opacity={rest.dip.strength.toFixed(3)}
+              cx={rest.dip.light.cx}
+              cy={rest.dip.light.cy}
+              rx={rest.dip.light.rx}
+              ry={rest.dip.light.ry}
+              data-sculpture="dip-light"></ellipse>
           </g>
-          <!-- Keyboard focus, drawn on the real silhouette. -->
-          <use class="contact-bite__ring" href="#cb-body"></use>
         </g>
       </svg>
-      <span class="contact-bite__hint" aria-hidden="true">
-        Contacto <span>↗</span>
-      </span>
-    </a>
+    </div>
   </div>
 </section>
 

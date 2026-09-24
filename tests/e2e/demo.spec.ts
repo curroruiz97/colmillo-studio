@@ -2043,6 +2043,15 @@ const readSculpture = (section: Locator) =>
     outline: element
       .querySelector('[data-sculpture="body"]')!
       .getAttribute('d'),
+    /*
+     * The contact shadow's vertical radius, which is a pure function of the
+     * squeeze: a ball pressed flatter sits on a wider, tighter footprint. It
+     * is the one number that reads the depth on its own, with no help from
+     * proximity or from the bite.
+     */
+    squash: Number.parseFloat(
+      element.querySelector('[data-sculpture="shadow"]')!.getAttribute('ry')!,
+    ),
     word: element
       .querySelector('.contact-bite__line--bite .contact-bite__word')!
       .getBoundingClientRect().x,
@@ -2057,21 +2066,16 @@ test('the contact close centres the headline on the sculpture, with two bite but
     page.getByRole('heading', { level: 2, name: 'Haz que tu marca muerda' }),
   ).toBeVisible();
   await expect(section.locator('.contact-bite__kicker')).toHaveCount(0);
+  // Two ways on, and Instagram is not one of them: the profile is offered by
+  // the global control in the top-right corner, on this route as on every
+  // other, so the close does not repeat it (client direction, 2026-09-23).
   const mail = section.getByRole('link', { name: 'Correo', exact: true });
-  const instagram = section.getByRole('link', {
-    name: 'Instagram',
-    exact: true,
-  });
+  const contact = section.getByRole('link', { name: 'Contacto', exact: true });
   await expect(mail).toHaveAttribute('href', 'mailto:hola@colmillostudio.com');
-  await expect(instagram).toHaveAttribute(
-    'href',
-    'https://www.instagram.com/colmillo.studio/',
-  );
+  await expect(contact).toHaveAttribute('href', '/contacto/');
   await expect(mail).toHaveClass(/bite-button/);
-  await expect(instagram).toHaveClass(/bite-button/);
-  await expect(
-    section.getByRole('link', { name: 'Contacto', exact: true }),
-  ).toHaveAttribute('href', '/contacto/');
+  await expect(contact).toHaveClass(/bite-button/);
+  await expect(section.getByRole('link', { name: /Instagram/ })).toHaveCount(0);
 
   const layout = await section.evaluate((element) => {
     const box = (node: Element) => node.getBoundingClientRect();
@@ -2117,7 +2121,7 @@ test('the contact close centres the headline on the sculpture, with two bite but
       ),
       // The headline and the sculpture share one vertical centre.
       centreDelta: title.top + title.height / 2 - (form.top + form.height / 2),
-      // The link's own box stays clear of the fixed edge rail.
+      // The piece's own box stays clear of the fixed edge rail.
       pieceInside:
         box(element.querySelector('[data-bite-piece]')!).right <=
         box(element.querySelector('[data-bite-stage]')!).right + 1,
@@ -2188,17 +2192,6 @@ test('the contact sculpture follows, dents, presses "muerda" and bites', async (
   expect(shift).toBeGreaterThan(0.5);
   expect(shift).toBeLessThanOrEqual(3.5);
 
-  // Touching the piece bites once and lets go well inside a second.
-  await page.mouse.move(
-    form.x + form.width * 0.55,
-    form.y + form.height * 0.45,
-    { steps: 4 },
-  );
-  await expect(section).toHaveAttribute('data-biting', 'true');
-  await expect(section).not.toHaveAttribute('data-biting', /.*/, {
-    timeout: 1500,
-  });
-
   // Away from it, it settles back into exactly its resting shape.
   await page.mouse.move(away.x, away.y, { steps: 4 });
   await expect
@@ -2207,44 +2200,230 @@ test('the contact sculpture follows, dents, presses "muerda" and bites', async (
     })
     .toBe(rest.outline);
 
-  // The white around the piece is never part of the button.
+  // Reaching "muerda" bites once and lets go well inside a second. The word
+  // is the only thing that bites now: touching the piece used to stand in for
+  // it, and the piece stopped being a control on 2026-09-23.
+  const word = (await section
+    .locator('.contact-bite__line--bite .contact-bite__word')
+    .boundingBox())!;
+  await page.mouse.move(word.x + word.width / 2, word.y + word.height / 2, {
+    steps: 6,
+  });
+  await expect(section).toHaveAttribute('data-biting', 'true');
+  await expect(section).not.toHaveAttribute('data-biting', /.*/, {
+    timeout: 1500,
+  });
+  await page.mouse.move(away.x, away.y, { steps: 4 });
+  await page.waitForTimeout(900);
+
+  // Nothing inside the piece's box opens anything: not the white around it,
+  // which never was a hit area, and not the ball itself, which stopped being
+  // one. The two buttons above are the way on.
   const piece = section.locator('[data-bite-piece]');
   const pieceBox = (await piece.boundingBox())!;
-  const corner = await page.evaluate(
-    ([x, y]) =>
-      document.elementFromPoint(x!, y!)?.closest('a')?.getAttribute('href') ??
-      null,
-    [pieceBox.x + 6, pieceBox.y + 6],
+  const anchors = await page.evaluate(
+    (points) =>
+      points.map(
+        ([x, y]) =>
+          document
+            .elementFromPoint(x!, y!)
+            ?.closest('a')
+            ?.getAttribute('href') ?? null,
+      ),
+    [
+      [pieceBox.x + 6, pieceBox.y + 6],
+      [form.x + form.width / 2, form.y + form.height / 2],
+    ],
   );
-  expect(corner).toBeNull();
+  expect(anchors).toEqual([null, null]);
 
-  // The piece itself is a button: hovering presses it onto its ink shadow
-  // and names it, and a click opens Contacto.
-  const target = {
-    x: form.x + form.width * 0.62,
-    y: form.y + form.height * 0.5,
-  };
-  await page.mouse.move(target.x, target.y, { steps: 4 });
+  // It carries no name, no role and no focus stop: a figure that quietly
+  // opened Contacto was not something a reader could be expected to guess.
+  await expect(piece).toHaveAttribute('aria-hidden', 'true');
+  expect(await piece.evaluate((node) => node.tagName)).toBe('DIV');
+  await expect(piece.locator('a')).toHaveCount(0);
+  await expect(piece.locator('.contact-bite__hint')).toHaveCount(0);
+
+  /*
+   * It does take the pointer, though — it is something to hold, not something
+   * to press — and only where it is painted. The handle is the body and the
+   * empty corners of its box are not, which is the whole of what
+   * `visiblePainted` is there to do.
+   */
+  await expect(piece).toHaveAttribute('data-bite-handle', 'true');
+  await expect(piece.locator('.contact-bite__form')).toHaveCSS(
+    'pointer-events',
+    'visiblepainted',
+  );
   await expect(piece.locator('.contact-bite__form')).toHaveCSS(
     'cursor',
-    'pointer',
+    'grab',
   );
-  // The cursor takes the hero CTA's "Contacto" disc over the piece, so the
-  // note set into it stays for keyboard focus and touch only.
-  const cursor = page.locator('[data-custom-cursor]');
-  await expect(cursor).toHaveAttribute('data-labelled', 'true');
-  await expect(cursor.locator('[data-cursor-text]')).toHaveText('Contacto');
-  await expect(piece.locator('.contact-bite__hint')).toHaveCSS('opacity', '0');
-  await expect(piece.locator('.contact-bite__offset')).toHaveCSS(
-    'opacity',
-    '1',
+  const grabbable = await page.evaluate(
+    (points) =>
+      points.map(([x, y]) => {
+        const node = document.elementFromPoint(x!, y!);
+        return Boolean(
+          node?.closest('[data-bite-piece]') &&
+          node.closest('.contact-bite__form'),
+        );
+      }),
+    [
+      [pieceBox.x + 6, pieceBox.y + 6],
+      [form.x + form.width / 2, form.y + form.height / 2],
+    ],
   );
-  await expect(piece.locator('.contact-bite__form')).not.toHaveCSS(
-    'transform',
-    'none',
+  expect(grabbable).toEqual([false, true]);
+
+  // What it does instead is give way like a stress ball. It sinks furthest
+  // under the middle, where the ball is thickest, and barely at all near the
+  // silhouette, so crossing it rolls a dent through the body rather than
+  // switching one on. The contact shadow reads that depth on its own: a ball
+  // pressed flatter stands on a wider, tighter footprint.
+  const at = async (fraction: number) => {
+    await page.mouse.move(
+      form.x + form.width * fraction,
+      form.y + form.height * 0.5,
+      { steps: 8 },
+    );
+    await page.waitForTimeout(420);
+    return readSculpture(section);
+  };
+  const rim = await at(0.82);
+  const middle = await at(0.5);
+  expect(middle.squash).toBeLessThan(rim.squash);
+  expect(rim.squash).toBeLessThan(rest.squash);
+
+  // And the dent is under the pointer rather than in the middle of the ball,
+  // so the same depth from the left and from the right are two shapes.
+  const fromLeft = await at(0.28);
+  const fromRight = await at(0.72);
+  expect(fromLeft.outline).not.toBe(fromRight.outline);
+
+  // Letting go springs back instead of snapping: a moment after the pointer
+  // leaves, the ball is still moving, and it ends in exactly its resting pose.
+  await page.mouse.move(away.x, away.y, { steps: 4 });
+  await page.waitForTimeout(140);
+  expect((await readSculpture(section)).outline).not.toBe(rest.outline);
+  await expect
+    .poll(async () => (await readSculpture(section)).outline, {
+      timeout: 3000,
+    })
+    .toBe(rest.outline);
+});
+
+test('the ball answers a hand: a click digs in, a drag rolls it, a pull stretches it', async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== 'fine-1440',
+    'The ball is handled with a mouse.',
   );
-  await page.mouse.click(target.x, target.y);
-  await expect(page).toHaveURL(/\/contacto\/$/);
+  const section = await settleOnContact(page);
+  const piece = section.locator('[data-bite-piece]');
+  const form = (await page
+    .locator('.contact-bite__form > use')
+    .first()
+    .boundingBox())!;
+  const away = { x: form.x + form.width * 1.7, y: form.y };
+
+  const read = () =>
+    section.evaluate((element) => {
+      const body = element.querySelector('[data-sculpture="body"]')!;
+      const box = (body as SVGGraphicsElement).getBBox();
+      return {
+        outline: body.getAttribute('d')!,
+        width: Math.round(box.width),
+        // How deep the dip under the finger is. It is the whole of the
+        // press now: no line is stroked anywhere on this ball.
+        dip: Number(
+          element
+            .querySelector('[data-sculpture="dip-shade"]')!
+            .getAttribute('opacity'),
+        ),
+      };
+    });
+
+  /*
+   * Nothing on this ball is ever a stroke. Every mark that was tried — folds
+   * across the skin, a ring at the edge of the contact, wrinkles leaving it —
+   * was taken out because at the size the ball is shown they read as
+   * scratches on it (client direction, 2026-09-24). This is the guard on
+   * that: the press and the roll have to be carried by shading and by the
+   * outline, and no later pass may quietly put a line back.
+   */
+  const strokes = () =>
+    section.locator('[data-bite-sculpture] [stroke]').count();
+
+  await page.mouse.move(away.x, away.y, { steps: 4 });
+  await page.waitForTimeout(1400);
+  const rest = await read();
+  expect(rest.dip).toBe(0);
+  expect(await strokes()).toBe(0);
+
+  // A pointer merely resting on it presses a little.
+  const grip = { x: form.x + form.width * 0.45, y: form.y + form.height * 0.5 };
+  await page.mouse.move(grip.x, grip.y, { steps: 6 });
+  await page.waitForTimeout(700);
+  const hovered = await read();
+  expect(hovered.dip).toBeGreaterThan(0);
+
+  // The click is what digs in: the dip and its rim go several times deeper
+  // than a pointer resting there ever takes them.
+  await page.mouse.down();
+  await expect(piece).toHaveAttribute('data-held', 'true');
+  await expect(piece.locator('.contact-bite__form')).toHaveCSS(
+    'cursor',
+    'grabbing',
+  );
+  await page.waitForTimeout(450);
+  const pressed = await read();
+  expect(pressed.dip).toBeGreaterThan(hovered.dip * 2.5);
+  expect(pressed.outline).not.toBe(hovered.outline);
+  // Pressed as hard as it goes, and still not a line on it.
+  expect(await strokes()).toBe(0);
+
+  // Dragging across it rolls it.
+  for (let step = 1; step <= 26; step += 1) {
+    await page.mouse.move(grip.x - step * 13, grip.y, { steps: 1 });
+    await page.waitForTimeout(16);
+  }
+
+  /*
+   * Carrying on past its own edge stops rolling it and starts pulling it: the
+   * finger is no longer on the surface, so the material follows instead. The
+   * body ends up reaching further across than it ever does at rest.
+   */
+  for (let step = 1; step <= 24; step += 1) {
+    await page.mouse.move(grip.x - 338 - step * 18, grip.y, { steps: 1 });
+    await page.waitForTimeout(16);
+  }
+  const pulled = await read();
+  expect(pulled.width).toBeGreaterThan(rest.width * 1.08);
+  // Nothing is pressing it any more: the finger has left the surface.
+  expect(pulled.dip).toBeLessThan(pressed.dip);
+
+  await page.mouse.up();
+  await expect(piece).not.toHaveAttribute('data-held', /.*/);
+
+  /*
+   * The press and the pull spring back at once. The roll is left where it was
+   * put and only goes home after its own wait, so once everything else has
+   * settled the ball is still turned — and that is the whole of what shows a
+   * roll now that nothing is drawn on the skin: it walks the ball's own
+   * unevenness through the outline. Reading it here, with the press and the
+   * pull provably finished, is what separates the turn from the give.
+   */
+  await page.mouse.move(away.x, away.y, { steps: 4 });
+  await page.waitForTimeout(1700);
+  const settled = await read();
+  expect(settled.dip).toBe(0);
+  expect(settled.outline).not.toBe(rest.outline);
+
+  // And then, left alone, it finds its way back.
+  await expect
+    .poll(async () => (await read()).outline, { timeout: 7000 })
+    .toBe(rest.outline);
 });
 
 test('reduced motion keeps the contact composition complete and still', async ({
@@ -2261,6 +2440,28 @@ test('reduced motion keeps the contact composition complete and still', async ({
     ].every((node) => getComputedStyle(node).opacity === '1'),
   );
   expect(shown).toBe(true);
+
+  /*
+   * The ball is all there and nothing is drawn on it, but it cannot be
+   * handled and it does not pretend it can: no grip, no grab cursor, nothing
+   * in it taking the pointer. Pressing, rolling and pulling are motion, and
+   * this reader asked for none.
+   */
+  await expect(section.locator('[data-bite-sculpture] [stroke]')).toHaveCount(
+    0,
+  );
+  await expect(section.locator('[data-bite-piece]')).not.toHaveAttribute(
+    'data-bite-handle',
+    /.*/,
+  );
+  await expect(section.locator('.contact-bite__form')).toHaveCSS(
+    'pointer-events',
+    'none',
+  );
+  await expect(section.locator('.contact-bite__form')).not.toHaveCSS(
+    'cursor',
+    'grab',
+  );
 
   if (testInfo.project.name === 'fine-1440') {
     const rest = await readSculpture(section);
