@@ -104,12 +104,15 @@ policy. Its copy is provisional — see `CONTENT_NEEDED.md`.
    overrides to their Astro defaults, or remove the project. While the
    override stands, any domain pointed at it serves the nineteen-page
    fictional demo.
-2. **Prune `public/`.** `dist/` is 80 MB of which the built pages reference
-   7.5 MB: 71.3 MB across 37 files is published and never requested, including
-   two ~21 MB client masters (`FINAL ANIMACION.mp4`, `WEB.mp4`) that anyone
-   can download from the site today. All are tracked in git, so moving the
-   masters to `media-src/` and dropping the superseded derivatives loses
-   nothing. Re-run `check:hero` afterwards.
+2. ~~**Prune `public/`.**~~ **Done 2026-09-25.** `dist/` went from 80 MB to
+   22 MB. The client masters (`FINAL ANIMACION.mp4`, `WEB.mp4`, `animacion
+   hero final.webm`, `video hero studio.mp4`, `frame video.png`) moved to
+   `media-src/`, where the repository already keeps originals and where
+   nothing is published; two superseded hero and Studio generations were
+   removed. `check-client-assets.mjs` was stale in the same place — it still
+   required the first hero generation, so the release gate was guarding files
+   the site had stopped using — and now names the delivery `heroMedia`
+   actually points at.
 3. **Deploy pipeline.** A GitHub Action running `npm ci`, `npm run validate`,
    `npm run build` and shipping `dist/` over SSH. Build in CI, never on the
    server, so Plesk needs no Node. Keep dated release folders and a symlink so

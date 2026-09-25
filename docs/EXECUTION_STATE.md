@@ -6469,3 +6469,72 @@ are the approved address and the approved profile.
 5. The form endpoint, then the release and indexing gates.
 
 Nothing was deployed by hand, nothing was pushed, and no DNS was touched.
+
+## 2026-09-25 Session: The Domain Moves, And `public/` Stops Publishing Masters
+
+### The domain
+
+`colmillostudio.com` (singular, confirmed) now serves the holding page from the
+client's Plesk server at IONOS. What was there was a WordPress with Elementor
+serving a "PROXIMAMENTE" page as an **HTTP 503**; it was an abandoned design
+option, so it was cloned with WP Toolkit to a free Plesk temporary domain —
+`colmillo-copia.212-227-90-205.plesk.page` — with its own database, and the
+main vhost was emptied for the three static files.
+
+Two things found by reading the live site before touching it, both of which
+would have broken silently:
+
+- the Google Search Console verification was a meta tag injected by Site Kit,
+  so it would have gone with WordPress. The same token now sits in the holding
+  page, and the property survived the swap with no DNS record to add;
+- the `www` → apex redirect was also WordPress's (`X-Redirect-By: WordPress`).
+  It was restored through Plesk's *Preferred domain*.
+
+Verified live: 200 (was 503), verification present, `robots.txt` blocking, no
+WordPress left, unknown paths 404. Google Analytics and Tag Manager went with
+the WordPress; whether the new site carries analytics is an open decision, and
+in Spain it brings a cookie banner with it.
+
+### The prune
+
+`dist/` went from **80 MB to 22 MB**. The audit that led here was run against
+code, scripts and *both* builds — deliberately not against `docs/`, which
+mentions filenames without the site using them and had made a first pass
+report almost nothing.
+
+- Moved to `media-src/`, the repository's existing home for originals, which
+  is outside `public/` and therefore never published: `FINAL ANIMACION.mp4`
+  and `WEB.mp4` (~21 MB each), `animacion hero final.webm`, `video hero
+  studio.mp4`, `frame video.png`. Anyone who guessed the path could download
+  the client's masters from the site.
+- Removed: the first hero generation (`hero-desktop.*`, `hero-mobile.*`,
+  `hero-poster.webp`) and the white Studio generation. All are in git history
+  and regenerable from the masters.
+- Left alone: `public/assets/incoming/`, which `CLAUDE.md` defines as intake.
+
+**A stale release gate, found on the way.** `check-client-assets.mjs` still
+required `motion/hero/hero-desktop.*`, `hero-mobile.*` and `hero-poster.webp`
+while `heroMedia` has pointed at `hero-final-*-white.*` since 2026-09-14. With
+`REQUIRE_CLIENT_ASSETS=true` it would have passed on files the site does not
+use and never checked the ones it does. It now names the real delivery, and
+`check:assets` reports only the genuinely missing items (the goodbye poster
+and the two licensed font directories).
+
+### Verification (actually run)
+
+- `astro check` 0/0/0, ESLint, Prettier, `check:hero`, `check:brand`,
+  `check:assets`, `check:production` (66 files) and `check:links` all pass.
+- Playwright `dist` 102 passed / 10 skipped, `dist-demo` 184 passed /
+  71 skipped. A first pass showed four failures across the two matrices with
+  **no overlap between runs**; re-running the named tests with
+  `--repeat-each=3 --workers=2` gave 18/18. It was parallel load on a busy
+  machine, not the prune — worth knowing, since this suite is already
+  documented as flaky under full parallelism.
+- The home hero, served from the pruned `dist/`: video present, `readyState`
+  4, playing, sources and poster all resolving to the `hero-final-*-white`
+  set, zero 4xx responses and no console errors.
+
+### Next
+
+Retire the Vercel demo override; then the GitHub Action, the server's
+compression and cache configuration, the form endpoint, and the gates.

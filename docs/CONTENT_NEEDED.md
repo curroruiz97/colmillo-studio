@@ -117,10 +117,10 @@ Open questions on the supplied Studio loop:
   their values, and the paper-coloured areas inside the drawing (the sneakers,
   the light highlights on the band) turn white with the paper. The previous
   cream set is kept beside them.
-- A decision on where the 1.5 MB master should live. Like the hero master, it
-  is copied into `dist/` because it sits under `public/`, even though nothing
-  references it; `media-src/` is the recommended home. The same applies to
-  `public/assets/frame video.png` (1 MB, unreferenced).
+- ~~A decision on where the 1.5 MB master should live.~~ **Settled
+  2026-09-25:** it lives in `media-src/`, with the hero masters and
+  `frame video.png`. Anything under `public/` is published, and a client
+  master is not for publishing.
 
 Still missing:
 
@@ -232,7 +232,8 @@ Still missing:
   below lives in `src/data/studioPage.ts` unless noted; filling an
   `approved…` record publishes that block:
   - hero loop: SUPPLIED 2026-09-14 as
-    `public/assets/motion/studio/video hero studio.mp4` (kept untouched) and
+    `media-src/video hero studio.mp4` (kept untouched; moved out of `public/`
+    on 2026-09-25) and
     published through `studioHeroMedia` as
     `public/assets/motion/studio-page/studio-hero-loop.{webm,mp4}` +
     `studio-hero-poster.webp` (charcoal, so outside the white-baked

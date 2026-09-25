@@ -59,7 +59,9 @@ export const brandWordmark: {
  * Official hero loop supplied by the client.
  *
  * Final delivery of 2026-09-14, derived from the untouched
- * `public/assets/motion/hero/animacion hero final.webm` (3840x2160, opaque).
+ * `media-src/animacion hero final.webm` (3840x2160, opaque). The master was
+ * moved out of `public/` on 2026-09-25: anything under it is published, and a
+ * client master is not for publishing.
  * The master has no alpha, so these files are opaque with the paper baked as
  * `--color-white`. Two defects of the master were removed, nothing else:
  * its first 5.4 s sit on #fbfbfb (lifted to #fff, the ink untouched after
@@ -225,8 +227,7 @@ export const servicesContentIllustration: BrandImage = {
  * controls, paused off screen, in a background tab and under reduced motion.
  * `null` restores the plain surface.
  *
- * Derived from the untouched `public/assets/motion/studio/video hero
- * studio.mp4` (1280x720, 24 fps, 144 frames). Three things only: a 960x720
+ * Derived from the untouched `media-src/video hero studio.mp4` (1280x720, 24 fps, 144 frames). Three things only: a 960x720
  * crop at x=192, 4:3 like the frame, with every drawn pixel of every frame
  * inside it (the ink spans x 259-1086, y 106-654), so the drawing fills the
  * frame instead of floating in the file's side margins; a seam, because the

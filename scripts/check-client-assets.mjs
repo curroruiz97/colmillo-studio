@@ -18,11 +18,18 @@ const requiredFiles = [
   'brand/colmillo-wordmark-black.png',
   'brand/colmillo-wordmark-cream.png',
   'brand/favicon.svg',
-  'motion/hero/hero-desktop.webm',
-  'motion/hero/hero-desktop.mp4',
-  'motion/hero/hero-mobile.webm',
-  'motion/hero/hero-mobile.mp4',
-  'motion/hero/hero-poster.webp',
+  /*
+   * The delivery of 2026-09-14, which is what `heroMedia` actually points
+   * at. Until 2026-09-25 this list still named the first generation
+   * (hero-desktop.*, hero-mobile.*, hero-poster.webp), so the release gate
+   * was guarding files the site had stopped using — and passing only
+   * because those files happened to still be lying in `public/`.
+   */
+  'motion/hero/hero-final-desktop-white.webm',
+  'motion/hero/hero-final-desktop-white.mp4',
+  'motion/hero/hero-final-mobile-white.webm',
+  'motion/hero/hero-final-mobile-white.mp4',
+  'motion/hero/hero-final-poster-white.webp',
   'motion/goodbye/goodbye.webm',
   'motion/goodbye/goodbye.mp4',
   'motion/goodbye/goodbye-poster.webp',
