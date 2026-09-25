@@ -126,3 +126,34 @@ policy. Its copy is provisional — see `CONTENT_NEEDED.md`.
    `PUBLIC_RELEASE_APPROVED` / `PUBLIC_INDEXING_APPROVED` only when the
    content, legal and SEO reviews are explicitly approved. `robots.txt` blocks
    everything until that is deliberately reversed.
+
+## Retired 2026-09-25: Vercel
+
+Vercel hosted the authorised temporary demo from 2026-09-10 to 2026-09-25. Its
+build override was removed first, so it stopped serving the fictional build,
+and the project was retired once `pre.colmillostudio.com` took over the
+preview role. The policy block at the top of this file is history.
+
+## How publishing works now
+
+Nothing deploys automatically. Two paths, both deliberate:
+
+1. **From the server** — the client's working copy is a clone at
+   `~/colmillo-studio` on the Plesk subscription, with Node 22.23.2 at
+   `/opt/plesk/node/22/bin`. `./publicar.sh pre` builds the demo and publishes
+   it to the password-protected preview; `./publicar.sh pre real` puts the
+   standard build there instead; `./publicar.sh dominio` publishes the
+   standard build to the live domain and asks for a typed `PUBLICAR` first,
+   because that is the launch. The script validates before it copies anything
+   and refuses an empty build.
+2. **From GitHub** — `.github/workflows/deploy.yml`, manual trigger only, as a
+   fallback for when the server is unreachable. It needs the SSH secrets
+   listed in the file's own header.
+
+GitHub remains the source of truth. There are now two working copies, so the
+rule is `git pull` before editing and `git push` after; a Plesk subscription
+is not a backup.
+
+The document root is `~/httpdocs`, the preview is `~/pre.colmillostudio.com`,
+and the archived WordPress is on a free Plesk temporary domain with its own
+database.

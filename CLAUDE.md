@@ -52,11 +52,14 @@ demo, creative polish and automated QA are implemented. The active phase is
 **Phase 4: approved client content and asset intake**. Final release/indexing is
 blocked by missing client materials and explicit approvals.
 
-A temporary, explicitly user-authorized demo is visible at
-`https://colmillo-studio.vercel.app/`. Vercel currently overrides its command to
-`npm run build:demo` and output to `dist-demo`. The demo is visibly fictional and
-`noindex`; it is not an approved final production release. Read
-`docs/DEPLOYMENT.md` and `docs/DECISIONS.md` before touching hosting settings.
+Since 2026-09-25 the site lives on the client's own Plesk server at IONOS and
+Vercel is retired. `https://colmillostudio.com/` serves a holding page
+(`holding/`, three static files, outside the Astro build) and
+`https://pre.colmillostudio.com/` serves the demo build behind HTTP Basic auth
+so the client can see the whole design privately. Nothing is released: the
+holding page and the preview are both `noindex` with a blocking
+`robots.txt`, and the release gates are closed. Read `docs/DEPLOYMENT.md` and
+`docs/DECISIONS.md` before touching hosting.
 
 ## Architecture and Stack
 
@@ -342,11 +345,20 @@ licenses and publication approval before enabling client material.
 ## Git and Deployment Workflow
 
 - GitHub is the source of truth:
-  `https://github.com/curroruiz97/colmillo-studio.git`.
-- Vercel automatically deploys production from `main`.
-- Claude must **not manually deploy production**.
-- A push to `main` can affect the public URL. Do not push unless the user
-  explicitly requests it and the release impact is understood.
+  `https://github.com/curroruiz97/colmillo-studio.git`. It stays the source of
+  truth now that a second working copy exists — a Plesk subscription is not a
+  backup.
+- Since 2026-09-25 the client works from a clone on the server at
+  `~/colmillo-studio` (Node 22.23.2 via `/opt/plesk/node/22/bin`). **Always
+  `git pull` before editing and `git push` after**: two working copies can
+  and will diverge otherwise.
+- Nothing deploys automatically any more. Publishing is deliberate, through
+  `~/colmillo-studio/publicar.sh` on the server (`pre` for the preview,
+  `dominio` for the live domain, which asks for a typed confirmation), or
+  through the manual `.github/workflows/deploy.yml` as a fallback when the
+  server is unreachable.
+- A push to `main` no longer changes any public URL by itself. Still do not
+  push unless the user asks.
 - Do not commit unless requested. Keep commits scoped and inspect final diffs.
 - Before editing, run `git status --short --branch`, inspect diffs and determine
   ownership. Inspect existing code before replacing anything. Preserve working
@@ -433,7 +445,9 @@ licenses and publication approval before enabling client material.
   keeps the derivative its tone chooses. No mark is ever filtered into colour.
 - Production/demo Playwright matrices and integrity/link/asset/brand/hero/release
   checks.
-- Temporary Vercel demo authorization and rollback context documented.
+- Hosting moved to the client's Plesk server (2026-09-25): holding page on the
+  domain, password-protected preview on `pre.`, Vercel retired, and the
+  build/publish path verified end to end from both the server and this machine.
 
 ## Unfinished Work and Known Issues
 
@@ -456,10 +470,11 @@ licenses and publication approval before enabling client material.
   media are absent.
 - Standard build intentionally withholds unapproved content; release/indexing
   gates are closed.
-- Vercel serves the temporary fictional demo and showed a payment-failed/overdue
-  account warning.
-- Repository Prettier check fails on the existing 79-file line-ending mismatch.
-- Local Git is ahead and dirty as detailed above and in `EXECUTION_STATE.md`.
+- `/proyectos/` is the one thing blocking a launch: with no approved project
+  the standard build publishes its hero and its close alone.
+- Repository Prettier check fails on Windows only, on a line-ending mismatch in
+  the working copy. It passes in CI and on the server, where the checkout is
+  LF.
 
 ## Exact Recommended Next Action
 
@@ -468,4 +483,5 @@ validate the first approved content/assets in `docs/CONTENT_NEEDED.md`, then
 populate existing config, project collection and media slots while leaving
 release/indexing disabled. Preserve the demo/production boundary; re-run static,
 browser and visual QA. Do not invent information, change visual direction, push
-`main` or change Vercel without explicit authorization.
+`main`, publish to the live domain or change hosting without explicit
+authorization.
