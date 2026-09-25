@@ -1,0 +1,127 @@
+# Builds the site and publishes it to the studio's own Plesk server at IONOS.
+#
+# Manual only, on purpose. Production and the holding page share one document
+# root, so a run against `production` is the launch: it replaces the
+# "próximamente" page with the site. That is why the job asks for a typed
+# confirmation before it will touch that path.
+#
+# The build happens here and never on the server, so Plesk needs no Node and
+# nothing but static files ever lands in the document root.
+#
+# Required in the repository (Settings > Secrets and variables > Actions):
+#   secret  SSH_HOST       the server's IP or hostname
+#   secret  SSH_USER       the subscription's system user
+#   secret  SSH_KEY        the private half of a key authorised for that user
+#   secret  DEPLOY_PATH    absolute path of the production document root
+#   secret  STAGING_PATH   absolute path of the staging document root, when one
+#                          exists; leave unset until then
+#   var     PUBLIC_SITE_URL  https://colmillostudio.com/
+#
+# PUBLIC_RELEASE_APPROVED and PUBLIC_INDEXING_APPROVED are deliberately absent:
+# `siteConfig.isPrelaunch` needs all three to be set before the site stops
+# saying noindex, so a deploy from here cannot publish an indexable site by
+# accident. Opening those gates is a separate, deliberate act — see
+# docs/DEPLOYMENT.md.
+
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Where to publish'
+        type: choice
+        options: [staging, production]
+        default: staging
+        required: true
+      confirm:
+        description: 'For production only: type PUBLICAR to confirm'
+        type: string
+        default: ''
+        required: false
+
+concurrency:
+  group: deploy-${{ inputs.target }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      PUBLIC_SITE_URL: ${{ vars.PUBLIC_SITE_URL }}
+
+    steps:
+      - name: Refuse an unconfirmed production run
+        if: inputs.target == 'production' && inputs.confirm != 'PUBLICAR'
+        run: |
+          echo "A production deploy replaces the holding page with the site."
+          echo "Re-run with confirm: PUBLICAR if that is what you mean to do."
+          exit 1
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # check, lint, format, the asset/brand/hero guards, the build itself,
+      # check:production and check:links. Nothing is uploaded if any of it
+      # fails, which is the whole point of doing it here.
+      - name: Validate and build
+        run: npm run validate
+
+      - name: Refuse to ship an empty build
+        run: |
+          test -f dist/index.html || { echo "dist/index.html missing"; exit 1; }
+          echo "dist: $(du -sh dist | cut -f1), $(find dist -type f | wc -l) files"
+
+      - name: Resolve the destination
+        id: dest
+        env:
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          STAGING_PATH: ${{ secrets.STAGING_PATH }}
+        run: |
+          if [ "${{ inputs.target }}" = "production" ]; then
+            DEST="$DEPLOY_PATH"
+          else
+            DEST="$STAGING_PATH"
+          fi
+          # An empty path would make rsync --delete aim at the user's home.
+          case "$DEST" in
+            /*/*) ;;
+            *) echo "Destination for '${{ inputs.target }}' is unset or unsafe."; exit 1 ;;
+          esac
+          echo "path=$DEST" >> "$GITHUB_OUTPUT"
+
+      - name: Authorise
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy
+          chmod 600 ~/.ssh/deploy
+          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+
+      # --delete is what keeps the document root equal to the build, so a file
+      # dropped from the site really leaves the server. .well-known is excluded
+      # because Let's Encrypt writes its renewal challenges there.
+      - name: Publish
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          rsync -az --delete --exclude '.well-known' \
+            -e "ssh -i ~/.ssh/deploy -o StrictHostKeyChecking=yes" \
+            dist/ "$SSH_USER@$SSH_HOST:${{ steps.dest.outputs.path }}/"
+
+      - name: Check it answers
+        if: inputs.target == 'production'
+        run: |
+          sleep 3
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 "$PUBLIC_SITE_URL")
+          echo "$PUBLIC_SITE_URL -> $code"
+          [ "$code" = "200" ] || exit 1
