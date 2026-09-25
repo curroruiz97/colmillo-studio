@@ -456,3 +456,21 @@ is waiting on three things:
     would need its own approval;
   - what the form may store, and for how long, so the privacy policy can say so.
     The page collects a name, an address, an optional company and a message.
+
+## Holding page copy (2026-09-24)
+
+The `holding/` page that takes colmillostudio.com until launch carries two
+lines written as a placeholder and pending the client's approval:
+
+- the headline "Estamos construyendo la web.";
+- the line under it, "Vuelve pronto. Mientras tanto, si quieres que tu marca
+  muerda, hablemos."
+
+Everything else on that page is already approved: the orange wordmark, the
+address `hola@colmillostudio.com` and the profile
+`https://www.instagram.com/colmillo.studio/`. Replacing the two lines is a
+one-file edit and needs no build.
+
+Also open: whether the holding page should be discoverable before launch. It
+is `noindex` with a blocking `robots.txt` today, in line with the prelaunch
+policy.

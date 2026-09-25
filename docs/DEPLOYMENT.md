@@ -73,3 +73,53 @@ still a client decision.
 - `npm run release:check` is the final local/CI preflight. It requires the
   approved HTTPS origin, both explicit approval flags, a built `dist/`, and a
   non-blocking robots policy before any deployment action is considered.
+
+## Decided On 2026-09-24
+
+- **Domain:** `colmillostudio.com` (singular — it matches the approved
+  mailbox; a "colmillostudios" in the original request was a typo and is
+  confirmed wrong).
+- **Host:** the client's own Plesk server at IONOS, where the domain already
+  resolves. See `DECISIONS.md` for why. This closes "Hosting provider" and
+  "Domain" in *To Decide Later* above.
+- **First thing on the domain:** the holding page in `holding/`, not the site.
+
+### The holding page
+
+`holding/` is three files and no build step: `index.html` (its CSS and the
+sculpture inlined), `colmillo.png` (the orange wordmark) and `robots.txt`.
+Upload the three to the vhost's document root. That is the whole deployment.
+
+It is deliberately outside the Astro build. The standard `npm run build` still
+publishes a `/proyectos/` with no approved project in it, and the Vercel
+project is still overridden to the fictional demo; a page that cannot reach
+either cannot leak either.
+
+It keeps `noindex` and a blocking `robots.txt`, in line with the prelaunch
+policy. Its copy is provisional — see `CONTENT_NEEDED.md`.
+
+### Still to do before the site itself goes up
+
+1. **Retire the Vercel demo.** Restore the Build Command and Output Directory
+   overrides to their Astro defaults, or remove the project. While the
+   override stands, any domain pointed at it serves the nineteen-page
+   fictional demo.
+2. **Prune `public/`.** `dist/` is 80 MB of which the built pages reference
+   7.5 MB: 71.3 MB across 37 files is published and never requested, including
+   two ~21 MB client masters (`FINAL ANIMACION.mp4`, `WEB.mp4`) that anyone
+   can download from the site today. All are tracked in git, so moving the
+   masters to `media-src/` and dropping the superseded derivatives loses
+   nothing. Re-run `check:hero` afterwards.
+3. **Deploy pipeline.** A GitHub Action running `npm ci`, `npm run validate`,
+   `npm run build` and shipping `dist/` over SSH. Build in CI, never on the
+   server, so Plesk needs no Node. Keep dated release folders and a symlink so
+   a rollback is one command.
+4. **Server configuration.** Brotli/gzip, HTTP/2, the cache contract above
+   (revalidatable HTML, immutable only for `dist/_astro/`), the generated
+   `404.html`, and Let's Encrypt via Plesk.
+5. **The form.** `contactFormEndpoint` in `src/data/contactPage.ts` is the
+   only code change needed once the endpoint exists on the same host.
+6. **The gates.** `PUBLIC_SITE_URL=https://colmillostudio.com/`, and
+   `PUBLIC_RELEASE_APPROVED` / `PUBLIC_INDEXING_APPROVED` only when the
+   content, legal and SEO reviews are explicitly approved. `robots.txt` blocks
+   everything until that is deliberately reversed.

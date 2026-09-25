@@ -6399,3 +6399,73 @@ outline; pressing the centre has `SPREAD` and the dip and nothing else.
   71 skipped.
 
 Nothing was deployed by hand and nothing was pushed.
+
+## 2026-09-24 Session (fourth pass): The Domain, The Host, And A Holding Page
+
+Three things settled with the client, and one page built.
+
+### Settled
+
+- The domain is **colmillostudio.com**, singular. The "colmillostudios" in the
+  request was a typo; the singular matches the approved mailbox. This closes
+  the one-letter discrepancy that had been open since 2026-09-16.
+- The site moves to the client's **Plesk server at IONOS**, where the domain
+  already resolves, rather than staying on Vercel. Reasons in `DECISIONS.md`;
+  the short version is that the form gets an endpoint the studio owns, the
+  DNS does not have to move at all, and there is no commercial-tier question
+  on an account that had already flagged a payment problem.
+- colmillostudio.com opens with a **holding page**, not the site.
+
+### What the audit found
+
+Asked "how do we clean up the masters", the answer turned out to be a
+measurement rather than an opinion. Of the 80 MB in `dist/`, the built pages
+reference **7.5 MB**; **71.3 MB across 37 files is published and never
+requested**. That includes `FINAL ANIMACION.mp4` and `WEB.mp4` at ~21 MB each
+— the client's own masters, downloadable from the site by anyone who guesses
+the path — plus `animacion hero final.webm` and ten superseded hero
+derivatives. The hero folder alone holds 58 MB and the site uses five files
+from it totalling 3.4 MB.
+
+Every one of them is tracked in git, so nothing is lost by moving the three
+masters to `media-src/` and dropping the superseded derivatives. Not done in
+this session: the client asked to look at it together, and `check:hero` has to
+be re-run against whatever is left.
+
+### The holding page
+
+`holding/` — `index.html` with its CSS and the sculpture inlined,
+`colmillo.png`, `robots.txt`. 117 KB, no build step, no JavaScript, no route
+but itself, and deliberately outside the Astro build: the standard build still
+publishes a `/proyectos/` with no approved project in it and the Vercel
+project is still overridden to the fictional demo, so a page that cannot reach
+either cannot leak either.
+
+Approved facts only — the orange wordmark, `hola@colmillostudio.com` and the
+Instagram profile. The two lines of copy are provisional and listed in
+`CONTENT_NEEDED.md`. `noindex` plus a blocking `robots.txt`, in line with the
+prelaunch policy.
+
+The ball is the contact section's own object at rest, generated from
+`ContactSculpture.ts` and pasted in as a still (3.9 KB of SVG), so the holding
+page is recognisably the same studio without pulling in the site's runtime.
+
+### Verification (actually run)
+
+Rendered and inspected at 1440x900, 834x1112, 390x844, 320x720 and at 200%
+text: no horizontal overflow at any of them, the page never exceeds its
+viewport except at 320 (735px against 720), and no console or page errors.
+Contrast measured on the real render: links 4.53:1 and the supporting line
+13.78:1 on cream, both clear of AA for their sizes. The only outbound links
+are the approved address and the approved profile.
+
+### Next, in order
+
+1. Prune `public/` (the 71.3 MB), re-run `check:hero`.
+2. Upload `holding/` to the vhost; that is the domain live.
+3. Retire the Vercel demo override so nothing can serve the fictional build.
+4. GitHub Action for the real deploy, plus the server's compression, cache and
+   TLS configuration.
+5. The form endpoint, then the release and indexing gates.
+
+Nothing was deployed by hand, nothing was pushed, and no DNS was touched.

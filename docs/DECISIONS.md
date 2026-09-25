@@ -3054,3 +3054,62 @@ and both are noted as such in the source and in `docs/MOTION_SPEC.md`.
 Rejected: keeping the rim "only while held", which is exactly the state the
 client was objecting to; replacing the strokes with a softer stroke, which is
 the same object with less contrast.
+
+## 2026-09-24 - Hosting: The Site Moves To The Client's Plesk Server
+
+Decision (client): the definitive domain is **colmillostudio.com** — singular,
+matching the approved mailbox `hola@colmillostudio.com`; the "colmillostudios"
+in the request was a typo, now confirmed. The site moves from Vercel to the
+client's own Plesk server at IONOS, where that domain already points.
+
+Reasons, in the order they decided it:
+
+- **The form.** It is the one thing the site still lacks, and the 2026-09-23
+  entry above had already concluded that owning the endpoint beats a third
+  party: no outside service holding a visitor's brief, nothing to declare as a
+  data processor, no monthly submission cap, and a privacy policy written once
+  instead of twice. On the same host as the mailbox, the form posts to a
+  script beside it and delivers locally — no cross-domain SPF/DKIM to get
+  right for a sender that is not us.
+- **The DNS is already there.** The domain resolves to Plesk today, so this
+  option changes no records at all. The alternative means repointing the
+  apex at Vercel while leaving MX at IONOS — touching, for a nine-page static
+  site, the thing that currently delivers the studio's mail.
+- **No new bill and no licensing question.** Vercel's free tier is
+  non-commercial and a studio portfolio that sells services is not, so it
+  would mean Pro; and that account had already shown a payment warning.
+
+Nothing is lost technically: `output: 'static'` with no adapter and no
+committed provider configuration — `DEPLOYMENT.md` says in as many words that
+the target was left open on purpose.
+
+What is given up, and the answer to each: push-to-deploy (a GitHub Action that
+runs `npm ci && npm run validate && npm run build` and ships `dist/` over SSH —
+**built in CI, never on the server**, so Plesk never needs Node); a global CDN
+(a Spanish audience served from IONOS is fine, and what matters is Brotli,
+HTTP/2 and the cache contract already written in `DEPLOYMENT.md`); instant
+rollback (dated release folders and a symlink); and per-branch previews, which
+are genuinely lost.
+
+Rejected: keeping the site on Vercel and putting only the form endpoint on a
+Plesk subdomain, which works but is two hosts, two certificates and CORS for
+one form on nine pages.
+
+## 2026-09-24 - A Holding Page Takes The Domain First
+
+Decision (client): colmillostudio.com opens with a "próximamente" page rather
+than the site, so the domain can be live while the work continues.
+
+It is deliberately **not** built from this repository. `holding/` is three
+static files — one HTML page with its CSS and the sculpture inlined, the
+orange wordmark, and a blocking `robots.txt` — with no build step and no route
+but itself. That is the point: the standard build still publishes a
+`/proyectos/` with no approved project in it, and the Vercel deployment is
+still overridden to the nineteen-page fictional demo. A holding page that
+cannot reach either of them cannot leak either of them.
+
+It carries only approved facts: the wordmark, the approved address and the
+approved profile. Its two lines of copy are provisional and listed in
+`CONTENT_NEEDED.md`. It stays `noindex` with a blocking `robots.txt`, in line
+with the prelaunch policy, which is a decision to revisit deliberately if the
+client wants the domain discoverable before launch.
