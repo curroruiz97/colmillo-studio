@@ -157,3 +157,31 @@ is not a backup.
 The document root is `~/httpdocs`, the preview is `~/pre.colmillostudio.com`,
 and the archived WordPress is on a free Plesk temporary domain with its own
 database.
+
+## The shop — tienda.colmillostudio.com (2026-09-28)
+
+A separate static build (`npm run build:shop`, source in `shop/`, output in
+`dist-shop/`), published to its own document root so it can never touch the
+site. Prelaunch like everything else: `noindex` and a blocking `robots.txt`.
+
+Two places it is published by `publicar.sh`:
+
+- `./publicar.sh pre` also builds it with `SHOP_BASE=/tienda/` and publishes
+  it to `~/pre.colmillostudio.com/tienda/`, behind the preview's password. The
+  preview's own `rsync --delete` excludes that folder.
+- `./publicar.sh tienda` builds it for the subdomain's root and publishes it
+  to `~/tienda.colmillostudio.com`. It refuses to run while that folder does
+  not exist.
+
+To create the subdomain (needs the client's IONOS and Plesk access; the
+server account cannot do either):
+
+1. IONOS → Dominios → colmillostudio.com → DNS: add an `A` record, host
+   `tienda`, value `212.227.90.205` (the address `pre` and the apex already
+   use). No wildcard exists.
+2. Plesk → Sitios web y dominios → Añadir subdominio: `tienda`, document root
+   `tienda.colmillostudio.com` (the script expects exactly that folder).
+3. Plesk → SSL/TLS: issue Let's Encrypt for it once the DNS resolves.
+4. Plesk → Directorios protegidos con contraseña: protect it like `pre`
+   while the catalogue is a demonstration.
+5. `./publicar.sh tienda`.

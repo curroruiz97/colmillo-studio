@@ -1,0 +1,87 @@
+---
+/**
+ * The cart: a native modal `<dialog>`, so focus containment, Escape, the
+ * inert page behind it and the return of focus are the platform's own.
+ *
+ * It enters as the site's rounded layers do — pressed in from the right edge
+ * on a wide screen, risen from the foot as a sheet on a phone — with its ink
+ * skin carrying the same bite out of its leading edge as the studio's menu.
+ *
+ * Lines are drawn by `cart.ts` from the `<template>` below; the list is empty
+ * in the HTML because the cart only exists in the visitor's browser.
+ *
+ * "Finalizar compra" never pretends. There is no platform behind the shop
+ * yet (2026-09-28), so it says exactly that and charges nothing. When one is
+ * chosen, this button hands the lines to its checkout and the note goes.
+ */
+import { categoryPath } from '@shop/data/paths';
+---
+
+<dialog class="cart" id="cesta" aria-labelledby="cesta-title" data-cart>
+  <span class="cart__skin" aria-hidden="true"></span>
+  <div class="cart__inner">
+    <header class="cart__head">
+      <h2 class="cart__title" id="cesta-title">
+        Tu cesta <span class="cart__title-count" data-cart-heading-count></span>
+      </h2>
+      <button class="cart__close" type="button" data-cart-close>
+        <span class="cart__close-dot" aria-hidden="true"></span>
+        Cerrar
+      </button>
+    </header>
+
+    <div class="cart__empty" data-cart-empty>
+      <p class="cart__empty-line">Todavía no has mordido nada.</p>
+      <a class="cart__empty-link" href={categoryPath()} data-cart-close>
+        Ver catálogo <span aria-hidden="true">↓</span>
+      </a>
+    </div>
+
+    <ul class="cart__lines" role="list" data-cart-lines></ul>
+
+    <footer class="cart__foot" data-cart-foot>
+      <dl class="cart__sum">
+        <dt>Subtotal</dt>
+        <dd data-cart-subtotal>0,00 €</dd>
+      </dl>
+      <p class="cart__note">Envío e impuestos: pendientes de definir.</p>
+      <button
+        class="bite-button cart__checkout"
+        type="button"
+        data-cart-checkout
+      >
+        <span>Finalizar compra</span>
+      </button>
+      <p class="cart__demo" role="status" data-cart-demo hidden>
+        Esto es una maqueta: el pago se conectará cuando se elija la plataforma
+        de la tienda. No se ha cobrado nada.
+      </p>
+    </footer>
+  </div>
+</dialog>
+
+<template data-cart-line>
+  <li class="cart-line">
+    <a class="cart-line__media" data-line-link tabindex="-1" aria-hidden="true"
+    ></a>
+    <div class="cart-line__info">
+      <a class="cart-line__title" data-line-link data-line-title></a>
+      <p class="cart-line__options" data-line-options></p>
+      <p class="cart-line__price" data-line-price></p>
+    </div>
+    <div class="cart-line__controls">
+      <div class="stepper stepper--small" role="group" data-line-stepper>
+        <button class="stepper__button" type="button" data-line-less>
+          <span aria-hidden="true">−</span>
+        </button>
+        <output class="stepper__value" data-line-qty></output>
+        <button class="stepper__button" type="button" data-line-more>
+          <span aria-hidden="true">+</span>
+        </button>
+      </div>
+      <button class="cart-line__remove" type="button" data-line-remove>
+        Quitar
+      </button>
+    </div>
+  </li>
+</template>

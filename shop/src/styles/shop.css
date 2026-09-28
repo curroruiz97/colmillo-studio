@@ -1,0 +1,24 @@
+/*
+ * COLMILLO TIENDA — styles.
+ *
+ * The main site's reset, tokens, type and utilities are imported as they are,
+ * so the shop is the same brand by construction; everything the shop adds
+ * sits in its own layer after them.
+ */
+
+@layer reset, tokens, fonts, base, components, shop, utilities;
+
+@import '../../../src/styles/reset.css' layer(reset);
+@import '../../../src/styles/tokens.css' layer(tokens);
+@import '../../../src/styles/fonts.css' layer(fonts);
+@import '../../../src/styles/globals.css' layer(base);
+@import '../../../src/styles/typography.css' layer(components);
+@import '../../../src/styles/utilities.css' layer(utilities);
+@import './base.css' layer(shop);
+@import './bar.css' layer(shop);
+@import './stage.css' layer(shop);
+@import './piece.css' layer(shop);
+@import './catalog.css' layer(shop);
+@import './product.css' layer(shop);
+@import './cart.css' layer(shop);
+@import './footer.css' layer(shop);

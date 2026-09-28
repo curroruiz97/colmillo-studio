@@ -81,6 +81,13 @@ enable canonical URLs, release, indexing or client content.
 - `npm run build:demo` -> `dist-demo/`: nineteen pages including ten
   provisional project routes, each flagged on its own page, and provisional
   demo sections.
+- `npm run build:shop` -> `dist-shop/`: the shop (`shop/`, since
+  2026-09-28), a separate Astro project for `tienda.colmillostudio.com` that
+  imports the site's tokens, type and brand files. Every product is a
+  flagged demonstration, the cart is in the browser and nothing is charged
+  until a platform is chosen; `SHOP_BASE=/tienda/` builds the copy published
+  under the preview. Tests: `npm run test:e2e:shop`
+  (`playwright.shop.config.ts`, port 4324).
 - `demoMode` is true only in Astro development or `--mode demo`.
 - Keep both artifacts isolated. The current Vercel demo override is a documented
   temporary exception, not a new final-release rule.
@@ -116,6 +123,7 @@ colmillo-studio/
 |       |-- incoming/            # Intake only; not direct production use
 |       `-- projects/            # Approved public project media destination
 |-- scripts/                     # Asset/build/link/release validation tools
+|-- shop/                        # The shop (tienda.colmillostudio.com), own build
 |-- src/
 |   |-- content.config.ts / env.d.ts
 |   |-- config/                  # Assets/contact/content/navigation/site flags

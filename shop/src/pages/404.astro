@@ -1,0 +1,12 @@
+---
+import ShopLayout from '@shop/layouts/ShopLayout.astro';
+import { shopPath } from '@shop/data/paths';
+---
+
+<ShopLayout title="No está — Tienda Colmillo">
+  <section class="lost">
+    <p class="lost__code" aria-hidden="true">404</p>
+    <h1 class="lost__title">Esto no está en la tienda.</h1>
+    <a class="bite-button" href={shopPath()}><span>Volver a la tienda</span></a>
+  </section>
+</ShopLayout>

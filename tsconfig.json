@@ -4,6 +4,9 @@
   "exclude": [
     "dist",
     "dist-demo",
+    "dist-shop",
+    "dist-shop-publicar",
+    "shop/.astro",
     "node_modules",
     "playwright-report",
     "test-results"
@@ -12,7 +15,8 @@
     "baseUrl": ".",
     "noUncheckedIndexedAccess": true,
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@shop/*": ["shop/src/*"]
     }
   }
 }

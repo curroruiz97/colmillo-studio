@@ -1,0 +1,110 @@
+---
+/**
+ * The studio's stress ball, standing on the shop's name.
+ *
+ * The same object as the home contact section, from the same geometry
+ * (`ContactSculpture.ts`), rendered at rest here so no JavaScript, touch and
+ * reduced motion all get it. `ball.ts` redraws it live: a pointer over the
+ * stage makes it lean and dip towards it, holding presses it in, and the
+ * pressure is passed to the word underneath, which gives way.
+ *
+ * Decorative: it has no name and no focus stop; the page's real way on is
+ * the button below it.
+ */
+import {
+  RADIUS,
+  REST_STATE,
+  VIEW_H,
+  VIEW_W,
+  sculptureFrame,
+} from '@/scripts/motion/ContactSculpture';
+
+const rest = sculptureFrame(REST_STATE);
+---
+
+<div class="ball" aria-hidden="true" data-ball>
+  <svg
+    class="ball__svg"
+    viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+    focusable="false"
+    data-ball-svg
+  >
+    <defs>
+      <path id="sb-body" d={rest.body} data-part="body"></path>
+      <clipPath id="sb-clip"><use href="#sb-body"></use></clipPath>
+      <radialGradient
+        id="sb-light"
+        gradientUnits="userSpaceOnUse"
+        cx={rest.light.x}
+        cy={rest.light.y}
+        r={RADIUS}
+        data-part="light"
+      >
+        <stop offset="0" stop-color="#fff" stop-opacity="0.42"></stop>
+        <stop offset="0.35" stop-color="#fff" stop-opacity="0.16"></stop>
+        <stop offset="1" stop-color="#fff" stop-opacity="0"></stop>
+      </radialGradient>
+      <radialGradient
+        id="sb-shade"
+        gradientUnits="userSpaceOnUse"
+        cx={rest.shade.x}
+        cy={rest.shade.y}
+        r={RADIUS * 1.45}
+        data-part="shade"
+      >
+        <stop offset="0.45" stop-color="#12100f" stop-opacity="0"></stop>
+        <stop offset="0.8" stop-color="#12100f" stop-opacity="0.14"></stop>
+        <stop offset="1" stop-color="#12100f" stop-opacity="0.3"></stop>
+      </radialGradient>
+      <linearGradient id="sb-bounce" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0.72" stop-color="#fff" stop-opacity="0"></stop>
+        <stop offset="1" stop-color="#fff" stop-opacity="0.16"></stop>
+      </linearGradient>
+      <radialGradient id="sb-dip-shade">
+        <stop offset="0" stop-color="#12100f" stop-opacity="0.27"></stop>
+        <stop offset="0.5" stop-color="#12100f" stop-opacity="0.15"></stop>
+        <stop offset="1" stop-color="#12100f" stop-opacity="0"></stop>
+      </radialGradient>
+      <radialGradient id="sb-dip-light">
+        <stop offset="0" stop-color="#fff" stop-opacity="0.38"></stop>
+        <stop offset="0.55" stop-color="#fff" stop-opacity="0.08"></stop>
+        <stop offset="1" stop-color="#fff" stop-opacity="0"></stop>
+      </radialGradient>
+      <radialGradient id="sb-ground">
+        <stop offset="0" stop-color="#12100f" stop-opacity="0.22"></stop>
+        <stop offset="1" stop-color="#12100f" stop-opacity="0"></stop>
+      </radialGradient>
+    </defs>
+    <ellipse
+      fill="url(#sb-ground)"
+      cx={rest.shadow.cx}
+      cy={rest.shadow.cy}
+      rx={rest.shadow.rx}
+      ry={rest.shadow.ry}
+      data-part="shadow"></ellipse>
+    <g class="ball__form" data-ball-form>
+      <use href="#sb-body" fill="#cd5730"></use>
+      <g clip-path="url(#sb-clip)">
+        <rect width={VIEW_W} height={VIEW_H} fill="url(#sb-shade)"></rect>
+        <rect width={VIEW_W} height={VIEW_H} fill="url(#sb-light)"></rect>
+        <use href="#sb-body" fill="url(#sb-bounce)"></use>
+        <ellipse
+          fill="url(#sb-dip-shade)"
+          opacity={rest.dip.strength.toFixed(3)}
+          cx={rest.dip.shade.cx}
+          cy={rest.dip.shade.cy}
+          rx={rest.dip.shade.rx}
+          ry={rest.dip.shade.ry}
+          data-part="dip-shade"></ellipse>
+        <ellipse
+          fill="url(#sb-dip-light)"
+          opacity={rest.dip.strength.toFixed(3)}
+          cx={rest.dip.light.cx}
+          cy={rest.dip.light.cy}
+          rx={rest.dip.light.rx}
+          ry={rest.dip.light.ry}
+          data-part="dip-light"></ellipse>
+      </g>
+    </g>
+  </svg>
+</div>

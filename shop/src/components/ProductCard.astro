@@ -1,0 +1,115 @@
+---
+/**
+ * One product in the grid.
+ *
+ * The tile holds two drawings: the whole object, and its print close up.
+ * On a fine pointer the close-up is bitten into view from the top-right
+ * corner; everywhere else the whole object stays. The quick "+" adds the
+ * product's first available variant and is only offered when a product has
+ * nothing to choose; otherwise it reads "Elegir" and goes to the product.
+ *
+ * `size` comes from the grid's rhythm, never from the product, so a real
+ * catalogue of any length keeps the same composition.
+ */
+import ProductArt from '@shop/components/ProductArt.astro';
+import {
+  firstAvailable,
+  formatPrice,
+  priceRange,
+  soldOut,
+  type Product,
+} from '@shop/data/catalog';
+import { artStyle } from '@shop/data/palette';
+import { productPath } from '@shop/data/paths';
+
+interface Props {
+  product: Product;
+  size?: 'wide' | 'tall' | 'base';
+  /** Rail cards are always the base size and never filter. */
+  inRail?: boolean;
+}
+
+const { product, size = 'base', inRail = false } = Astro.props;
+const range = priceRange(product);
+const variant = firstAvailable(product);
+const quick = product.options.length === 0 && !soldOut(product);
+const href = productPath(product.handle);
+const style = artStyle(product.palette);
+---
+
+<article
+  class:list={['card', `card--${size}`, { 'card--rail': inRail }]}
+  data-card
+  data-category={product.category}
+  data-reveal
+>
+  <div class="card__frame">
+    <a class="card__tile" href={href} data-card-tile style={style}>
+      <span class="card__surface" data-card-surface>
+        <ProductArt kind={product.art} class="card__art" />
+        <ProductArt
+          kind={product.art}
+          view="detail"
+          class="card__art card__art--detail"
+        />
+      </span>
+      <span class="card__flags">
+        <span class="card__flag">Demo</span>
+        {
+          soldOut(product) && (
+            <span class="card__flag card__flag--out">Agotado</span>
+          )
+        }
+        {
+          range.compareAt && (
+            <span class="card__flag card__flag--sale">Rebaja</span>
+          )
+        }
+      </span>
+      <span class="visually-hidden">{product.title}</span>
+    </a>
+
+    {
+      quick && variant ? (
+        <button
+          class="card__add"
+          type="button"
+          data-quick-add
+          data-handle={product.handle}
+          data-variant={variant.id}
+        >
+          <span aria-hidden="true">+</span>
+          <span class="visually-hidden">Añadir {product.title} a la cesta</span>
+        </button>
+      ) : (
+        <a
+          class="card__add card__add--choose"
+          href={href}
+          tabindex="-1"
+          aria-hidden="true"
+        >
+          Elegir
+        </a>
+      )
+    }
+  </div>
+
+  <div class="card__meta">
+    <h3 class="card__title">
+      <a href={href}>{product.title}</a>
+    </h3>
+    <p class="card__kicker">{product.kicker}</p>
+    <p class="card__price">
+      {range.from && <span class="card__from">Desde</span>}
+      <span>{formatPrice(range.min)}</span>
+      {
+        range.compareAt && (
+          <s class="card__was">
+            <span class="visually-hidden">Antes</span>
+            {formatPrice(range.compareAt)}
+          </s>
+        )
+      }
+    </p>
+  </div>
+</article>

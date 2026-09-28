@@ -8,6 +8,8 @@ export default defineConfig({
     'services.demo.spec.ts',
     'projects.demo.spec.ts',
     'case-study.demo.spec.ts',
+    // The shop has its own build, server and config (playwright.shop.config.ts).
+    'shop.spec.ts',
   ],
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),

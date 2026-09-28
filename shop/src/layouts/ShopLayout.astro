@@ -1,0 +1,109 @@
+---
+/**
+ * The shop's page shell: head, the demonstration band, the bar, the page,
+ * the footer, the cart and the product thumbnails the cart draws with.
+ *
+ * Prelaunch like the main site: `noindex` on every page and a blocking
+ * `robots.txt`, until the shop has a real catalogue and an explicit release.
+ */
+import CartDrawer from '@shop/components/CartDrawer.astro';
+import ProductArt from '@shop/components/ProductArt.astro';
+import ShopBar from '@shop/components/ShopBar.astro';
+import ShopFooter from '@shop/components/ShopFooter.astro';
+import { catalog } from '@shop/data/catalog';
+import '@shop/styles/shop.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+/*
+ * What the browser needs to put a variant in the cart: names, prices,
+ * availability and the palette each variant repaints its drawing with.
+ */
+const clientCatalog = JSON.stringify(
+  catalog.products().map((product) => ({
+    handle: product.handle,
+    title: product.title,
+    palette: product.palette,
+    options: product.options.map((option) => option.name),
+    variants: product.variants,
+  })),
+).replace(/</g, '\\u003c');
+
+const {
+  title = 'Tienda — Colmillo Studio',
+  description = 'La tienda de Colmillo Studio. Maqueta con productos de demostración.',
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#fceeda" />
+    <script is:inline>
+      // Before the first paint: scripting is available, and the system's
+      // motion preference, so no rule has to wait for the bundle.
+      document.documentElement.dataset.js = 'on';
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.documentElement.dataset.motion = 'reduced';
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+    {
+      /* Stated on every page, before anything else: nothing here is for sale. */
+    }
+    <p class="demo-band">
+      <span class="demo-band__tag">Maqueta</span>
+      Productos, precios y textos de demostración. No se vende ni se cobra nada.
+    </p>
+
+    <ShopBar />
+
+    <main id="contenido" tabindex="-1">
+      <slot />
+    </main>
+
+    <ShopFooter />
+
+    <CartDrawer />
+
+    {
+      /* The cart's thumbnails: one drawing per product, repainted per variant. */
+    }
+    {
+      catalog.products().map((product) => (
+        <template data-art-template={product.handle}>
+          <ProductArt kind={product.art} class="cart-line__art" />
+        </template>
+      ))
+    }
+
+    <script
+      type="application/json"
+      id="shop-catalog"
+      set:html={clientCatalog}
+    />
+
+    {/* Every change to the cart is announced once, politely. */}
+    <p class="visually-hidden" aria-live="polite" data-cart-announcer></p>
+
+    <script>
+      import { initShop } from '@shop/scripts/shop';
+
+      initShop();
+    </script>
+  </body>
+</html>

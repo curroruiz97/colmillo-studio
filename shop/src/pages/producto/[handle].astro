@@ -1,0 +1,159 @@
+---
+/**
+ * A product.
+ *
+ * Two columns on a wide screen: the gallery runs down the left and the
+ * buying column stays in view beside it (sticky), so the choice is always
+ * next to what is being chosen. On a phone the gallery becomes a swipeable
+ * strip with a counter, and the buying column follows it.
+ *
+ * The gallery shows the drawing whole, its print close up and the object on
+ * the other grounds of the palette; a colour option repaints all of them.
+ * Below: details and the still-undefined shipping terms as native
+ * disclosures, then more of the same category.
+ */
+import BuyForm from '@shop/components/BuyForm.astro';
+import ProductArt from '@shop/components/ProductArt.astro';
+import ProductCard from '@shop/components/ProductCard.astro';
+import ShopLayout from '@shop/layouts/ShopLayout.astro';
+import {
+  catalog,
+  firstAvailable,
+  formatPrice,
+  paletteOf,
+  type Product,
+} from '@shop/data/catalog';
+import { altGround, artStyle } from '@shop/data/palette';
+import { categoryPath, shopPath } from '@shop/data/paths';
+
+export function getStaticPaths() {
+  return catalog.products().map((product) => ({
+    params: { handle: product.handle },
+    props: { product },
+  }));
+}
+
+interface Props {
+  product: Product;
+}
+
+const { product } = Astro.props as Props;
+const variant = firstAvailable(product);
+const palette = paletteOf(product, variant);
+
+const views = [
+  { view: 'main' as const, alt: `${product.title}, entero` },
+  { view: 'detail' as const, alt: `${product.title}, detalle del estampado` },
+  {
+    view: 'main' as const,
+    alt: `${product.title}, sobre otro fondo`,
+    ground: 'alt',
+  },
+];
+
+/* More of the same category first, then the rest, never the product itself. */
+const related = [
+  ...catalog.products().filter((p) => p.category === product.category),
+  ...catalog.products().filter((p) => p.category !== product.category),
+]
+  .filter((p) => p.handle !== product.handle)
+  .slice(0, 4);
+---
+
+<ShopLayout
+  title={`${product.title} — Tienda Colmillo`}
+  description={`${product.title}. Producto de demostración de la tienda de Colmillo Studio.`}
+>
+  <article class="product" data-buy-scope>
+    <nav class="crumbs" aria-label="Estás en">
+      <a href={shopPath()}>Tienda</a>
+      <span aria-hidden="true">/</span>
+      <a href={categoryPath(product.category)}>
+        {product.category}
+      </a>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">{product.title}</span>
+    </nav>
+
+    <div class="product__layout">
+      <div class="gallery" data-gallery>
+        <ol class="gallery__track" data-gallery-track aria-label="Imágenes">
+          {
+            views.map((item, index) => (
+              <li
+                class="gallery__slide"
+                data-buy-art
+                data-ground={item.ground}
+                style={artStyle(
+                  item.ground
+                    ? { ...palette, ground: altGround(palette) }
+                    : palette,
+                )}
+              >
+                <ProductArt
+                  kind={product.art}
+                  view={item.view}
+                  label={item.alt}
+                  class="gallery__art"
+                />
+                <span class="gallery__index" aria-hidden="true">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+              </li>
+            ))
+          }
+        </ol>
+        <p class="gallery__counter" aria-hidden="true" data-gallery-counter>
+          01 / {String(views.length).padStart(2, '0')}
+        </p>
+      </div>
+
+      <div class="product__buy">
+        <div class="product__sticky">
+          <p class="product__flag">Producto de demostración</p>
+          <h1 class="product__title">{product.title}</h1>
+          <p class="product__kicker">{product.kicker}</p>
+          <p class="product__price">
+            <span data-buy-price>{variant && formatPrice(variant.price)}</span>
+            {
+              variant?.compareAt && (
+                <s class="product__was">
+                  <span class="visually-hidden">Antes</span>
+                  {formatPrice(variant.compareAt)}
+                </s>
+              )
+            }
+          </p>
+          <p class="product__text">{product.description}</p>
+
+          <BuyForm product={product} id="producto" />
+
+          <div class="product__more">
+            <details class="fold" open>
+              <summary class="fold__summary">Detalles</summary>
+              <ul class="fold__list" role="list">
+                {product.details.map((detail) => <li>{detail}</li>)}
+              </ul>
+            </details>
+            <details class="fold">
+              <summary class="fold__summary">Envíos y devoluciones</summary>
+              <p class="fold__text">
+                Pendiente de definir. Aquí irán los plazos, los costes y las
+                condiciones reales cuando la tienda las tenga.
+              </p>
+            </details>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <section class="related" aria-labelledby="related-title">
+    <h2 class="related__title" id="related-title">
+      También muerde<span class="catalog__dot">.</span>
+    </h2>
+    <div class="related__rail">
+      {related.map((item) => <ProductCard product={item} inRail />)}
+    </div>
+  </section>
+</ShopLayout>

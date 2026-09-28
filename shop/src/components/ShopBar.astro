@@ -1,0 +1,67 @@
+---
+/**
+ * The shop's bar: one floating capsule across the top that reads on any
+ * ground. Wordmark and "Tienda" on the left, the categories in the middle,
+ * the way back to the studio and the cart on the right.
+ *
+ * On touch the cart leaves the capsule and becomes the dock centred at the
+ * foot of the screen — the same place and shape as the main site's menu dock
+ * (2026-09-28), so a visitor coming from the studio finds the one control
+ * where they left it. It is the same button either way.
+ */
+import { catalog } from '@shop/data/catalog';
+import wordmark from '../../../public/assets/brand/colmillo-wordmark-orange.png';
+import { categoryPath, shopPath } from '@shop/data/paths';
+
+const categories = catalog.categories();
+const home = Astro.url.pathname === shopPath();
+---
+
+<header class="shop-bar" data-shop-bar>
+  <a
+    class="shop-bar__brand"
+    href={shopPath()}
+    aria-current={home ? 'page' : undefined}
+  >
+    <img
+      src={wordmark.src}
+      width={wordmark.width}
+      height={wordmark.height}
+      alt="Colmillo Studio"
+      decoding="async"
+    />
+    <span class="shop-bar__tag">Tienda</span>
+  </a>
+
+  <nav class="shop-bar__nav" aria-label="Categorías">
+    <a href={categoryPath()}>Todo</a>
+    {
+      categories.map((category) => (
+        <a href={categoryPath(category)}>{category}</a>
+      ))
+    }
+  </nav>
+
+  <a class="shop-bar__studio" href="https://colmillostudio.com/">
+    Studio <span aria-hidden="true">↗</span>
+  </a>
+
+  <button
+    class="cart-button"
+    type="button"
+    data-cart-open
+    aria-haspopup="dialog"
+    aria-controls="cesta"
+  >
+    <span class="cart-button__icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" focusable="false">
+        <path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8L5 8Z"
+        ></path>
+        <path d="M9 10V7a3 3 0 0 1 6 0v3"></path>
+      </svg>
+    </span>
+    <span class="cart-button__label">Cesta</span>
+    <span class="cart-button__count" data-cart-count>0</span>
+    <span class="visually-hidden" data-cart-count-label>, vacía</span>
+  </button>
+</header>

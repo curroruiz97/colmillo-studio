@@ -1,6 +1,9 @@
 node_modules/
 dist/
 dist-demo/
+dist-shop/
+dist-shop-publicar/
+shop/.astro/
 .astro/
 .cache/
 playwright-report/

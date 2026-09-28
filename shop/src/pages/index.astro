@@ -1,0 +1,209 @@
+---
+/**
+ * TIENDA — the home.
+ *
+ *   01 the stage   the studio's stress ball standing on the word "Tienda.",
+ *                  which gives way when the ball is pressed
+ *   02 the band    the manifesto's four verbs, travelling, on a tilted ink strip
+ *   03 the piece   one product on a rounded ink layer that rises over the
+ *                  stage, bought right there
+ *   04 catalogue   a filterable grid whose rhythm (wide, tall, base) comes
+ *                  from position, never from the product
+ *   05 the close   the studio's own call, back to the studio
+ *
+ * Every product is a demonstration (see `catalog.ts`).
+ */
+import BuyForm from '@shop/components/BuyForm.astro';
+import ProductArt from '@shop/components/ProductArt.astro';
+import ProductCard from '@shop/components/ProductCard.astro';
+import ShopBall from '@shop/components/ShopBall.astro';
+import ShopLayout from '@shop/layouts/ShopLayout.astro';
+import {
+  catalog,
+  firstAvailable,
+  formatPrice,
+  paletteOf,
+} from '@shop/data/catalog';
+import { artStyle } from '@shop/data/palette';
+import { productPath } from '@shop/data/paths';
+
+const products = catalog.products();
+const categories = catalog.categories();
+const featured = catalog.featured();
+const featuredVariant = firstAvailable(featured);
+
+/*
+ * The grid's rhythm, by position. Nine cards fill exactly twelve cells —
+ * three full rows of four — so the catalogue never ends on a lone card; it
+ * repeats every nine and never looks at the product.
+ */
+const RHYTHM = [
+  'wide',
+  'base',
+  'tall',
+  'base',
+  'base',
+  'base',
+  'wide',
+  'base',
+  'base',
+] as const;
+const sizeAt = (index: number) => RHYTHM[index % RHYTHM.length] ?? 'base';
+
+const verbs = ['Morder.', 'Presionar.', 'Romper.', 'Dejar marca.'];
+---
+
+<ShopLayout>
+  <section class="stage" data-stage aria-labelledby="stage-title">
+    <div class="stage__inner">
+      <p class="stage__kicker">
+        <span>Colmillo Studio</span>
+        <span aria-hidden="true">·</span>
+        <span>Edición 01</span>
+      </p>
+
+      <div class="stage__scene" data-stage-scene>
+        <ShopBall />
+        <h1 class="stage__word" id="stage-title" data-stage-word>
+          <span class="stage__letters">Tienda</span><span class="stage__dot"
+            >.</span
+          >
+        </h1>
+      </div>
+
+      <div class="stage__foot">
+        <p class="stage__lede">
+          Objetos con mordida, hechos por el estudio. Aprieta la pelota.
+        </p>
+        <a class="bite-button stage__cta" href="#catalogo">
+          <span>Ver catálogo <span aria-hidden="true">↓</span></span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <div class="band-wrap" aria-hidden="true">
+    <div class="band">
+      <div class="band__track" data-band>
+        {
+          [0, 1].map(() => (
+            <p class="band__run">
+              {verbs.map((verb) => (
+                <span class="band__word">
+                  {verb}
+                  <span class="band__mark" />
+                </span>
+              ))}
+            </p>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+
+  <section
+    class="piece"
+    aria-labelledby="piece-title"
+    data-buy-scope
+    data-reveal
+  >
+    <div class="piece__inner">
+      <div class="piece__media">
+        <a
+          class="piece__tile"
+          href={productPath(featured.handle)}
+          style={artStyle(paletteOf(featured, featuredVariant))}
+          data-buy-art
+          data-press-tile
+          tabindex="-1"
+          aria-hidden="true"
+        >
+          <span class="piece__surface" data-press-surface>
+            <ProductArt kind={featured.art} />
+          </span>
+        </a>
+        <span class="piece__flag">Demo</span>
+      </div>
+
+      <div class="piece__copy">
+        <p class="piece__kicker">La pieza <span>/ {featured.category}</span></p>
+        <h2 class="piece__title" id="piece-title">
+          <a href={productPath(featured.handle)}>{featured.title}</a>
+        </h2>
+        <p class="piece__price" data-buy-price>
+          {featuredVariant && formatPrice(featuredVariant.price)}
+        </p>
+        <p class="piece__text">{featured.description}</p>
+        <BuyForm product={featured} id="pieza" />
+        <a class="piece__more" href={productPath(featured.handle)}>
+          Ver la pieza entera <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="catalog" id="catalogo" aria-labelledby="catalog-title">
+    <div class="catalog__inner">
+      <header class="catalog__head">
+        <h2 class="catalog__title" id="catalog-title">
+          Catálogo<span class="catalog__dot">.</span>
+        </h2>
+        <p class="catalog__count">
+          <span data-catalog-count>{products.length}</span> piezas
+        </p>
+      </header>
+
+      {/* Published by `filter.ts`: without it the whole catalogue shows. */}
+      <div
+        class="filter"
+        role="group"
+        aria-label="Filtrar por categoría"
+        data-filter
+        hidden
+      >
+        <button
+          class="filter__pill"
+          type="button"
+          aria-pressed="true"
+          data-filter-value=""
+        >
+          Todo
+        </button>
+        {
+          categories.map((category) => (
+            <button
+              class="filter__pill"
+              type="button"
+              aria-pressed="false"
+              data-filter-value={category}
+            >
+              {category}
+            </button>
+          ))
+        }
+      </div>
+
+      <div class="grid" data-grid>
+        {
+          products.map((product, index) => (
+            <ProductCard product={product} size={sizeAt(index)} />
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="close" aria-labelledby="close-title">
+    <div class="close__inner" data-reveal>
+      <h2 class="close__title" id="close-title">
+        Haz que tu marca <em>muerda</em><span class="close__dot">.</span>
+      </h2>
+      <p class="close__text">
+        La tienda es un trozo de lo que hacemos. El resto está en el estudio.
+      </p>
+      <a class="bite-button close__cta" href="https://colmillostudio.com/">
+        <span>Conoce el estudio <span aria-hidden="true">↗</span></span>
+      </a>
+    </div>
+  </section>
+</ShopLayout>

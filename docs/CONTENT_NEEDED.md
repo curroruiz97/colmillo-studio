@@ -475,3 +475,34 @@ one-file edit and needs no build.
 Also open: whether the holding page should be discoverable before launch. It
 is `noindex` with a blocking `robots.txt` today, in line with the prelaunch
 policy.
+
+## Tienda — tienda.colmillostudio.com (opened 2026-09-28)
+
+The shop in `shop/` is a front-end mock-up. Every product, price, option and
+description in `shop/src/data/catalog.ts` is a flagged demonstration written
+to exercise the layout; every page says so and nothing is charged. Needed
+before it can sell anything:
+
+- **The platform.** Shopify, WooCommerce or other. It decides where the cart
+  and the checkout live (see `DECISIONS.md` for the seam in `cart.ts`), the
+  hosting of the shop (Shopify is hosted; WooCommerce needs PHP and a
+  database on the Plesk server) and the monthly and per-sale costs.
+- **The catalogue.** What is sold, with names, descriptions, options (sizes,
+  colours, formats), prices, stock and SKUs.
+- **Product photography.** Each product is currently a drawing
+  (`ProductArt.astro`); real photos replace it in the same 4:5 tile. At least
+  one front and one detail per product, on a consistent ground.
+- **Copy.** Provisional and pending approval: the hero line "Objetos con
+  mordida, hechos por el estudio. Aprieta la pelota.", the kicker "Edición
+  01", the close line "La tienda es un trozo de lo que hacemos. El resto está
+  en el estudio." and the footer line "Todo lo que hay aquí, antes lo hemos
+  mordido nosotros.". "Haz que tu marca muerda." and the manifesto's four
+  verbs are the site's own.
+- **Legal and commercial terms** (listed as "pendiente" in the footer and on
+  each product): conditions of sale, shipping zones, costs and times, returns
+  and the 14-day right of withdrawal, VAT display, the seller's legal identity
+  and the privacy and cookie terms a checkout brings with it.
+- **Payment methods** the client wants offered.
+- **The subdomain.** A DNS `A` record `tienda → 212.227.90.205` at IONOS and
+  the subdomain in Plesk (see `DEPLOYMENT.md`). Until then the shop is
+  published under the preview at `pre.colmillostudio.com/tienda/`.

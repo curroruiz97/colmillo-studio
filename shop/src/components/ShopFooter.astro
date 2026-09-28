@@ -1,0 +1,92 @@
+---
+/**
+ * The shop's footer. Only approved channels (the address and the Instagram
+ * profile already published on the main site) and the studio's domain. The
+ * sale conditions, shipping and returns do not exist yet, so they are listed
+ * as pending rather than linked to pages that would have to be invented.
+ */
+import { contactChannels } from '@/config/contact';
+import { catalog } from '@shop/data/catalog';
+import wordmark from '../../../public/assets/brand/colmillo-wordmark-cream.png';
+import { categoryPath, shopPath } from '@shop/data/paths';
+
+const email = contactChannels.email;
+const instagram = contactChannels.instagram;
+---
+
+<footer class="shop-footer">
+  <div class="shop-footer__top">
+    <a class="shop-footer__brand" href={shopPath()}>
+      <img
+        src={wordmark.src}
+        width={wordmark.width}
+        height={wordmark.height}
+        alt="Colmillo Studio"
+        loading="lazy"
+        decoding="async"
+      />
+      <span>Tienda</span>
+    </a>
+    <p class="shop-footer__line">
+      Todo lo que hay aquí, antes lo hemos mordido nosotros.
+    </p>
+  </div>
+
+  <div class="shop-footer__cols">
+    <nav aria-label="Tienda">
+      <h2 class="shop-footer__head">Tienda</h2>
+      <ul role="list">
+        <li><a href={categoryPath()}>Todo</a></li>
+        {
+          catalog.categories().map((category) => (
+            <li>
+              <a href={categoryPath(category)}>{category}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    <div>
+      <h2 class="shop-footer__head">Colmillo</h2>
+      <ul role="list">
+        <li><a href="https://colmillostudio.com/">colmillostudio.com ↗</a></li>
+        {
+          email?.href && (
+            <li>
+              <a href={email.href}>{email.label}</a>
+            </li>
+          )
+        }
+        {
+          instagram?.href && (
+            <li>
+              <a
+                href={instagram.href}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Instagram ↗
+                <span class="visually-hidden">
+                  (se abre en una pestaña nueva)
+                </span>
+              </a>
+            </li>
+          )
+        }
+      </ul>
+    </div>
+    <div>
+      <h2 class="shop-footer__head">Compras</h2>
+      <ul role="list" class="shop-footer__pending">
+        <li>Condiciones de venta <span>pendiente</span></li>
+        <li>Envíos <span>pendiente</span></li>
+        <li>Cambios y devoluciones <span>pendiente</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <p class="shop-footer__base">
+    <span>© 2026 Colmillo Studio</span>
+    <span>Maqueta de tienda. Sin pagos reales.</span>
+  </p>
+</footer>

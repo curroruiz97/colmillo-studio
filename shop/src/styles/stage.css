@@ -1,0 +1,245 @@
+/*
+ * THE STAGE
+ *
+ * One screen of cream: the word "Tienda." set as large as the screen allows
+ * along the foot of the scene, and the studio's stress ball standing on it.
+ * The word answers the ball: `--press` (0..1, written by `ball.ts`) squashes
+ * it from its baseline, the letters widening as they are pressed down.
+ *
+ * The stage is sticky, so the band and the rounded ink layer after it rise
+ * over it; while they do, it recedes (a scroll-driven animation where the
+ * engine has one, nothing where it does not).
+ */
+.stage {
+  --word: clamp(5.25rem, 24.5vw, 27rem);
+  --ball: min(46vw, 52svh, 40rem);
+
+  position: sticky;
+  z-index: 0;
+  inset-block-start: 0;
+  min-block-size: 100svh;
+  overflow: clip;
+  background: var(--color-brand-cream);
+}
+
+.stage__inner {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-block-size: 100svh;
+  padding: calc(
+      var(--shop-bar-top) + var(--shop-bar-h) + clamp(1.25rem, 3vw, 2.5rem)
+    )
+    var(--shop-gutter) clamp(1.5rem, 4svh, 3rem);
+  transform-origin: 50% 30%;
+}
+
+.stage__kicker {
+  display: flex;
+  gap: 0.6rem;
+  margin: 0;
+  font-size: var(--font-label);
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.stage__scene {
+  position: relative;
+  display: grid;
+  align-items: end;
+  justify-items: center;
+  /* The ball's top, measured from the scene's foot (see `.ball`). */
+  min-block-size: calc(var(--word) * 0.52 + var(--ball) * 0.715);
+}
+
+.stage__word {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: baseline;
+  margin: 0;
+  font-size: var(--word);
+  font-weight: 950;
+  letter-spacing: -0.075em;
+  line-height: 0.78;
+  white-space: nowrap;
+  transform-origin: 50% 100%;
+  transform: scale(
+    calc(1 + var(--press, 0) * 0.06),
+    calc(1 - var(--press, 0) * 0.2)
+  );
+  /* Pull the optical start back: display type overhangs its own box. */
+  margin-inline-start: -0.04em;
+}
+
+.stage__dot {
+  color: var(--color-brand-orange);
+}
+
+/*
+ * The ball stands on the word's lowercase — "ienda" is what is under it —
+ * and sinks a little into it. Measured on the rendered type: with a line
+ * height of 0.78 the x-height's top sits 0.26em below the word's box, so
+ * 0.52em above the scene's foot, and the ball's body ends 83.1% down its
+ * 1000x860 drawing, 0.145 of its width above the box's bottom. As the word
+ * is squashed from its baseline, its x-height comes down by 0.104em per unit
+ * of pressure, and the ball goes down with it rather than lifting off.
+ */
+.ball {
+  position: absolute;
+  z-index: 2;
+  inset-inline-start: 50%;
+  inset-block-end: calc(var(--word) * 0.52 - var(--ball) * 0.145);
+  inline-size: var(--ball);
+  translate: -50% calc(var(--press, 0) * var(--word) * 0.104);
+  touch-action: pan-y;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.ball__svg {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  overflow: visible;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ball {
+    cursor: grab;
+  }
+
+  .ball:active {
+    cursor: grabbing;
+  }
+}
+
+.stage__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1.25rem 2rem;
+  /* Clear of the band, which crosses the foot of the stage. */
+  padding-block: clamp(1.25rem, 3svh, 2.25rem) clamp(2.5rem, 6svh, 4.5rem);
+}
+
+.stage__lede {
+  max-inline-size: 26ch;
+  margin: 0;
+  font-size: var(--font-body-lg);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+@supports (animation-timeline: scroll()) {
+  .stage__inner {
+    animation: stage-recede linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 100svh;
+  }
+
+  @keyframes stage-recede {
+    to {
+      opacity: 0.25;
+      scale: 0.9;
+    }
+  }
+}
+
+/* On touch the cart dock floats at the foot: the stage's button clears it. */
+@media (hover: none), (pointer: coarse) {
+  .stage__foot {
+    padding-block-end: calc(var(--shop-dock-clearance) + 1.5rem);
+  }
+}
+
+/* A phone is tall: the scene gets the middle of the screen, not its foot. */
+@media (max-aspect-ratio: 3/4) {
+  .stage {
+    --word: clamp(4.5rem, 25vw, 14rem);
+    --ball: min(78vw, 46svh);
+  }
+
+  .stage__scene {
+    align-self: center;
+  }
+
+  .stage__foot {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}
+
+/* ---------------------------------------------------------------- band -- */
+
+/*
+ * The manifesto's four verbs, travelling on a tilted ink strip that crosses
+ * the screen between the stage and the piece: tension held across the page.
+ */
+.band-wrap {
+  position: relative;
+  z-index: 3;
+  /* The tilted strip is wider than the screen; only its sides are clipped. */
+  overflow-x: clip;
+  margin-block: clamp(-2.5rem, -3vw, -1.5rem);
+}
+
+.band {
+  position: relative;
+  inline-size: 108vw;
+  margin-inline-start: -4vw;
+  padding-block: clamp(0.7rem, 1.4vw, 1.1rem);
+  overflow: hidden;
+  background: var(--color-brand-ink);
+  color: var(--color-brand-cream);
+  rotate: -2.2deg;
+}
+
+.band__track {
+  display: flex;
+  inline-size: max-content;
+  animation: band-travel 30s linear infinite;
+}
+
+.band__run {
+  display: flex;
+  flex: 0 0 auto;
+  /* A paragraph's reading measure (typography.css) would fold the run. */
+  max-inline-size: none;
+  margin: 0;
+}
+
+.band__word {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55em;
+  margin-inline-end: 0.55em;
+  font-size: clamp(1.5rem, 4.2vw, 3.6rem);
+  font-weight: 950;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.band__word:nth-child(4n) {
+  color: var(--color-brand-orange);
+}
+
+.band__mark {
+  inline-size: 0.42em;
+  aspect-ratio: 1;
+  border-radius: 54% 40% 56% 42%;
+  background: var(--color-brand-orange);
+}
+
+@keyframes band-travel {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+html[data-motion='reduced'] .band__track {
+  animation: none;
+}

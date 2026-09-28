@@ -6621,3 +6621,60 @@ Verification: `astro check` 0/0/0, ESLint, Prettier, `check:production`
 failures. Simulated Low Power Mode on `/`, `/studio/`, `/servicios/` and
 `/proyectos/` at 390 and 1440. The real Safari behaviour needs the client's
 iPhone on `pre.`.
+
+## 2026-09-28 Session (third pass): The Shop, tienda.colmillostudio.com
+
+Client request: "maquetar una tienda chula bastante espectacular" on
+`tienda.colmillostudio.com`, with the platform (Shopify, WooCommerce or
+other) and the products still undecided.
+
+### Built
+
+- `shop/` — its own Astro project (`npm run dev:shop`, `build:shop` →
+  `dist-shop/`), sharing the site's tokens, type, brand files and the stress
+  ball's geometry by import. Eleven pages: the home, nine product pages and a
+  404. See `DECISIONS.md` for the architecture and `CONTENT_NEEDED.md` for
+  everything the client still has to supply.
+- Home: the ball standing on "Tienda." (it drops onto the word, leans to the
+  pointer, and pressing it squashes the word), the manifesto's verbs on a
+  tilted ink band, the featured piece on a rounded ink layer that can be
+  bought in place, the filterable catalogue (four columns wide, two on
+  tablets and phones; nine cards fill three full rows), the studio's close.
+- Product page: sticky buying column, gallery stacked wide and swipeable on
+  phones, options as native radio pills with sold-out values marked, a price
+  that follows the option, a colour that repaints the drawing, details and
+  pending terms as disclosures, related products rail.
+- Cart: native modal `<dialog>` drawer from the right (bottom sheet on touch),
+  in `localStorage`, editable lines, subtotal, and a checkout that says it is
+  a mock-up and charges nothing. Adding throws a disc to the cart, bites the
+  card and squashes the cart.
+- `publicar.sh`: `pre` now also publishes the shop to
+  `pre.colmillostudio.com/tienda/`; `tienda` publishes to the subdomain once
+  it exists.
+
+### Found and fixed on the way
+
+- The band's runs are paragraphs and took the global reading measure, so the
+  verbs overlapped; a tilted strip wider than the screen made the page 59 px
+  wider than a desktop and 16 px wider than a phone, which also zoomed the
+  phone out; the ball first stood on the capitals while "ienda" is lowercase;
+  a sold-out pill's face covered its own radio; the card's bite used a
+  percentage in a `<length>` property and never ran; the shop's test server
+  took the main suite's port.
+
+### Verification (actually run)
+
+- Rendered and inspected at 1440, 834, 390 and 320: no horizontal overflow,
+  no console errors; pressed ball, hover close-up, dent, flying disc and bite
+  sampled frame by frame.
+- `astro check` 0 errors (root and `--root shop`), ESLint, Prettier clean.
+- Playwright shop suite: 20 passed / 2 skipped. Main `dist`: 106 passed /
+  10 skipped. `check:production` and `check:links` pass: the site is
+  unaffected.
+- The `/tienda/` base build: 304 internal references checked, all resolve;
+  cart and navigation smoke-tested under the base with no 4xx.
+
+### Next
+
+The client creates the subdomain (steps in `DEPLOYMENT.md`), chooses the
+platform and supplies the catalogue.

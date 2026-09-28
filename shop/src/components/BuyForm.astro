@@ -1,0 +1,89 @@
+---
+/**
+ * Choosing and adding one product.
+ *
+ * Each option is a native radio group drawn as pills (the contact form's
+ * service picker), so it is a real control with the keyboard and a screen
+ * reader and needs nothing to render. `buy.ts` resolves the chosen variant,
+ * repaints the drawing for a colour, updates the price, marks the values
+ * that lead to a sold-out variant and adds to the cart.
+ *
+ * The page's price and drawing are found by the `data-buy-*` hooks inside the
+ * same `[data-buy-scope]`, so the form works on the product page and on the
+ * home's featured stage alike.
+ */
+import { firstAvailable, type Product } from '@shop/data/catalog';
+
+interface Props {
+  product: Product;
+  /** Unique per page, so two forms never share radio names or ids. */
+  id: string;
+}
+
+const { product, id } = Astro.props;
+const initial = firstAvailable(product);
+---
+
+<form class="buy" data-buy data-handle={product.handle} novalidate>
+  {
+    product.options.map((option) => (
+      <fieldset class="buy__option">
+        <legend class="buy__legend">
+          {option.name}
+          <span class="buy__chosen" data-buy-chosen={option.name}>
+            {initial?.options[option.name]}
+          </span>
+        </legend>
+        <div class="buy__values">
+          {option.values.map((value) => (
+            <label class="pill">
+              <input
+                class="pill__input"
+                type="radio"
+                name={`${id}-${option.name}`}
+                value={value}
+                data-option={option.name}
+                checked={initial?.options[option.name] === value}
+              />
+              <span class="pill__face">{value}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+    ))
+  }
+
+  <div class="buy__row">
+    <div class="stepper" role="group" aria-label="Cantidad">
+      <button class="stepper__button" type="button" data-qty-less>
+        <span aria-hidden="true">−</span>
+        <span class="visually-hidden">Una menos</span>
+      </button>
+      <input
+        class="stepper__value"
+        type="number"
+        name={`${id}-cantidad`}
+        min="1"
+        max="10"
+        value="1"
+        inputmode="numeric"
+        aria-label="Cantidad"
+        data-qty
+      />
+      <button class="stepper__button" type="button" data-qty-more>
+        <span aria-hidden="true">+</span>
+        <span class="visually-hidden">Una más</span>
+      </button>
+    </div>
+
+    <button class="bite-button buy__submit" type="submit" data-buy-submit>
+      <span data-buy-label>Añadir a la cesta</span>
+    </button>
+  </div>
+
+  <noscript>
+    <p class="buy__noscript">
+      La cesta de esta maqueta necesita JavaScript para funcionar.
+    </p>
+  </noscript>
+</form>

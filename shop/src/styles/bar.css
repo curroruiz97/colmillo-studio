@@ -1,0 +1,206 @@
+/*
+ * The bar: a floating capsule, sticky under the demo band, that overlaps the
+ * page by its own height so the stage still fills the screen behind it.
+ */
+.shop-bar {
+  position: sticky;
+  z-index: 60;
+  inset-block-start: calc(env(safe-area-inset-top, 0px) + var(--shop-bar-top));
+  display: flex;
+  align-items: center;
+  gap: clamp(0.75rem, 2vw, 2rem);
+  block-size: var(--shop-bar-h);
+  margin: var(--shop-bar-top) var(--shop-gutter)
+    calc(-1 * (var(--shop-bar-h) + var(--shop-bar-top)));
+  padding-inline: 1.1rem 0.4rem;
+  border: 1px solid rgb(18 16 15 / 12%);
+  border-radius: 999px;
+  background: rgb(252 238 218 / 82%);
+  box-shadow: 0 0.6rem 2rem -1.2rem rgb(18 16 15 / 35%);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  backdrop-filter: blur(14px) saturate(1.2);
+}
+
+.shop-bar__brand {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.6rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.shop-bar__brand img {
+  inline-size: clamp(5.5rem, 8vw, 7rem);
+  block-size: auto;
+}
+
+.shop-bar__tag {
+  padding: 0.2rem 0.55rem;
+  border: 1.5px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.shop-bar__nav {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.shop-bar__nav a,
+.shop-bar__studio {
+  position: relative;
+  padding: 0.5rem 0.8rem;
+  border-radius: 999px;
+  color: inherit;
+  font-size: 0.84rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  transition:
+    background-color var(--duration-fast) linear,
+    color var(--duration-fast) linear;
+}
+
+.shop-bar__studio {
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .shop-bar__nav a:hover,
+  .shop-bar__studio:hover {
+    background: var(--color-brand-ink);
+    color: var(--color-brand-cream);
+  }
+}
+
+/* ---------------------------------------------------------------- cart -- */
+
+.cart-button {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.5rem;
+  block-size: 2.75rem;
+  padding: 0 0.45rem 0 1rem;
+  border: 2px solid var(--color-brand-ink);
+  border-radius: 55% 45% 55% 45% / 55% 45% 55% 45%;
+  background: var(--color-brand-orange);
+  box-shadow: 0 0.22rem 0 var(--color-brand-ink);
+  color: var(--color-brand-ink);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    transform var(--duration-fast) var(--ease-bite),
+    box-shadow var(--duration-fast) var(--ease-bite);
+}
+
+.cart-button:active {
+  transform: translateY(0.15rem);
+  box-shadow: 0 0.07rem 0 var(--color-brand-ink);
+}
+
+.cart-button__icon svg {
+  display: block;
+  inline-size: 1.15rem;
+  block-size: 1.15rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cart-button__count {
+  display: grid;
+  place-items: center;
+  min-inline-size: 1.7rem;
+  block-size: 1.7rem;
+  padding-inline: 0.35rem;
+  border-radius: 999px;
+  background: var(--color-brand-ink);
+  color: var(--color-brand-cream);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+.cart-button[data-filled] .cart-button__count {
+  background: var(--color-brand-cream);
+  color: var(--color-brand-ink);
+  box-shadow: inset 0 0 0 2px var(--color-brand-ink);
+}
+
+/* The squash as a disc lands in it: compression, then release. */
+.cart-button.is-bumped {
+  animation: cart-bump 520ms var(--ease-bite);
+}
+
+@keyframes cart-bump {
+  25% {
+    transform: scale(1.16, 0.8);
+  }
+  55% {
+    transform: scale(0.93, 1.1);
+  }
+  80% {
+    transform: scale(1.03, 0.97);
+  }
+}
+
+/* ------------------------------------------------------------- narrower -- */
+
+@media (max-width: 64rem) {
+  .shop-bar__nav {
+    display: none;
+  }
+}
+
+/*
+ * Touch: the cart is the dock centred at the foot of the screen, where the
+ * studio's menu dock is. The capsule loses its blur there, because a
+ * backdrop filter would make it the containing block of the fixed dock.
+ */
+@media (hover: none), (pointer: coarse) {
+  :root {
+    --shop-dock-clearance: calc(
+      env(safe-area-inset-bottom, 0px) + 0.875rem + 2.75rem + 1.25rem
+    );
+  }
+
+  .shop-bar {
+    background: rgb(252 238 218 / 96%);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .cart-button {
+    position: fixed;
+    z-index: 70;
+    inset-block-end: calc(env(safe-area-inset-bottom, 0px) + 0.875rem);
+    inset-inline: 0;
+    inline-size: max-content;
+    margin-inline: auto;
+  }
+}
+
+@media (max-width: 30rem) {
+  .shop-bar {
+    padding-inline: 0.9rem 0.4rem;
+  }
+
+  .shop-bar__tag {
+    display: none;
+  }
+}

@@ -1,0 +1,262 @@
+/* ------------------------------------------------------------ tokens --- */
+
+:root {
+  --shop-gutter: var(--page-gutter);
+  --shop-radius: clamp(1.75rem, 4.5vw, 4rem);
+  --shop-tile-radius: clamp(1rem, 1.6vw, 1.5rem);
+  --shop-bar-h: 3.5rem;
+  --shop-bar-top: 0.75rem;
+  /* Where sticky things stop, under the floating bar. */
+  --shop-under-bar: calc(var(--shop-bar-top) + var(--shop-bar-h) + 0.75rem);
+  /* The touch dock and the room the page leaves it (see bar.css). */
+  --shop-dock-clearance: 0px;
+}
+
+body {
+  background: var(--color-brand-cream);
+  color: var(--color-brand-ink);
+  /* A long product name or a price must never push the page sideways. */
+  overflow-x: clip;
+}
+
+main:focus {
+  outline: none;
+}
+
+:where(a, button, input, summary):focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 3px;
+}
+
+/* ----------------------------------------------------------- demo band -- */
+
+.demo-band {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem 0.75rem;
+  margin: 0;
+  padding: 0.55rem var(--shop-gutter);
+  background: var(--color-brand-ink);
+  color: var(--color-brand-cream);
+  font-size: 0.78rem;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.demo-band__tag {
+  padding: 0.18rem 0.6rem;
+  border-radius: 999px;
+  background: var(--color-brand-orange);
+  color: var(--color-brand-ink);
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* ---------------------------------------------------------- bite button -- */
+
+/*
+ * The main site's oval button (typography.css), standing on its ink ledge as
+ * the hero's does; it sinks into the ledge when pressed and squashes when it
+ * adds something to the cart.
+ */
+.bite-button {
+  gap: 0.5rem;
+  box-shadow: 0 0.4rem 0 var(--color-brand-ink);
+  cursor: pointer;
+  transition:
+    border-radius var(--duration-medium) var(--ease-bite),
+    transform var(--duration-fast) var(--ease-bite),
+    box-shadow var(--duration-fast) var(--ease-bite),
+    background-color var(--duration-fast) linear;
+}
+
+.bite-button > span {
+  display: inline-block;
+  transition: transform var(--duration-fast) var(--ease-bite);
+}
+
+.bite-button:active {
+  transform: translateY(0.3rem);
+  box-shadow: 0 0.1rem 0 var(--color-brand-ink);
+}
+
+.bite-button:disabled {
+  background: var(--color-brand-cream-deep);
+  color: rgb(18 16 15 / 55%);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.bite-button.is-biting {
+  animation: bite-squash 420ms var(--ease-bite);
+}
+
+@keyframes bite-squash {
+  30% {
+    transform: scale(1.06, 0.86);
+  }
+  65% {
+    transform: scale(0.97, 1.05);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .bite-button:not(:disabled):hover {
+    border-radius: 45% 55% 45% 55% / 45% 55% 45% 55%;
+  }
+
+  .bite-button:not(:disabled):hover > span {
+    transform: scale(0.97, 0.94);
+  }
+}
+
+/* -------------------------------------------------------------- reveal -- */
+
+[data-reveal] {
+  transition:
+    opacity 700ms linear,
+    translate 900ms var(--ease-bite);
+}
+
+html[data-js] [data-reveal]:not([data-revealed]) {
+  opacity: 0;
+  translate: 0 2.5rem;
+}
+
+/* ------------------------------------------------------------- the disc -- */
+
+.fly-disc {
+  position: fixed;
+  z-index: 1000;
+  inset: 0 auto auto 0;
+  inline-size: 28px;
+  block-size: 28px;
+  border-radius: 50%;
+  background: var(--color-brand-orange);
+  box-shadow: 0 0 0 3px var(--color-brand-cream);
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------- 404 page -- */
+
+.lost {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 1.5rem;
+  min-block-size: 80svh;
+  padding: 8rem var(--shop-gutter) 4rem;
+  text-align: center;
+}
+
+.lost__code {
+  margin: 0;
+  color: var(--color-brand-orange);
+  font-size: clamp(6rem, 30vw, 20rem);
+  font-weight: 950;
+  letter-spacing: -0.08em;
+  line-height: 0.8;
+}
+
+.lost__title {
+  margin: 0;
+  font-size: clamp(1.6rem, 4vw, 3rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}
+
+/* ------------------------------------------------------ reduced motion -- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ------------------------------------------------------------- drawings -- */
+
+/* `ProductArt.astro` paints only through these four custom properties. */
+.art {
+  display: block;
+}
+
+.art-ground {
+  fill: var(--art-ground, var(--color-brand-cream-deep));
+}
+
+.art-body {
+  fill: var(--art-body, var(--color-brand-cream));
+}
+
+.art-body--soft {
+  opacity: 0.6;
+}
+
+.art-accent {
+  fill: var(--art-accent, var(--color-brand-orange));
+}
+
+.art-ink-block {
+  fill: var(--art-ink, var(--color-brand-ink));
+}
+
+.art-ink-block--soft {
+  opacity: 0.45;
+}
+
+.art-shade {
+  fill: var(--art-ink, var(--color-brand-ink));
+  opacity: 0.12;
+}
+
+.art-shadow {
+  fill: var(--art-ink, var(--color-brand-ink));
+  opacity: 0.18;
+}
+
+.art-light {
+  fill: #fff;
+  opacity: 0.22;
+}
+
+.art-inside {
+  fill: var(--art-ink, var(--color-brand-ink));
+  opacity: 0.55;
+}
+
+.art-emboss {
+  fill: var(--art-ink, var(--color-brand-ink));
+  opacity: 0.35;
+  mix-blend-mode: multiply;
+}
+
+.art-line {
+  fill: none;
+  stroke: var(--art-ink, var(--color-brand-ink));
+  stroke-linecap: round;
+  stroke-width: 6;
+  opacity: 0.35;
+}
+
+.art-line--soft {
+  opacity: 0.16;
+}
+
+.art-line--handle {
+  stroke: var(--art-body, var(--color-brand-cream));
+  stroke-width: 30;
+  opacity: 1;
+}
+
+.art-line--back {
+  opacity: 0.55;
+}

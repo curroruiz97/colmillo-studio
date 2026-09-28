@@ -3174,3 +3174,49 @@ Verified in Chromium with `play()` forced to refuse and the image request
 served a PNG (swap, placement to within a pixel, park and return, on every
 route at 390 and 1440). Safari's decoding of the real MP4 as an image in Low
 Power Mode can only be confirmed on the client's device.
+
+## 2026-09-28 - The Shop Is A Separate Static Front-End With One Seam For Its Platform
+
+Decision (client request: a spectacular shop on tienda.colmillostudio.com,
+platform and products not yet decided): build the shop as its own Astro
+project in `shop/`, sharing the main site's tokens, type, utilities, brand
+files and the stress ball's geometry by import from `../src` and `../public`,
+built to `dist-shop/` and published to its own document root.
+
+- **Why separate:** the main site's fail-closed release gates, its
+  demo/production boundary and its test matrices stay untouched, and the shop
+  can be moved onto a platform without disturbing the site.
+- **Platform-agnostic by construction:** the catalogue type in
+  `shop/src/data/catalog.ts` mirrors the fields both Shopify's Storefront API
+  and WooCommerce's Store API expose (mapping in the file's header), pages
+  read it only through `catalog.*`, and the cart in `shop/src/scripts/cart.ts`
+  is the one seam to replace — add, set and remove, the three verbs both
+  platforms' cart APIs take. A Shopify theme or a WooCommerce theme can also
+  be derived from this markup if the client prefers a hosted storefront.
+- **Honest by construction:** every product is a flagged demonstration (a
+  band on every page, a "Demo" flag on every card, "Producto de
+  demostración" on every product), "Finalizar compra" says no payment is
+  connected and charges nothing, no payment or personal-data field exists,
+  and terms that do not exist yet are listed as "pendiente" rather than
+  linked to invented pages.
+- **No photographs yet:** each product is an SVG drawing in the brand palette
+  (`ProductArt.astro`) painted through four custom properties, so a colour
+  option repaints it live; no gradients, masks or clip paths, because the
+  same drawing is repeated and cloned and those need unique ids.
+- **Motion vocabulary:** the ball stands on "Tienda." and squashes it when
+  pressed (the word answers `--press`); the manifesto's verbs cross the page
+  on a tilted band; the featured piece rises on a rounded ink layer; tiles
+  take the site's pressure dent (`PressSurface.ts`, loaded lazily for fine
+  pointers only) and bite their close-up into view; adding throws a disc to
+  the cart, bites the card and squashes the cart. All of it is off under
+  reduced motion; none of it is needed to shop.
+- **Touch:** the cart is the dock centred at the foot of the screen, where
+  the site's menu dock is (2026-09-28).
+- **No new dependency.** No GSAP on the shop's main path (WAAPI and CSS);
+  GSAP only arrives with the dent chunk on fine pointers.
+
+Until the subdomain exists (DNS at IONOS, subdomain in Plesk — neither is
+reachable from the server account) the shop is published under the
+password-protected preview at `pre.colmillostudio.com/tienda/`, built with
+`SHOP_BASE=/tienda/`; every internal link goes through `shop/src/data/paths.ts`
+for that reason.

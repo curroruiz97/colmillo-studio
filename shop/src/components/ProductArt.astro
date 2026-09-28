@@ -1,0 +1,389 @@
+---
+/**
+ * A product, drawn.
+ *
+ * There are no product photographs yet (2026-09-28), so every product is a
+ * flat editorial drawing on its own tile, in the brand's palette, carrying
+ * the studio's one motif: a bite taken out of a round mark. When real
+ * photography arrives this component is replaced by an image and nothing
+ * around it changes — the tile keeps its 4:5 box.
+ *
+ * Colours are never written into the drawing. It paints with four custom
+ * properties (`--art-ground`, `--art-body`, `--art-accent`, `--art-ink`), set
+ * by whoever places it, so a colour option repaints the drawing live and the
+ * cart can reuse one template for every variant.
+ *
+ * Deliberately no gradients, masks or clip paths: those need document-unique
+ * ids, and the same drawing appears many times on a page and inside cloned
+ * templates. Light and shade are flat shapes at low opacity instead.
+ *
+ * `view="detail"` crops the same drawing around its print: the second picture
+ * in the gallery and the one the grid reveals on hover.
+ */
+import type { ArtKind } from '@shop/data/catalog';
+import { REST_STATE, sculptureFrame } from '@/scripts/motion/ContactSculpture';
+
+interface Props {
+  kind: ArtKind;
+  view?: 'main' | 'detail';
+  /** A label when the drawing stands for the product; decorative otherwise. */
+  label?: string | undefined;
+  class?: string;
+  style?: string;
+}
+
+const { kind, view = 'main', label, class: className, style } = Astro.props;
+
+/** The crop around each drawing's print: x, y and width (height is 5:4). */
+const detail: Record<ArtKind, [number, number, number]> = {
+  tee: [240, 300, 320],
+  tote: [230, 420, 340],
+  poster: [210, 230, 380],
+  mug: [230, 440, 300],
+  cap: [300, 380, 300],
+  notebook: [260, 340, 280],
+  stickers: [150, 230, 420],
+  ball: [180, 260, 440],
+  pin: [240, 250, 320],
+};
+const [dx, dy, dw] = detail[kind];
+
+/*
+ * The ball is the home contact section's own stress ball at rest, from the
+ * same geometry, scaled from its 1000x860 box onto this one.
+ */
+const ball = kind === 'ball' ? sculptureFrame(REST_STATE) : undefined;
+const viewBox =
+  view === 'detail' ? `${dx} ${dy} ${dw} ${dw * 1.25}` : '0 0 800 1000';
+
+/** The studio's mark: a disc with three bites out of its right edge. */
+const bite = (cx: number, cy: number, r: number) => [
+  { cx: cx + r * 0.93, cy: cy - r * 0.42, r: r * 0.3 },
+  { cx: cx + r * 1.05, cy: cy + r * 0.08, r: r * 0.28 },
+  { cx: cx + r * 0.9, cy: cy + r * 0.55, r: r * 0.26 },
+];
+---
+
+<svg
+  class:list={['art', `art--${kind}`, className]}
+  style={style}
+  viewBox={viewBox}
+  preserveAspectRatio="xMidYMid meet"
+  role={label ? 'img' : undefined}
+  aria-label={label}
+  aria-hidden={label ? undefined : 'true'}
+  focusable="false"
+>
+  <rect class="art-ground" x="-2000" y="-2000" width="4800" height="5000"
+  ></rect>
+
+  {
+    kind === 'tee' && (
+      <g>
+        <ellipse class="art-shadow" cx="400" cy="835" rx="210" ry="22" />
+        <path
+          class="art-body"
+          d="M330 238 Q400 292 470 238 L592 276 L684 382 L612 438 L566 398 L570 792 Q400 812 230 792 L234 398 L188 438 L116 382 L208 276 Z"
+        />
+        <path
+          class="art-shade"
+          d="M566 398 L570 792 Q520 800 470 804 Q520 600 540 420 Z"
+        />
+        <path class="art-line" d="M338 246 Q400 300 462 246" />
+        <path class="art-line art-line--soft" d="M300 560 Q320 660 300 760" />
+        <circle class="art-accent" cx="400" cy="470" r="96" />
+        {bite(400, 470, 96).map((b) => (
+          <circle class="art-body" cx={b.cx} cy={b.cy} r={b.r} />
+        ))}
+      </g>
+    )
+  }
+
+  {
+    kind === 'tote' && (
+      <g>
+        <ellipse class="art-shadow" cx="400" cy="838" rx="190" ry="20" />
+        <path
+          class="art-line art-line--handle art-line--back"
+          d="M318 420 Q318 170 400 170 Q482 170 482 420"
+        />
+        <path
+          class="art-body"
+          d="M244 392 L556 392 L574 812 Q400 828 226 812 Z"
+        />
+        <path class="art-shade" d="M244 392 L556 392 L553 430 L247 430 Z" />
+        <path
+          class="art-line art-line--handle"
+          d="M300 420 Q296 200 400 200 Q504 200 500 420"
+        />
+        <circle class="art-accent" cx="400" cy="590" r="112" />
+        {bite(400, 590, 112).map((b) => (
+          <circle class="art-body" cx={b.cx} cy={b.cy} r={b.r} />
+        ))}
+        <rect
+          class="art-ink-block"
+          x="318"
+          y="734"
+          width="164"
+          height="12"
+          rx="6"
+        />
+      </g>
+    )
+  }
+
+  {
+    kind === 'poster' && (
+      <g>
+        <rect
+          class="art-shadow"
+          x="226"
+          y="178"
+          width="400"
+          height="700"
+          rx="4"
+        />
+        <rect
+          class="art-body"
+          x="200"
+          y="150"
+          width="400"
+          height="700"
+          rx="4"
+        />
+        <circle class="art-accent" cx="400" cy="400" r="150" />
+        {bite(400, 400, 150).map((b) => (
+          <circle class="art-body" cx={b.cx} cy={b.cy} r={b.r} />
+        ))}
+        <rect class="art-ink-block" x="244" y="626" width="312" height="22" />
+        <rect
+          class="art-ink-block art-ink-block--soft"
+          x="244"
+          y="676"
+          width="190"
+          height="10"
+        />
+        <rect
+          class="art-ink-block art-ink-block--soft"
+          x="244"
+          y="700"
+          width="150"
+          height="10"
+        />
+        <rect
+          class="art-ink-block art-ink-block--soft"
+          x="244"
+          y="724"
+          width="170"
+          height="10"
+        />
+        <circle class="art-ink-block" cx="540" cy="790" r="14" />
+      </g>
+    )
+  }
+
+  {
+    kind === 'mug' && (
+      <g>
+        <ellipse class="art-shadow" cx="400" cy="790" rx="190" ry="24" />
+        <ellipse
+          class="art-line art-line--handle"
+          cx="522"
+          cy="560"
+          rx="74"
+          ry="96"
+        />
+        <path
+          class="art-body"
+          d="M254 380 L506 380 L500 740 Q380 790 260 740 Z"
+        />
+        <path
+          class="art-shade"
+          d="M470 380 L506 380 L500 740 Q480 752 462 758 Z"
+        />
+        <ellipse class="art-body" cx="380" cy="380" rx="126" ry="32" />
+        <ellipse class="art-inside" cx="380" cy="382" rx="108" ry="22" />
+        <circle class="art-accent" cx="372" cy="580" r="78" />
+        {bite(372, 580, 78).map((b) => (
+          <circle class="art-body" cx={b.cx} cy={b.cy} r={b.r} />
+        ))}
+      </g>
+    )
+  }
+
+  {
+    kind === 'cap' && (
+      <g>
+        <ellipse class="art-shadow" cx="430" cy="690" rx="260" ry="26" />
+        <path
+          class="art-body"
+          d="M232 600 Q222 330 430 322 Q620 330 626 580 L700 600 Q720 640 660 652 Q520 676 420 650 Q300 640 232 600 Z"
+        />
+        <path
+          class="art-shade"
+          d="M420 650 Q520 676 660 652 Q720 640 700 600 L626 580 Q630 630 420 650 Z"
+        />
+        <path class="art-line art-line--soft" d="M430 330 Q400 480 420 640" />
+        <path class="art-line art-line--soft" d="M430 330 Q520 440 560 600" />
+        <circle class="art-ink-block" cx="430" cy="322" r="12" />
+        <circle class="art-accent" cx="352" cy="500" r="64" />
+        {bite(352, 500, 64).map((b) => (
+          <circle class="art-body" cx={b.cx} cy={b.cy} r={b.r} />
+        ))}
+      </g>
+    )
+  }
+
+  {
+    kind === 'notebook' && (
+      <g>
+        <rect
+          class="art-shadow"
+          x="266"
+          y="226"
+          width="320"
+          height="620"
+          rx="18"
+        />
+        <path
+          class="art-accent"
+          d="M322 800 L322 900 L342 880 L362 900 L362 800 Z"
+        />
+        <rect
+          class="art-body"
+          x="240"
+          y="200"
+          width="320"
+          height="620"
+          rx="18"
+        />
+        <rect
+          class="art-shade"
+          x="240"
+          y="200"
+          width="30"
+          height="620"
+          rx="14"
+        />
+        <circle class="art-emboss" cx="404" cy="470" r="84" />
+        {bite(404, 470, 84).map((b) => (
+          <circle class="art-body" cx={b.cx} cy={b.cy} r={b.r} />
+        ))}
+        <rect class="art-accent" x="500" y="200" width="18" height="620" />
+      </g>
+    )
+  }
+
+  {
+    kind === 'stickers' && (
+      <g>
+        <g transform="rotate(-8 300 360)">
+          <circle class="art-body" cx="300" cy="360" r="128" />
+          <circle class="art-accent" cx="300" cy="360" r="108" />
+          {bite(300, 360, 108).map((b) => (
+            <circle class="art-body" cx={b.cx} cy={b.cy} r={b.r} />
+          ))}
+        </g>
+        <g transform="rotate(10 540 470)">
+          <path
+            class="art-body"
+            d="M470 330 Q540 290 610 330 L590 560 Q540 700 490 560 Z"
+            stroke-linejoin="round"
+          />
+          <path
+            class="art-ink-block"
+            d="M488 350 Q540 318 592 350 L574 552 Q540 656 506 552 Z"
+          />
+        </g>
+        <g transform="rotate(-4 330 690)">
+          <rect
+            class="art-body"
+            x="196"
+            y="610"
+            width="268"
+            height="150"
+            rx="75"
+          />
+          <rect
+            class="art-ink-block"
+            x="214"
+            y="628"
+            width="232"
+            height="114"
+            rx="57"
+          />
+          <circle class="art-accent" cx="276" cy="685" r="30" />
+          <rect
+            class="art-body"
+            x="322"
+            y="668"
+            width="96"
+            height="14"
+            rx="7"
+          />
+          <rect
+            class="art-body art-body--soft"
+            x="322"
+            y="692"
+            width="62"
+            height="12"
+            rx="6"
+          />
+        </g>
+        <g transform="rotate(14 590 740)">
+          <circle class="art-body" cx="590" cy="740" r="70" />
+          <circle class="art-accent" cx="590" cy="740" r="54" />
+        </g>
+        <circle class="art-body" cx="610" cy="230" r="44" />
+        <circle class="art-ink-block" cx="610" cy="230" r="30" />
+      </g>
+    )
+  }
+
+  {
+    ball && (
+      <g>
+        <ellipse class="art-shadow" cx="400" cy="800" rx="230" ry="28" />
+        <g transform="translate(25 190) scale(0.75)">
+          <path class="art-body" d={ball.body} />
+          <ellipse
+            class="art-shade"
+            cx={ball.shade.x}
+            cy={ball.shade.y + 70}
+            rx="250"
+            ry="170"
+          />
+          <ellipse
+            class="art-light"
+            cx={ball.light.x}
+            cy={ball.light.y}
+            rx="120"
+            ry="80"
+            transform={`rotate(-24 ${ball.light.x} ${ball.light.y})`}
+          />
+        </g>
+      </g>
+    )
+  }
+
+  {
+    kind === 'pin' && (
+      <g>
+        <ellipse class="art-shadow" cx="410" cy="760" rx="120" ry="18" />
+        <path
+          class="art-ink-block"
+          d="M290 280 Q400 220 510 280 Q520 300 512 330 L456 620 Q408 780 356 620 L292 330 Q282 300 290 280 Z"
+        />
+        <path
+          class="art-body"
+          d="M312 292 Q400 244 488 292 Q496 306 490 330 L440 608 Q406 730 372 608 L314 330 Q306 306 312 292 Z"
+        />
+        <path
+          class="art-accent"
+          d="M340 300 Q380 284 404 286 L396 420 Q360 380 340 300 Z"
+        />
+        <circle class="art-accent" cx="436" cy="360" r="16" />
+      </g>
+    )
+  }
+</svg>

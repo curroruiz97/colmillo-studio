@@ -1,0 +1,446 @@
+/*
+ * THE CATALOGUE
+ *
+ * A cream sheet after the ink piece. The grid has four columns on a wide
+ * screen and two everywhere else — two is what a phone shop reads best —
+ * and its rhythm comes from position: a wide card spans two columns at the
+ * same height as its neighbours, a tall one spans two rows and its tile
+ * stretches to fill them, and `dense` packing closes the gaps as the filter
+ * removes cards.
+ */
+
+@property --bite {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+.catalog {
+  position: relative;
+  z-index: 2;
+  background: var(--color-brand-cream);
+}
+
+.catalog__inner,
+.related {
+  inline-size: min(100% - 2 * var(--shop-gutter), var(--content-width));
+  margin-inline: auto;
+}
+
+.catalog__inner {
+  padding-block: clamp(5rem, 10vw, 9rem) clamp(4rem, 8vw, 7rem);
+}
+
+.catalog__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  margin-block-end: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.catalog__title,
+.related__title {
+  margin: 0;
+  font-size: clamp(3.5rem, 12vw, 11rem);
+  font-weight: 950;
+  letter-spacing: -0.075em;
+  line-height: 0.8;
+}
+
+.catalog__dot {
+  color: var(--color-brand-orange);
+}
+
+.catalog__count {
+  margin: 0;
+  font-size: var(--font-label);
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* ---------------------------------------------------------------- filter -- */
+
+.filter {
+  position: sticky;
+  z-index: 5;
+  inset-block-start: calc(
+    env(safe-area-inset-top, 0px) + var(--shop-under-bar)
+  );
+  display: flex;
+  gap: 0.5rem;
+  margin: 0 calc(-1 * var(--shop-gutter)) clamp(1.5rem, 3vw, 2.5rem);
+  padding: 0.6rem var(--shop-gutter);
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: linear-gradient(
+    var(--color-brand-cream) 70%,
+    rgb(252 238 218 / 0%)
+  );
+}
+
+.filter[hidden] {
+  display: none;
+}
+
+.filter__pill {
+  flex: 0 0 auto;
+  min-block-size: 2.75rem;
+  padding: 0.5rem 1.15rem;
+  border: 2px solid var(--color-brand-ink);
+  border-radius: 999px;
+  background: var(--color-brand-cream);
+  color: var(--color-brand-ink);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) linear,
+    color var(--duration-fast) linear,
+    border-radius var(--duration-medium) var(--ease-bite);
+}
+
+.filter__pill[aria-pressed='true'] {
+  background: var(--color-brand-ink);
+  color: var(--color-brand-cream);
+  border-radius: 55% 45% 55% 45% / 55% 45% 55% 45%;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .filter__pill[aria-pressed='false']:hover {
+    background: var(--color-brand-orange);
+  }
+}
+
+/* ------------------------------------------------------------------ grid -- */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-flow: row dense;
+  gap: clamp(2rem, 3.5vw, 3.5rem) clamp(0.75rem, 1.6vw, 1.5rem);
+}
+
+@media (max-width: 64rem) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ------------------------------------------------------------------ card -- */
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  min-inline-size: 0;
+}
+
+.card[hidden] {
+  display: none;
+}
+
+.card--wide {
+  grid-column: span 2;
+}
+
+.card--tall {
+  grid-row: span 2;
+}
+
+.card__frame {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.card__tile {
+  --bite: 0px;
+
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 5;
+  border-radius: var(--shop-tile-radius);
+  background: var(--art-ground);
+  color: var(--color-brand-ink);
+  /* The bite taken when the card goes into the cart. */
+  mask: radial-gradient(
+    circle at 100% 22%,
+    transparent var(--bite),
+    #000 calc(var(--bite) + 1px)
+  );
+}
+
+.card--wide .card__tile {
+  aspect-ratio: 5 / 3;
+}
+
+.card--tall .card__tile {
+  flex: 1;
+  aspect-ratio: auto;
+  min-block-size: 18rem;
+}
+
+.card__surface {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  background: var(--art-ground);
+}
+
+.card__art {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  transition: scale 900ms var(--ease-bite);
+}
+
+/*
+ * The close-up waits folded into the tile's top-right corner and is bitten
+ * into view on hover: a disc that grows from the corner.
+ */
+.card__art--detail {
+  clip-path: circle(0% at 100% 0%);
+  transition: clip-path 760ms var(--ease-bite);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card__tile:hover .card__art--detail,
+  .card__tile:focus-visible .card__art--detail {
+    clip-path: circle(150% at 100% 0%);
+  }
+
+  .card__tile:hover .card__art:not(.card__art--detail) {
+    scale: 1.05;
+  }
+}
+
+.card__flags {
+  position: absolute;
+  z-index: 1;
+  inset: 0.75rem auto auto 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  pointer-events: none;
+}
+
+.card__flag {
+  padding: 0.22rem 0.6rem;
+  border-radius: 999px;
+  background: var(--color-brand-cream);
+  color: var(--color-brand-ink);
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.card__flag--out {
+  background: var(--color-brand-ink);
+  color: var(--color-brand-cream);
+}
+
+.card__flag--sale {
+  background: var(--color-brand-orange);
+}
+
+.card__add {
+  position: absolute;
+  z-index: 2;
+  inset: auto 0.75rem 0.75rem auto;
+  display: grid;
+  place-items: center;
+  min-inline-size: 3rem;
+  block-size: 3rem;
+  padding: 0;
+  border: 2px solid var(--color-brand-ink);
+  border-radius: 55% 45% 55% 45% / 55% 45% 55% 45%;
+  background: var(--color-brand-orange);
+  box-shadow: 0 0.2rem 0 var(--color-brand-ink);
+  color: var(--color-brand-ink);
+  font: inherit;
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform var(--duration-medium) var(--ease-bite),
+    box-shadow var(--duration-fast) var(--ease-bite);
+}
+
+.card__add > span[aria-hidden] {
+  display: block;
+  transition: rotate var(--duration-medium) var(--ease-bite);
+}
+
+.card__add:active {
+  transform: translateY(0.15rem);
+  box-shadow: 0 0.05rem 0 var(--color-brand-ink);
+}
+
+.card__add--choose {
+  padding-inline: 1rem;
+  background: var(--color-brand-cream);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card__add:hover > span[aria-hidden] {
+    rotate: 90deg;
+  }
+}
+
+/* Added: a bite comes out of the tile's right edge and heals. */
+.card.is-bitten .card__tile {
+  animation: card-bite 900ms var(--ease-bite);
+}
+
+@keyframes card-bite {
+  35% {
+    /* A length: the registered property takes no percentage. */
+    --bite: 3.75rem;
+  }
+  100% {
+    --bite: 0px;
+  }
+}
+
+.card__meta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.15rem 1rem;
+  align-items: baseline;
+}
+
+.card__title {
+  margin: 0;
+  font-size: clamp(1rem, 1.3vw, 1.3rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.card__title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.card__kicker {
+  grid-row: 2;
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.65;
+}
+
+.card__price {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  display: grid;
+  justify-items: end;
+  margin: 0;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.card__from {
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  opacity: 0.6;
+  text-transform: uppercase;
+}
+
+.card__was {
+  font-size: 0.85rem;
+  font-weight: 700;
+  opacity: 0.5;
+}
+
+@media (max-width: 34rem) {
+  .card__meta {
+    grid-template-columns: 1fr;
+  }
+
+  .card__price {
+    grid-column: 1;
+    grid-row: auto;
+    display: flex;
+    gap: 0.5rem;
+    justify-items: start;
+  }
+
+  .card__from {
+    align-self: center;
+  }
+
+  .card__add {
+    min-inline-size: 2.75rem;
+    block-size: 2.75rem;
+    inset: auto 0.5rem 0.5rem auto;
+  }
+
+  .card__add--choose {
+    display: none;
+  }
+}
+
+/* ----------------------------------------------------------------- close -- */
+
+.close {
+  position: relative;
+  z-index: 2;
+  overflow: clip;
+  border-radius: var(--shop-radius) var(--shop-radius) 0 0;
+  background: var(--color-brand-orange);
+  color: var(--color-brand-ink);
+}
+
+.close__inner {
+  display: grid;
+  justify-items: center;
+  gap: clamp(1.25rem, 3vw, 2rem);
+  inline-size: min(100% - 2 * var(--shop-gutter), 70rem);
+  margin-inline: auto;
+  padding-block: clamp(6rem, 13vw, 11rem);
+  text-align: center;
+}
+
+.close__title {
+  margin: 0;
+  font-size: clamp(3rem, 9vw, 8.5rem);
+  font-weight: 950;
+  letter-spacing: -0.07em;
+  line-height: 0.86;
+  text-wrap: balance;
+}
+
+.close__title em {
+  color: var(--color-brand-cream);
+  font-style: normal;
+}
+
+.close__dot {
+  color: var(--color-brand-cream);
+}
+
+.close__text {
+  max-inline-size: 36ch;
+  margin: 0;
+  font-size: var(--font-body-lg);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.close .bite-button {
+  background: var(--color-brand-cream);
+}
