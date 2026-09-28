@@ -3113,3 +3113,39 @@ approved profile. Its two lines of copy are provisional and listed in
 `CONTENT_NEEDED.md`. It stays `noindex` with a blocking `robots.txt`, in line
 with the prelaunch policy, which is a decision to revisit deliberately if the
 client wants the domain discoverable before launch.
+
+## 2026-09-28 - On Touch The Menu Is A Floating Dock, And Nothing Reserves The Right Edge
+
+Decision (client direction): on touch (`(hover: none), (pointer: coarse)`)
+the navigation leaves the right edge. The closed state is a small orange dock,
+the bite buttons' oval at 6.75 x 2.75 rem with three rules and "Menú", centred
+at the foot of the screen above the safe area; open, an ink "Cerrar" oval takes
+its place and the panel rises from below as a centred sheet (full width on
+phones, 36 rem on tablets) with its routes and channels centred. Fine pointers
+keep the right-edge tab exactly as it was: the client chose this split over a
+dock on every screen.
+
+Reason: the mobile audit found that no content on a phone or tablet was
+centred. The whole tappable tab had to stay inside the viewport on touch, so
+`--edge-rail-clearance` was 3.25 rem there and every column carried it on its
+right: 16 px of gutter on the left against 68 px on the right on every route
+at 390 and 320, and `.content-shell` also hung off the left gutter from 768 px
+up. On touch the rail tokens now resolve to zero and the shell is centred at
+every width; the only reservation left is the footer's bottom padding
+(`max(5.5rem, --menu-dock-clearance)`), so the end of every route clears the
+dock. Copy that flows past the dock mid-scroll is accepted, as with any
+floating control; nothing pinned sits under it.
+
+Same pass:
+
+- The home contact sculpture no longer bleeds off the right on stacked
+  layouts; it is centred on the screen (it is drawn on the centre of its SVG).
+- The `/studio/` principles picture is centred under the list on phones.
+- The case-study header's back label is smaller under 384 px: at 320 the mark
+  sat under the Instagram control's left cap.
+- Pre-existing, fixed on the way: without JavaScript the full-screen panel
+  covered the close control, so the menu opened and could not be closed, on
+  every viewport. The summary now stacks above the panel.
+
+Supersedes, for touch only: the 2026-09-10 rail reservation on containers and
+the touch treatment of the edge tab.

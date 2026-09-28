@@ -781,6 +781,13 @@
     inline-size: 3rem;
   }
 
+  /* At 320 the label's full size still put the mark under the control's
+     left cap; a smaller label keeps the two a gap apart. */
+  .cs-header__back {
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+  }
+
   .cs-header__slot {
     display: none;
   }

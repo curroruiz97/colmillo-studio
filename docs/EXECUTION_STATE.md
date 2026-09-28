@@ -6538,3 +6538,65 @@ and the two licensed font directories).
 
 Retire the Vercel demo override; then the GitHub Action, the server's
 compression and cache configuration, the form endpoint, and the gates.
+
+## 2026-09-28 Session: Mobile Responsive Audit, And The Menu Becomes A Floating Dock On Touch
+
+Worked on the server's clone (`~/colmillo-studio`) after `git pull` (already up
+to date at `cca1d8f`). Nothing committed, pushed or published.
+
+### The audit
+
+Every route of `dist-demo` at 390x844 and 320x720 (touch, mobile) and 834x1112
+(touch), scrolled end to end with screenshots, measuring overflow, per-section
+gutters, console errors and anything pinned under the menu. Findings:
+
+- **Nothing on touch was centred.** The touch tab reserved 3.25 rem on the
+  right of every column: 16 px left against 68 px right on every route at 390
+  and 320; from 768 px up `.content-shell` also hung off the left gutter.
+- The home contact sculpture was cut by the right edge once that strip went.
+- The `/studio/` principles picture hung left under the list.
+- At 320 the case-study mark sat under the Instagram control (127-175 vs 166).
+- No horizontal overflow and no console errors on any route or size.
+
+### Changes
+
+- `edge-menu.css`, `EdgeMenu.astro`, `EdgeMenu.ts`: on `(hover: none),
+  (pointer: coarse)` the menu is a small "Menú" dock centred at the foot of the
+  screen (108x44 px), the close control takes its place, and the panel rises as
+  a centred bottom sheet. The rail tokens are zero there and the shell is
+  centred; the footer's bottom padding clears the dock. The tone sample reads
+  under the dock. Fine pointers are unchanged. See `DECISIONS.md`.
+- `contact-section.css`: the stacked sculpture is centred.
+- `studio-page.css`: the principles picture is centred.
+- `case-study.css`: smaller back label under 384 px.
+- Pre-existing, fixed: without JavaScript the panel covered the close control
+  on every viewport; the summary now stacks above it.
+- Tests: `settleEdgePanel` waits for either axis; the tone and case-study
+  clearance tests know about the dock; a new demo test pins the dock's centre,
+  size, the symmetric gutters, the centred sheet and the footer clearance;
+  `foundations.spec.ts` checks the dock's word on mobile.
+
+After: every section at 390/320/834 reports equal gutters except the
+horizontal rails and the deliberate reading measures on tablet.
+
+### Verification (actually run, on the server)
+
+- `astro check` 0/0/0, ESLint, Prettier on the changed files, `check:hero`,
+  `check:production` (66 files, 199,266 JS bytes) and `check:links` pass.
+- Playwright `dist`: 102 passed / 10 skipped.
+- Playwright `dist-demo`: 183 passed / 72 skipped / **3 failed**, all
+  `fine-1440` and all pre-existing: they fail identically on a clean `HEAD`
+  worktree built on this server (studio spread line count, manifesto width,
+  services hero loop timing). They look like font metrics on the server's
+  headless Linux Chromium, not this change; not investigated further.
+- Rendered and inspected: dock closed/open at 390, 320, 834, 844x390 and 1440;
+  no JavaScript; reduced motion.
+- Playwright's Chromium was installed on the server for this
+  (`~/.cache/ms-playwright`).
+
+### Next
+
+Published to `pre.` with `publicar.sh pre` at the user's request the same day
+(78 files, Basic auth intact); committed and pushed to `main`. From now on the
+user wants every change committed and pushed. Phase 4 content intake is
+unchanged.

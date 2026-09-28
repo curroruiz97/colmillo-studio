@@ -223,13 +223,19 @@
     padding-block-start: 0;
   }
 
-  /* In the flow under the buttons, bleeding off the right edge. */
+  /*
+   * In the flow under the buttons, centred on the screen (2026-09-28, client
+   * direction: every stacked composition is centred). The ball is drawn on
+   * the centre of its SVG, which is `--w` wide and overflows the link's box,
+   * so the box starts half a drawing left of the stage's centre.
+   */
   .contact-bite__piece {
     position: relative;
     inset: auto;
-    align-self: flex-end;
+    align-self: flex-start;
     inline-size: calc(0.8 * var(--w));
     margin-block-start: calc(2.5rem - 0.1 * var(--w));
+    margin-inline-start: calc(50% - 0.5 * var(--w));
   }
 }
 

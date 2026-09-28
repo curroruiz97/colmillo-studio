@@ -228,7 +228,9 @@ registers ScrollTrigger and initializes/cleans:
 - `InstagramBadge.ts`: the global Instagram control's pill-to-circle fold, on
   every route;
 - `EdgeMenu.ts`: right-edge navigation states (Y-following tab, auto-collapsing
-  close control), focus/inert/Escape behavior, scroll lock and home progress;
+  close control) on fine pointers and, on touch since 2026-09-28, a small
+  floating dock centred at the foot of the screen that opens a bottom sheet;
+  focus/inert/Escape behavior, scroll lock and home progress;
 - `SectionStack.ts`: rounded stack reveal/compression;
 - `HorizontalProjects.ts`: desktop pin/scrub plus native scroll-snap fallback;
 - `ServicesMotion.ts`: switches the home services to their sticky sequence
@@ -416,7 +418,9 @@ licenses and publication approval before enabling client material.
   pointer vertically, a panel over a blurred backdrop and a close control that
   retracts to a sliver, with a native `<details>` fallback, focus containment,
   a non-shifting scroll lock and the reported home scene. Second iteration on
-  2026-09-10 (see `docs/DECISIONS.md`).
+  2026-09-10 (see `docs/DECISIONS.md`). On touch (2026-09-28) it is a floating
+  "Menú" dock centred at the foot of the screen and a bottom sheet, and the
+  page no longer reserves a strip on the right: every column is centred.
 - Global Instagram control: one element in the top-right corner that folds in
   place from `INSTAGRAM ↗` into a round Instagram-glyph control, fed by
   `contactChannels.instagram`. Since 2026-09-15 every route starts as the pill.

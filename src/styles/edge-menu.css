@@ -94,6 +94,12 @@ body {
  */
 .edge-menu__handle {
   position: absolute;
+  /*
+   * Without JavaScript the panel stays inside the disclosure, beside the
+   * summary, and its full-screen box covered the close control: the menu
+   * opened but could not be closed. The summary stacks above it.
+   */
+  z-index: 3;
   inset-block: 0;
   inset-inline-end: 0;
   inline-size: var(--edge-tab-rest);
@@ -197,6 +203,11 @@ body {
 }
 .edge-menu__ticks span:nth-child(3) {
   inline-size: 82%;
+}
+
+/* The dock's word. The edge tab never shows it: the tab is the whole hint. */
+.edge-menu__tab-word {
+  display: none;
 }
 
 /* -------------------------------------------------------- close control -- */
@@ -578,43 +589,6 @@ body {
 
 /* ---------------------------------------------------------- coarse/touch -- */
 
-@media (hover: none), (pointer: coarse) {
-  :root {
-    /* The whole tab stays inside the viewport, so the page has to clear it. */
-    --edge-rail-clearance: 3.25rem;
-    --edge-content-rail: var(--edge-rail-clearance);
-  }
-
-  /*
-   * The reservation goes on the page's inner containers rather than on `body`,
-   * so full-bleed section backgrounds still reach the edge behind the rail.
-   */
-  .content-shell {
-    inline-size: min(
-      100% - (2 * var(--page-gutter)) - var(--edge-rail-clearance),
-      var(--content-width)
-    );
-    margin-inline-start: auto;
-    margin-inline-end: calc(var(--page-gutter) + var(--edge-rail-clearance));
-  }
-
-  .site-footer {
-    padding-inline-end: calc(var(--page-gutter) + var(--edge-rail-clearance));
-  }
-
-  .edge-menu {
-    /* No hover means no tracking, so the tab has to be evident and tappable. */
-    --edge-tab-rest: 2.5rem;
-    --edge-tab-reach: 2.5rem;
-    --edge-tab-height: clamp(5rem, 11vh, 6rem);
-    --edge-panel-width: min(63vw, 26.5rem);
-  }
-
-  .edge-menu__ticks {
-    display: grid;
-  }
-}
-
 @media (max-width: 68rem) {
   .edge-menu {
     --edge-panel-width: min(56vw, 30rem);
@@ -660,6 +634,241 @@ body {
 
   .edge-menu__list strong {
     font-size: clamp(1.6rem, 6vh, 2.6rem);
+  }
+}
+
+/* ------------------------------------------------- touch: floating dock -- */
+
+/*
+ * On touch the navigation leaves the right edge (2026-09-28, client
+ * direction). There is no hover to reveal a tab against the edge, and keeping
+ * a whole tappable tab inside the viewport cost every content column a strip
+ * on its right, so nothing on a phone or tablet was centred. The same summary
+ * becomes a small floating dock centred at the foot of the screen, and the
+ * panel rises from below as a sheet with the close control where the dock was.
+ *
+ * The page reserves no strip any more: the rail tokens resolve to zero, and
+ * the only reservation left is the footer's own bottom padding, so the last
+ * line of every route clears the dock.
+ */
+@media (hover: none), (pointer: coarse) {
+  :root {
+    --edge-rail-clearance: 0px;
+    --edge-content-rail: 0px;
+    --menu-dock-height: 2.75rem;
+    --menu-dock-width: 6.75rem;
+    --menu-dock-offset: calc(env(safe-area-inset-bottom, 0px) + 0.875rem);
+    /* The dock, its air to the screen's foot, and a margin above it. */
+    --menu-dock-clearance: calc(
+      var(--menu-dock-height) + var(--menu-dock-offset) + 1.25rem
+    );
+  }
+
+  /*
+   * `layout.css` hangs the column off the left gutter from tablet widths up
+   * to leave the edge rail free; on touch it is centred at every width.
+   */
+  .content-shell {
+    inline-size: min(100% - (2 * var(--page-gutter)), var(--content-width));
+    margin-inline: auto;
+  }
+
+  .site-footer {
+    padding-block-end: max(5.5rem, var(--menu-dock-clearance));
+  }
+
+  .edge-menu__carrier {
+    inset-block: auto var(--menu-dock-offset);
+    inset-inline: 0;
+    inline-size: var(--menu-dock-width);
+    block-size: var(--menu-dock-height);
+    margin: 0 auto;
+  }
+
+  /* The summary is the dock's own box, so its centre is the dock's centre. */
+  .edge-menu__handle {
+    inset: 0;
+    inline-size: auto;
+  }
+
+  /*
+   * The closed dock: the site's oval bite shape at a small scale, with the
+   * three rules and one word. The ledge under it is the one every bite button
+   * stands on, at a third of the depth.
+   */
+  .edge-menu__tab,
+  .edge-menu[data-state='tracking'] .edge-menu__tab,
+  .edge-menu__handle:focus-visible .edge-menu__tab {
+    inset: 0;
+    inline-size: auto;
+    block-size: auto;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    padding: 0 0.9rem;
+    border-radius: 55% 45% 55% 45% / 55% 45% 55% 45%;
+    box-shadow: 0 0.2rem 0 var(--color-brand-ink);
+    transform: none;
+    transition:
+      transform 360ms var(--ease-bite),
+      opacity 220ms linear,
+      visibility 0s linear 0s,
+      background-color var(--duration-fast) linear,
+      color var(--duration-fast) linear;
+  }
+
+  /* On an orange surface the dock is ink; a cream hairline keeps its edge. */
+  .edge-menu[data-tab-tone='accent'] .edge-menu__tab {
+    box-shadow: 0 0 0 1px var(--color-brand-cream);
+  }
+
+  .edge-menu__ticks {
+    display: grid;
+    inline-size: 1rem;
+    gap: 0.22rem;
+  }
+
+  .edge-menu__tab-word {
+    display: inline;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.16em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  /* The dock sinks a little and fades while the close control rises in. */
+  .edge-menu[data-state='open'] .edge-menu__tab {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(0.6rem) scale(0.9);
+    transition:
+      transform 360ms var(--ease-bite),
+      opacity 220ms linear,
+      visibility 0s linear 360ms,
+      background-color var(--duration-fast) linear,
+      color var(--duration-fast) linear;
+  }
+
+  .edge-menu__close {
+    inset: 0;
+    inline-size: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: var(--border-width) solid var(--color-brand-cream);
+    border-radius: 55% 45% 55% 45% / 55% 45% 55% 45%;
+    opacity: 0;
+    transform: translateY(0.6rem) scale(0.9);
+    transition:
+      transform 420ms var(--ease-bite),
+      opacity 220ms linear,
+      visibility 0s linear 420ms;
+  }
+
+  /* The orange grip becomes a dot ahead of the word. */
+  .edge-menu__close::before {
+    position: static;
+    inline-size: 0.45rem;
+    block-size: 0.45rem;
+    margin: 0;
+    border-radius: 50%;
+  }
+
+  .edge-menu__close-word {
+    writing-mode: horizontal-tb;
+    rotate: none;
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+  }
+
+  .edge-menu[data-state='open'] .edge-menu__close,
+  .edge-menu[data-close='collapsed'] .edge-menu__close {
+    opacity: 1;
+    transform: none;
+    transition:
+      transform 420ms var(--ease-bite),
+      opacity 220ms linear,
+      visibility 0s linear 0s;
+  }
+
+  .edge-menu__handle:focus-visible .edge-menu__tab {
+    outline: var(--focus-ring);
+    outline-offset: 4px;
+  }
+
+  /*
+   * The sheet: centred, as wide as a phone and no wider on a tablet, as tall
+   * as its content. It scrolls itself when a short screen cannot hold it.
+   */
+  .edge-menu__panel {
+    inset-block: auto 0;
+    inset-inline: 0;
+    inline-size: min(100%, 36rem);
+    max-block-size: calc(100% - 1.5rem - env(safe-area-inset-top, 0px));
+    margin-inline: auto;
+    display: flex;
+    flex-direction: column;
+    transform: translateY(100%);
+  }
+
+  .edge-menu[data-state='open'] .edge-menu__panel {
+    transform: translateY(0);
+  }
+
+  .edge-menu__skin {
+    border-radius: clamp(1.75rem, 8vw, 2.75rem) clamp(1.75rem, 8vw, 2.75rem) 0 0;
+    box-shadow: inset 0 var(--border-width) 0 0 var(--color-brand-orange);
+    mask-image: none;
+  }
+
+  .edge-menu__content {
+    flex: 0 1 auto;
+    grid-template-rows: auto auto auto;
+    gap: clamp(1.25rem, 3.5vh, 2.25rem);
+    padding-block: clamp(1.75rem, 4.5vh, 2.75rem)
+      calc(var(--menu-dock-height) + var(--menu-dock-offset) + 1.25rem);
+    padding-inline: clamp(1.5rem, 7vw, 3rem);
+    text-align: center;
+  }
+
+  .edge-menu__head {
+    justify-content: center;
+  }
+
+  .edge-menu__wordmark {
+    inline-size: clamp(6.5rem, 30vw, 8.5rem);
+  }
+
+  .edge-menu__navigation {
+    margin-block-end: 0;
+  }
+
+  /*
+   * Each label is centred on its own; the active mark hangs after it without
+   * pushing it off centre.
+   */
+  .edge-menu__row {
+    position: relative;
+    display: inline-flex;
+  }
+
+  .edge-menu__mark {
+    position: absolute;
+    inset-inline-start: calc(100% + 0.55rem);
+    inset-block-start: 50%;
+    margin-block-start: -0.35rem;
+  }
+
+  .edge-menu__list a[aria-current] {
+    transform: none;
+  }
+
+  .edge-menu__channels {
+    justify-content: center;
   }
 }
 
@@ -713,4 +922,32 @@ body {
   pointer-events: auto;
   visibility: visible;
   transform: none;
+}
+
+/*
+ * The touch dock without the enhancement: the disclosure's own `open`
+ * attribute swaps the dock for the close control in place, and the panel is
+ * the plain full-screen one above.
+ */
+@media (hover: none), (pointer: coarse) {
+  .edge-menu:not([data-enhanced]) .edge-menu__panel {
+    max-block-size: none;
+    margin: 0;
+  }
+
+  .edge-menu:not([data-enhanced]) .edge-menu__skin {
+    border-radius: 0;
+  }
+
+  .edge-menu:not([data-enhanced]) .edge-menu__disclosure[open] .edge-menu__tab {
+    opacity: 0;
+    visibility: hidden;
+    transform: none;
+  }
+
+  .edge-menu:not([data-enhanced])
+    .edge-menu__disclosure[open]
+    .edge-menu__close {
+    opacity: 1;
+  }
 }

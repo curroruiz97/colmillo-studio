@@ -2,7 +2,10 @@
 /**
  * COLMILLO EDGE MENU
  *
- * The primary navigation lives against the right edge of the viewport. One
+ * With a fine pointer the primary navigation lives against the right edge of
+ * the viewport. On touch (2026-09-28, client direction) the same markup is a
+ * small floating dock centred at the foot of the screen, and the panel rises
+ * from below as a sheet; `edge-menu.css` owns that difference. One
  * state machine in `EdgeMenu.ts` declares it on the wrapper as `data-state`:
  *
  *   closed    a small orange tab pressed against the edge, nothing else
@@ -55,6 +58,7 @@ const isExternal = (href: string) => /^https?:\/\//.test(href);
           <span class="edge-menu__ticks">
             <span></span><span></span><span></span>
           </span>
+          <span class="edge-menu__tab-word">Menú</span>
         </span>
         <span class="edge-menu__close" data-edge-closer>
           <span class="edge-menu__close-word">Cerrar</span>

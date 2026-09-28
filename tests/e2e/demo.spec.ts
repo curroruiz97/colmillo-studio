@@ -86,13 +86,13 @@ async function settleEdgePanel(page: Page) {
     'data-state',
     'open',
   );
+  // The edge panel travels on X; the touch sheet rises on Y (2026-09-28).
   await expect
     .poll(() =>
-      page
-        .locator('[data-edge-panel]')
-        .evaluate(
-          (panel) => new DOMMatrix(getComputedStyle(panel).transform).m41,
-        ),
+      page.locator('[data-edge-panel]').evaluate((panel) => {
+        const matrix = new DOMMatrix(getComputedStyle(panel).transform);
+        return Math.max(Math.abs(matrix.m41), Math.abs(matrix.m42));
+      }),
     )
     .toBeLessThanOrEqual(1);
 }
@@ -185,11 +185,21 @@ test('the edge tab turns ink over the orange service layer and back', async ({
   await page.goto('/servicios/');
   await expect(tab).toHaveCSS('background-color', ORANGE);
 
+  /*
+   * The edge tab sits at mid-height, so the layer's top at the top of the
+   * screen puts orange under it. The touch dock sits at the foot of the
+   * screen (2026-09-28), where the same scroll shows the layer's ink picture,
+   * so there the layer's orange head is brought to the foot instead.
+   */
   await page
     .locator('[data-service-layer][data-theme="accent"]')
     .evaluate((layer) => {
+      const docked = window.matchMedia(
+        '(hover: none), (pointer: coarse)',
+      ).matches;
+      const top = layer.getBoundingClientRect().top + window.scrollY;
       window.scrollTo({
-        top: layer.getBoundingClientRect().top + window.scrollY,
+        top: docked ? top - window.innerHeight + 240 : top,
         behavior: 'instant',
       });
     });
@@ -587,6 +597,77 @@ test('the open panel never hides behind its own close control', async ({
   );
 });
 
+test('on touch the menu is a small dock centred at the foot of the screen', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const docked = await page.evaluate(
+    () => window.matchMedia('(hover: none), (pointer: coarse)').matches,
+  );
+  test.skip(!docked, 'A fine pointer keeps the right-edge tab.');
+
+  const viewport = page.viewportSize();
+  expect(viewport).not.toBeNull();
+  if (!viewport) return;
+  const centre = viewport.width / 2;
+
+  // Closed: a small labelled dock, centred, floating just above the foot.
+  const tab = page.locator('[data-edge-tab]');
+  await expect(tab).toContainText('Menú');
+  const dock = await tab.boundingBox();
+  expect(dock).not.toBeNull();
+  if (!dock) return;
+  expect(Math.abs(dock.x + dock.width / 2 - centre)).toBeLessThanOrEqual(1);
+  expect(dock.width).toBeLessThanOrEqual(128);
+  expect(dock.height).toBeGreaterThanOrEqual(44);
+  const air = viewport.height - (dock.y + dock.height);
+  expect(air).toBeGreaterThanOrEqual(8);
+  expect(air).toBeLessThanOrEqual(32);
+
+  // The page reserves no strip for it: the column's gutters are equal.
+  const gutters = await page
+    .locator('main .content-shell')
+    .first()
+    .evaluate((shell) => {
+      const box = shell.getBoundingClientRect();
+      return {
+        start: box.left,
+        end: document.documentElement.clientWidth - box.right,
+      };
+    });
+  expect(Math.abs(gutters.start - gutters.end)).toBeLessThanOrEqual(1);
+
+  // Open: the close control takes the dock's place over a centred sheet.
+  await page.locator('[data-edge-trigger]').click();
+  await settleEdgePanel(page);
+  const closer = await page.locator('[data-edge-closer]').boundingBox();
+  expect(closer).not.toBeNull();
+  if (!closer) return;
+  expect(Math.abs(closer.x + closer.width / 2 - centre)).toBeLessThanOrEqual(1);
+  expect(Math.abs(closer.y - dock.y)).toBeLessThanOrEqual(1);
+  const sheet = await page.locator('[data-edge-panel]').boundingBox();
+  expect(sheet).not.toBeNull();
+  if (!sheet) return;
+  expect(Math.abs(sheet.x + sheet.width / 2 - centre)).toBeLessThanOrEqual(1);
+  expect(
+    Math.abs(sheet.y + sheet.height - viewport.height),
+  ).toBeLessThanOrEqual(1);
+
+  // Closed again, the end of the page clears the dock.
+  await page.keyboard.press('Escape');
+  await expect(page.locator('[data-edge-menu]')).toHaveAttribute(
+    'data-state',
+    'closed',
+  );
+  await page.evaluate(() =>
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: 'instant',
+    }),
+  );
+  await expectNoOverlap(tab, page.locator('.site-footer p, .site-footer a'));
+});
+
 test('fixed controls do not cover project copy or navigation', async ({
   page,
 }) => {
@@ -599,7 +680,16 @@ test('fixed controls do not cover project copy or navigation', async ({
     '.cs-brief__title, .cs-brief__client, .cs-chapter__label, .cs-chapter__text',
   );
   await expect(page.locator('[data-motion-toggle]')).toHaveCount(0);
-  await expectNoOverlap(menu, copy);
+  /*
+   * On touch the menu is a small dock floating at the foot of the screen
+   * (2026-09-28): the copy scrolls under it as it would under any floating
+   * control, so only the edge tab is held clear of it here. The dock's own
+   * guards are the footer clearance and the centring test below.
+   */
+  const docked = await page.evaluate(
+    () => window.matchMedia('(hover: none), (pointer: coarse)').matches,
+  );
+  if (!docked) await expectNoOverlap(menu, copy);
   await expectNoOverlap(page.locator('[data-instagram]'), copy);
 });
 

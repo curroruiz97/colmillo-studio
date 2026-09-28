@@ -501,6 +501,8 @@ html:has([data-studio-page]) .site-footer__brand {
 .principles__media {
   display: grid;
   inline-size: min(100%, 18rem);
+  /* Stacked under the list on phones, the picture is centred, not hung left. */
+  margin-inline: auto;
 }
 
 .principles__figure {

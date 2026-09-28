@@ -15,7 +15,8 @@ import gsap from 'gsap';
  *
  * One state, never a set of flags:
  *
- *   closed          a small orange tab rests at mid-height on the edge
+ *   closed          a small orange tab rests at mid-height on the edge or,
+ *                   on touch, a small dock centred at the foot of the screen
  *   tracking        a fine pointer is near the edge; the tab follows it on Y
  *   open            the panel is in and the full close control is showing
  *   open-collapsed  the close control has retracted to a sliver
@@ -128,6 +129,11 @@ export function initEdgeMenu(): () => void {
   // Queried once. Re-evaluating a media query on every pointer move would put
   // an allocation on the shared pointer path that `CustomCursor` also uses.
   const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+  /**
+   * On touch the stylesheet turns the tab into a dock centred at the foot of
+   * the screen (2026-09-28). It never travels: the carrier stays at rest.
+   */
+  const dock = window.matchMedia('(hover: none), (pointer: coarse)');
   const motionReduced = () =>
     document.documentElement.dataset.motion === 'reduced';
   const canTrack = () => finePointer.matches && !motionReduced();
@@ -208,7 +214,11 @@ export function initEdgeMenu(): () => void {
   const sampleTone = () => {
     toneFrame = 0;
     if (isOpen(state)) return;
-    const color = backgroundUnder(window.innerWidth - 8, metrics.half + offset);
+    // The dock is sampled at its centre; the edge tab just inside the edge.
+    const box = dock.matches ? carrier.getBoundingClientRect() : null;
+    const color = box
+      ? backgroundUnder(box.left + box.width / 2, box.top + box.height / 2)
+      : backgroundUnder(window.innerWidth - 8, metrics.half + offset);
     const accent =
       color !== null &&
       ORANGE.every(
@@ -306,7 +316,7 @@ export function initEdgeMenu(): () => void {
     lockScroll();
     // The tab that was pressed becomes the close control where it is. It only
     // moves if the taller control would leave the viewport there.
-    placeY(limit(offset, EDGE_MARGIN, metrics.closeHalf));
+    placeY(dock.matches ? 0 : limit(offset, EDGE_MARGIN, metrics.closeHalf));
     pointerNear = finePointer.matches && lastDistance <= HOT_ZONE;
     setState('open');
     cancelCollapse();
@@ -412,8 +422,10 @@ export function initEdgeMenu(): () => void {
 
   const onResize = () => {
     measure();
-    if (isOpen(state)) placeY(limit(offset, EDGE_MARGIN, metrics.closeHalf));
-    else if (state === 'closed') placeY(0);
+    if (dock.matches) placeY(0);
+    else if (isOpen(state)) {
+      placeY(limit(offset, EDGE_MARGIN, metrics.closeHalf));
+    } else if (state === 'closed') placeY(0);
     queueTone();
   };
 
@@ -432,6 +444,7 @@ export function initEdgeMenu(): () => void {
   document.addEventListener('keydown', onKeyDown);
   window.addEventListener('pointermove', onPointerMove, { passive: true });
   window.addEventListener('resize', onResize, { passive: true });
+  dock.addEventListener('change', onResize);
   document.documentElement.addEventListener('pointerleave', onPointerLeave);
   window.addEventListener('blur', onPointerLeave);
 
@@ -456,6 +469,7 @@ export function initEdgeMenu(): () => void {
     document.removeEventListener('keydown', onKeyDown);
     window.removeEventListener('pointermove', onPointerMove);
     window.removeEventListener('resize', onResize);
+    dock.removeEventListener('change', onResize);
     document.documentElement.removeEventListener(
       'pointerleave',
       onPointerLeave,

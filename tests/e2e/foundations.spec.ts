@@ -316,13 +316,19 @@ test('the native scrollbar is hidden but scrolling still works', async ({
   ).toBeLessThanOrEqual(0);
 });
 
-test('the closed edge menu is a single small orange tab', async ({ page }) => {
+test('the closed edge menu is a single small orange tab', async ({
+  page,
+  isMobile,
+}) => {
   await page.goto('/');
 
-  // No spine, no progress readout and no visible label outside the panel.
+  // No spine and no progress readout outside the panel.
   await expect(page.locator('.edge-menu__spine')).toHaveCount(0);
   await expect(page.locator('[data-edge-current]')).toHaveCount(0);
-  await expect(page.locator('[data-edge-tab]')).toHaveText('');
+  // The edge tab carries no word; the touch dock (2026-09-28) says "Menú".
+  const word = page.locator('.edge-menu__tab-word');
+  if (isMobile) await expect(word).toHaveText('Menú');
+  else await expect(word).toBeHidden();
   await expect(page.locator('[data-edge-tab]')).toHaveCSS(
     'background-color',
     'rgb(205, 87, 48)',
@@ -332,6 +338,9 @@ test('the closed edge menu is a single small orange tab', async ({ page }) => {
   await expect(page.getByRole('group').locator('summary')).toHaveAccessibleName(
     /Menú/,
   );
+
+  // On touch it is the dock; `demo.spec.ts` measures its place and size.
+  if (isMobile) return;
 
   // It is pressed against the edge and only a sliver of it is inside.
   const visible = await visibleTabWidth(page);

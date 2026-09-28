@@ -562,6 +562,18 @@ scrubbed timeline or scroll interception.
   1.4 s after they leave. Touch keeps the full control, because nothing could
   bring it back.
 
+  On touch (`(hover: none), (pointer: coarse)`, 2026-09-28, client direction)
+  the same markup is a floating dock instead: a small orange oval (6.75 x
+  2.75 rem, the bite buttons' shape with a shallow ink ledge, three rules and
+  "Menú") centred at the foot of the screen, `env(safe-area-inset-bottom)` +
+  0.875 rem above it. It never travels; the carrier stays at rest. Opening
+  sinks and fades it (0.6 rem, scale 0.9) while an ink "Cerrar" oval rises in
+  its place, and the panel rises from below as a centred sheet (full width on
+  phones, 36 rem on tablets, as tall as its content, scrolling itself on short
+  screens) with rounded top corners and an orange rim. The tone sample is
+  taken under the dock's centre, so it turns ink on orange there too. Reduced
+  motion swaps the travel for a state change, as on the edge.
+
   The native `<details>` remains the control and stays usable without
   JavaScript. Where scripting is available the module moves the panel out of
   the disclosure so it can animate in both directions instead of being dropped
