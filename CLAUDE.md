@@ -276,7 +276,11 @@ loop through. It forces `muted`/`playsInline` as properties and, when a browser
 refuses a silent autoplay outright (iOS Low Power Mode, Chrome's Data Saver,
 Safari's per-site "Auto-Play: Never" — all of which answer `NotAllowedError`),
 it keeps the loop and retries it at the first gesture instead of leaving it
-under the platform's own start badge. It never overrides the reduced-motion,
+under the platform's own start badge. Since 2026-09-28 it also covers a
+refused loop at once with its own MP4 as an `<img>` (Safari plays that as an
+animated image, even in Low Power Mode), laid over the video's box while the
+video keeps its place and is only made invisible; `globals.css` hides the
+start badge on every loop without controls. It never overrides the reduced-motion,
 off-screen, covered or background-tab rules, which still decide whether a loop
 is asked to play at all.
 

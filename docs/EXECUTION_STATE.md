@@ -6600,3 +6600,24 @@ Published to `pre.` with `publicar.sh pre` at the user's request the same day
 (78 files, Basic auth intact); committed and pushed to `main`. From now on the
 user wants every change committed and pushed. Phase 4 content intake is
 unchanged.
+
+## 2026-09-28 Session (second pass): Hero Loops In iOS Low Power Mode
+
+The client saw a play badge on every hero on their iPhone and nothing moved
+until a tap or a scroll. Diagnosis: the modules do ask every loop to play on
+load; iOS in Low Power Mode (confirmed by the client: yellow battery) refuses
+all video autoplay, and `VideoLoop.ts` could only retry at the next gesture.
+
+- `VideoLoop.ts`: a refused loop is covered at once by its own MP4 as an
+  animated `<img>` over the video's box; parked, the image hides; a gesture
+  that lets the video play hands back. See `DECISIONS.md`.
+- `globals.css`: no platform start badge on any loop without controls.
+- `foundations.spec.ts`: two tests — a refused loop gets its stand-in,
+  aligned, hidden off screen and back on return; a started loop gets none.
+
+Verification: `astro check` 0/0/0, ESLint, Prettier, `check:production`
+(200,947 JS bytes), `check:hero`. Playwright `dist` 106 passed / 10 skipped;
+`dist-demo` 183 passed / 72 skipped / the same 3 pre-existing `fine-1440`
+failures. Simulated Low Power Mode on `/`, `/studio/`, `/servicios/` and
+`/proyectos/` at 390 and 1440. The real Safari behaviour needs the client's
+iPhone on `pre.`.

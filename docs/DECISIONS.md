@@ -3149,3 +3149,28 @@ Same pass:
 
 Supersedes, for touch only: the 2026-09-10 rail reservation on containers and
 the touch treatment of the edge tab.
+
+## 2026-09-28 - A Refused Loop Plays As Its Own Animated Image
+
+Decision: when a browser refuses a silent loop (`NotAllowedError`),
+`VideoLoop.ts` covers it at once with the loop's own MP4 in an `<img>`, the
+source the video would pick on that screen, with the video's classes, laid
+over the video's measured box (compensating a transformed ancestor's scale).
+The video keeps its place and is only made `visibility: hidden`, because the
+owning modules observe it. Parking the loop hides the image; a tap that later
+lets the video play hands back to it. `globals.css` hides the platform start
+badge on every video without `controls`.
+
+Reason: the client's iPhone in Low Power Mode showed a play badge on every
+hero and started nothing until a tap or a scroll. Low Power Mode refuses all
+video autoplay and cannot be overridden by a page; the gesture retry of
+2026-09-22 still left the first screen still. Safari decodes an MP4 given to
+an `<img>` as an animated image, which Low Power Mode does not stop. Engines
+that cannot decode it fail the load and keep the poster plus the gesture
+retry. No new asset and no change to when a loop is allowed to play: reduced
+motion, off-screen, covered and background-tab rules are untouched.
+
+Verified in Chromium with `play()` forced to refuse and the image request
+served a PNG (swap, placement to within a pixel, park and return, on every
+route at 390 and 1440). Safari's decoding of the real MP4 as an image in Low
+Power Mode can only be confirmed on the client's device.

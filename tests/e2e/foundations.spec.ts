@@ -1233,3 +1233,74 @@ test('no button is flattened on any edge', async ({ page }) => {
   // The walk is only worth anything if it actually found buttons.
   expect(measured).toBeGreaterThan(5);
 });
+
+test('a loop the browser refuses to start is covered by its animated image', async ({
+  page,
+}) => {
+  /*
+   * iOS in Low Power Mode refuses every `play()` without a gesture and draws
+   * its start badge over the poster (client report, 2026-09-28). Safari then
+   * plays the loop's MP4 as an animated `<img>`. Chromium cannot decode an
+   * MP4 as an image, so here an `<img>` asking for one is served a PNG: what
+   * is under test is the swap, the placement and the hand-back, not Safari's
+   * decoder.
+   */
+  await page.addInitScript(() => {
+    HTMLMediaElement.prototype.play = () =>
+      Promise.reject(new DOMException('refused', 'NotAllowedError'));
+  });
+  await page.route(/\.mp4$/, (route, request) =>
+    request.resourceType() === 'image'
+      ? route.fulfill({
+          path: 'public/assets/brand/colmillo-wordmark-orange.png',
+          contentType: 'image/png',
+        })
+      : route.continue(),
+  );
+  await page.goto('/');
+
+  const video = page.locator('[data-motion-video]');
+  const image = page.locator('img[data-loop-stand-in]');
+  await expect(image).toHaveCount(1);
+  await expect(image).toHaveCSS('visibility', 'visible');
+  await expect(video).toHaveCSS('visibility', 'hidden');
+  await expect(image).toHaveAttribute('aria-hidden', 'true');
+
+  // Exactly over the video's box, which keeps its place in the layout.
+  const [over, under] = await Promise.all([
+    image.boundingBox(),
+    video.boundingBox(),
+  ]);
+  expect(over).not.toBeNull();
+  expect(under).not.toBeNull();
+  if (!over || !under) return;
+  for (const key of ['x', 'y', 'width', 'height'] as const) {
+    expect(Math.abs(over[key] - under[key])).toBeLessThanOrEqual(1);
+  }
+
+  // Parked off screen, the image goes and the poster is back; on return the
+  // image comes back without asking the video again.
+  await page.evaluate(() =>
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: 'instant',
+    }),
+  );
+  await expect(image).toHaveCSS('visibility', 'hidden');
+  await expect(video).toHaveCSS('visibility', 'visible');
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+  await expect(image).toHaveCSS('visibility', 'visible');
+  await expect(video).toHaveCSS('visibility', 'hidden');
+});
+
+test('a loop the browser starts gets no stand-in', async ({ page }) => {
+  await page.goto('/');
+  await expect
+    .poll(() =>
+      page
+        .locator('[data-motion-video]')
+        .evaluate((video: HTMLVideoElement) => !video.paused),
+    )
+    .toBe(true);
+  await expect(page.locator('img[data-loop-stand-in]')).toHaveCount(0);
+});
