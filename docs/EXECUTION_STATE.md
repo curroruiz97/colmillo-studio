@@ -6721,3 +6721,8 @@ re-applying the hosting settings) if the client wants it back.
   Plesk mail service OFF for colmillostudio.com, and the SPF record with
   `ip4:212.227.90.205`. Then a real test send.
   `npm run check:contact` 22/22.
+- Client disabled Plesk incoming mail and updated SPF; verified. Local SMTP
+  relay is refused without login, so the endpoint gained `transport =>
+  sendmail` (`mail()`), now the live config. A real test brief was accepted
+  by the server (12:04 UTC); awaiting the client's confirmation from the
+  `hola@` inbox. `npm run check:contact` 26/26.

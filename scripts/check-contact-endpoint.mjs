@@ -10,7 +10,13 @@
 import { spawn } from 'node:child_process';
 import { Buffer } from 'node:buffer';
 import console from 'node:console';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -94,11 +100,11 @@ const baseConfig = (port, password = 'secreto') => `[
 
 let php;
 let current;
-async function startPhp(dir) {
+async function startPhp(dir, ini = []) {
   php?.kill();
   await wait(150);
   current = dir;
-  php = spawn('php', ['-S', `127.0.0.1:${PHP_PORT}`, '-t', 'public'], {
+  php = spawn('php', [...ini, '-S', `127.0.0.1:${PHP_PORT}`, '-t', 'public'], {
     env: { ...process.env, COLMILLO_PRIVATE: dir },
     stdio: 'ignore',
   });
@@ -290,6 +296,42 @@ try {
     'unencrypted SMTP to a remote host is never used',
     res.status === 503,
     res.status,
+  );
+
+  // The server's own mail system: `mail()` through a sendmail that writes
+  // what it is given to a file (the trailing `#` swallows the `-f` flag
+  // PHP appends, which the real sendmail takes).
+  const mailDir = privateDir(`[
+    'transport' => 'sendmail',
+    'from' => 'web@colmillostudio.com', 'to' => 'hola@colmillostudio.com',
+    'salt' => 'tercera', 'extra_hosts' => ['127.0.0.1:${PHP_PORT}'],
+  ]`);
+  const outbox = join(mailDir, 'outbox.eml');
+  await startPhp(mailDir, ['-d', `sendmail_path=cat > ${outbox} #`]);
+  res = await post(brief());
+  await wait(200);
+  const local = existsSync(outbox) ? readFileSync(outbox, 'utf8') : '';
+  check(
+    'the local mail system is handed the brief',
+    res.status === 200 && local.length > 0,
+    res.status,
+  );
+  check(
+    'it is addressed to hola@',
+    /^To: hola@colmillostudio\.com/m.test(local),
+    local.slice(0, 200),
+  );
+  check(
+    'it carries From and Reply-To',
+    /^From: .*<web@colmillostudio\.com>/m.test(local) &&
+      /^Reply-To: .*<ada@estudio\.com>/m.test(local),
+  );
+  const [, localBody = ''] = local.split(/\r?\n\r?\n/);
+  check(
+    'its body decodes to the brief',
+    Buffer.from(localBody.replace(/\s+/g, ''), 'base64')
+      .toString('utf8')
+      .includes('Máquina Analítica'),
   );
 } finally {
   php?.kill();

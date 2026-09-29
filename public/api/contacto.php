@@ -229,7 +229,10 @@ function limit(string $ip, string $salt): bool
 /* -------------------------------------------------------------- config -- */
 
 $ready = is_array($config);
-foreach (['host', 'port', 'to', 'from'] as $key) {
+$transport = (string) ($config['transport'] ?? 'smtp');
+$needs = $transport === 'sendmail' ? ['to', 'from'] : ['host', 'port', 'to', 'from'];
+$ready = $ready && in_array($transport, ['smtp', 'sendmail'], true);
+foreach ($needs as $key) {
     $ready = $ready && isset($config[$key]) && $config[$key] !== '';
 }
 // A login is optional (the local server needs none); if there is one, it
@@ -298,18 +301,22 @@ $body = implode("\n", array_filter([
 ], static fn ($line) => $line !== null));
 
 $messageId = sprintf('<%s@colmillostudio.com>', bin2hex(random_bytes(12)));
-$headers = [
+$subject = 'Nuevo mensaje de ' . $name . ' — colmillostudio.com';
+// Every header but To and Subject, which `mail()` takes on its own.
+$common = [
     'Date: ' . date(DATE_RFC2822),
     'From: ' . header_words($fromName) . ' <' . $from . '>',
-    'To: <' . $to . '>',
     'Reply-To: ' . header_words($name) . ' <' . $email . '>',
-    'Subject: ' . header_words('Nuevo mensaje de ' . $name . ' — colmillostudio.com'),
     'Message-ID: ' . $messageId,
     'MIME-Version: 1.0',
     'Content-Type: text/plain; charset=UTF-8',
     'Content-Transfer-Encoding: base64',
     'X-Mailer: colmillostudio.com contacto',
 ];
+$headers = array_merge(
+    ['To: <' . $to . '>', 'Subject: ' . header_words($subject)],
+    $common,
+);
 $payload = implode("\r\n", $headers) . "\r\n\r\n"
     . rtrim(chunk_split(base64_encode($body), 76, "\r\n"));
 
@@ -398,8 +405,33 @@ final class Smtp
     }
 }
 
+/**
+ * The server's own mail system (`transport => sendmail`, 2026-09-29): Plesk's
+ * Postfix refuses to relay unauthenticated SMTP even from this machine, but
+ * accepts local submission, and with the domain's incoming mail disabled in
+ * Plesk it delivers to IONOS's MX. The envelope sender is `from`, so SPF
+ * (which lists this server) aligns. `mail()` only says the message was
+ * accepted locally; a later bounce goes to `from`.
+ */
+function send_local(string $to, string $subject, string $body, array $headers, string $from): void
+{
+    if (!function_exists('mail')) {
+        throw new RuntimeException('mail() unavailable');
+    }
+    // The subject stays on one line here; `mail()` rejects folded values.
+    $encoded = str_replace("\r\n ", ' ', header_words($subject));
+    $text = rtrim(chunk_split(base64_encode($body), 76, "\n"));
+    if (!mail($to, $encoded, $text, implode("\r\n", $headers), '-f' . $from)) {
+        throw new RuntimeException('mail() refused');
+    }
+}
+
 try {
-    (new Smtp($config))->deliver($from, $to, $payload);
+    if ($transport === 'sendmail') {
+        send_local($to, $subject, $body, $common, $from);
+    } else {
+        (new Smtp($config))->deliver($from, $to, $payload);
+    }
 } catch (Throwable $error) {
     log_line('send failed: ' . $error->getMessage());
     respond(502, ['ok' => false, 'error' => 'send_failed']);

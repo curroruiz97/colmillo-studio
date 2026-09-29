@@ -245,3 +245,20 @@ Two changes by the client make it deliver:
 Until step 1 the form answers "No hemos podido enviarlo" and shows the
 address (verified: 502 after Postfix's 550). The authenticated IONOS SMTP path
 still works through the same config if a mailbox is ever available.
+
+### Done 2026-09-29, final shape
+
+The client set Plesk's mail service for the domain to "Desactivado para el
+correo entrante" and the SPF to
+`v=spf1 include:_spf-eu.ionos.com ip4:212.227.90.205 ~all` (TTL 1 min for the
+test; can go back to 1 h). Verified: the SPF is served identically by IONOS's
+nameservers, 1.1.1.1 and 8.8.8.8, and Postfix no longer answers "User unknown"
+for `hola@`.
+
+Postfix then refused unauthenticated SMTP relay even from 127.0.0.1 ("454
+Relay access denied"), so the config uses `transport => sendmail`: PHP's
+`mail()` with `-f web@colmillostudio.com`, which Postfix accepts locally and
+delivers to IONOS. A test brief was accepted at 12:04 UTC (Message-ID in
+`contacto.log`); the queue and mail logs are root-only here, so delivery is
+confirmed by the client's inbox. With `mail()` a delivery failure is no
+longer reported to the visitor: it bounces to `web@`, which does not exist.
