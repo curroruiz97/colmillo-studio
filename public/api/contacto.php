@@ -8,14 +8,21 @@ declare(strict_types=1);
  * The one piece of server code in the site (2026-09-29, client direction:
  * what is written in the form reaches hola@colmillostudio.com). It receives
  * the brief as JSON from `/contacto/`, checks it the same way the form does,
- * and sends it as a plain-text email through IONOS's SMTP, where the studio's
- * mail lives, so it passes SPF and DKIM instead of leaving this server as
- * unauthenticated mail. "Reply" in the inbox answers the visitor.
+ * and sends it as a plain-text email. "Reply" in the inbox answers the
+ * visitor.
+ *
+ * How it travels is set by the private config, not here. Today (client's
+ * choice, 2026-09-29) it is handed to this server's own mail system over SMTP
+ * on 127.0.0.1:25 with no login, which delivers it to IONOS, where the
+ * studio's mail lives; the domain's SPF authorises this server's address. An
+ * authenticated remote SMTP (IONOS, with a mailbox) works through the same
+ * code. SMTP rather than `mail()`: a refused recipient is refused while the
+ * visitor waits, so the form can say so instead of "Recibido".
  *
  * Nothing is stored. The only state is a salted hash of the sender's address
  * held for ten minutes to limit abuse (see `limit()`).
  *
- * The SMTP credentials are NOT in the repository or in any public folder:
+ * The mail settings are NOT in the repository or in any public folder:
  * `colmillo-private/mail-config.php` in the subscription's home, one level
  * above every document root (`docs/DEPLOYMENT.md`). Without a usable file the
  * endpoint answers 503 and the form falls back to showing the address.
@@ -221,17 +228,28 @@ function limit(string $ip, string $salt): bool
 
 /* -------------------------------------------------------------- config -- */
 
-$required = ['host', 'port', 'username', 'password', 'to'];
 $ready = is_array($config);
-foreach ($required as $key) {
+foreach (['host', 'port', 'to', 'from'] as $key) {
     $ready = $ready && isset($config[$key]) && $config[$key] !== '';
 }
-if (!$ready || str_starts_with((string) $config['password'], 'CAMBIAR')) {
+// A login is optional (the local server needs none); if there is one, it
+// must be real.
+$login = (string) ($config['username'] ?? '');
+if ($login !== '') {
+    $password = (string) ($config['password'] ?? '');
+    $ready = $ready && $password !== '' && !str_starts_with($password, 'CAMBIAR');
+}
+// Nothing ever goes unencrypted to another machine.
+$local = in_array((string) ($config['host'] ?? ''), ['127.0.0.1', 'localhost', '::1'], true);
+if (($config['secure'] ?? 'starttls') === 'none' && !$local && !($config['allow_plain'] ?? false)) {
+    $ready = false;
+}
+if (!$ready) {
     log_line('not configured');
     respond(503, ['ok' => false, 'error' => 'not_configured']);
 }
 
-if (!limit((string) ($_SERVER['REMOTE_ADDR'] ?? ''), (string) ($config['salt'] ?? $config['username']))) {
+if (!limit((string) ($_SERVER['REMOTE_ADDR'] ?? ''), (string) ($config['salt'] ?? $config['from']))) {
     respond(429, ['ok' => false, 'error' => 'rate']);
 }
 
@@ -258,7 +276,7 @@ function header_words(string $text): string
 }
 
 $to = (string) $config['to'];
-$from = (string) ($config['from'] ?? $config['username']);
+$from = (string) $config['from'];
 $fromName = (string) ($config['from_name'] ?? 'Web Colmillo Studio');
 $serviceLabel = $service !== '' ? SERVICES[$service] : '';
 $when = (new DateTimeImmutable('now', new DateTimeZone('Europe/Madrid')))->format('d/m/Y H:i');
@@ -298,9 +316,9 @@ $payload = implode("\r\n", $headers) . "\r\n\r\n"
 /* ---------------------------------------------------------------- SMTP -- */
 
 /**
- * A small SMTP client: STARTTLS (or implicit TLS on 465), AUTH LOGIN, one
- * message. Certificates are verified; nothing is sent in the clear to a
- * remote host. `secure => none` exists only for the local test harness.
+ * A small SMTP client: STARTTLS (or implicit TLS on 465), AUTH LOGIN when
+ * there is a login, one message. Certificates are verified. `secure => none`
+ * is only accepted for this machine's own mail server (and the test harness).
  */
 final class Smtp
 {
@@ -360,9 +378,11 @@ final class Smtp
             }
             $this->send('EHLO colmillostudio.com', 250);
         }
-        $this->send('AUTH LOGIN', 334);
-        $this->send(base64_encode((string) $this->config['username']), 334);
-        $this->send(base64_encode((string) $this->config['password']), 235);
+        if ((string) ($this->config['username'] ?? '') !== '') {
+            $this->send('AUTH LOGIN', 334);
+            $this->send(base64_encode((string) $this->config['username']), 334);
+            $this->send(base64_encode((string) $this->config['password']), 235);
+        }
         $this->send('MAIL FROM:<' . $from . '>', 250);
         $this->send('RCPT TO:<' . $to . '>', 250, 251);
         $this->send('DATA', 354);

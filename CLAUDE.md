@@ -473,9 +473,11 @@ licenses and publication approval before enabling client material.
   and canonical domain are absent.
 - `/contacto/` submits for real since 2026-09-29 (client authorisation):
   `public/api/contacto.php`, the site's only server code, emails the brief to
-  `hola@colmillostudio.com` through IONOS's SMTP from a dedicated mailbox. Its
-  credentials live in `~/colmillo-private/mail-config.php` on the server —
-  never in Git or a document root. `npm run check:contact` tests it with a
+  `hola@colmillostudio.com`, handed to the server's own Postfix on
+  127.0.0.1:25, which delivers to IONOS (needs Plesk mail OFF for the domain
+  and the server's IP in SPF — see `docs/DEPLOYMENT.md`). Its settings live in
+  `~/colmillo-private/mail-config.php` on the server — never in Git or a
+  document root. `npm run check:contact` tests it with a
   fake SMTP. Without JavaScript the form still hands a draft to the visitor's
   mail client. See `docs/DEPLOYMENT.md`.
 - The route's copy is the user's provisional wording (2026-09-16) and is

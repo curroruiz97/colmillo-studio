@@ -6714,3 +6714,10 @@ re-applying the hosting settings) if the client wants it back.
   `check:links` pass.
 - Not verifiable from here: PHP through the preview's password and a real
   delivery. Both need the mailbox password and a test by the client.
+- Same day, switched to the server's own Postfix (client choice, no IONOS
+  room for a mailbox). Probed: Plesk mail is ON for the domain and Postfix
+  rejects `hola@` with 550; the endpoint now answers 502 for that instead of a
+  false "Recibido" (verified against the real Postfix). Waiting on the client:
+  Plesk mail service OFF for colmillostudio.com, and the SPF record with
+  `ip4:212.227.90.205`. Then a real test send.
+  `npm run check:contact` 22/22.

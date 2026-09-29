@@ -3263,3 +3263,16 @@ also still named Vercel as the host (stale since 2026-09-25): it now says how
 the brief travels, the ten-minute hash, and IONOS as host and mail provider —
 both verified from DNS. The processor contracts, region and transfer
 safeguards stay `pending(...)`.
+
+## 2026-09-29 - Superseded Same Day: The Server Sends, Through Its Own Postfix
+
+The dedicated IONOS mailbox was not possible (no room in the client's IONOS
+plan), and a Plesk mailbox would not deliver: Plesk's mail service is enabled
+for colmillostudio.com, so the local Postfix rejects every `@colmillostudio.com`
+recipient as unknown. The client chose (over storing `hola@`'s password) to
+have the server send: the endpoint speaks SMTP to 127.0.0.1:25 without a
+login, from `web@colmillostudio.com`, and Postfix relays to IONOS once Plesk's
+mail service for the domain is switched off; the server's IP is added to the
+SPF record so IONOS accepts it. No DKIM signature on this path; SPF passes and
+aligns with the envelope sender, and DMARC is `p=none`. Everything else in the
+previous entry stands.

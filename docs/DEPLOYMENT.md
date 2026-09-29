@@ -216,3 +216,32 @@ To finish the setup:
 a fake SMTP: accepted brief, headers, the bot trap, the time trap, origin,
 validation, header injection, size, rate limit, missing credentials and an
 unreachable server.
+
+### Changed the same day: sent by the server itself, no mailbox
+
+IONOS had no room for another mailbox, and a mailbox created in Plesk would
+not work: **Plesk's mail service is enabled for colmillostudio.com on this
+server** although the domain's mail is at IONOS, so the local Postfix treats
+the domain as its own and rejects `hola@` ("550 User unknown in virtual
+mailbox table" — probed without sending anything). Anything the server mailed
+to the studio was already being lost this way.
+
+The endpoint now hands the brief to the local Postfix over SMTP on
+127.0.0.1:25 (no login; from `web@colmillostudio.com`, which needs no
+mailbox), and Postfix delivers it to IONOS's MX. SMTP rather than `mail()`, so
+a refused recipient is an immediate 502 and the form never says "Recibido"
+for a message that went nowhere. Unencrypted SMTP is refused for any host but
+this machine.
+
+Two changes by the client make it deliver:
+
+1. **Plesk** → Sitios web y dominios → colmillostudio.com → Correo →
+   Configuración de correo: **desactivar el servicio de correo** del dominio
+   (no se usa: el correo está en IONOS).
+2. **IONOS** → DNS de colmillostudio.com → el registro TXT de SPF pasa a
+   `v=spf1 include:_spf-eu.ionos.com ip4:212.227.90.205 ~all`, so IONOS
+   accepts the server as a sender for the domain.
+
+Until step 1 the form answers "No hemos podido enviarlo" and shows the
+address (verified: 502 after Postfix's 550). The authenticated IONOS SMTP path
+still works through the same config if a mailbox is ever available.

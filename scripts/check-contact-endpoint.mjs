@@ -87,6 +87,7 @@ const privateDir = (config) => {
 const baseConfig = (port, password = 'secreto') => `[
   'host' => '127.0.0.1', 'port' => ${port}, 'secure' => 'none',
   'username' => 'web@colmillostudio.com', 'password' => '${password}',
+  'from' => 'web@colmillostudio.com',
   'from_name' => 'Web Colmillo Studio', 'to' => 'hola@colmillostudio.com',
   'salt' => 'test', 'extra_hosts' => ['127.0.0.1:${PHP_PORT}'],
 ]`;
@@ -259,6 +260,37 @@ try {
   await startPhp(privateDir(baseConfig(SMTP_PORT + 7)));
   res = await post(brief());
   check('an unreachable SMTP answers 502', res.status === 502, res.status);
+
+  // The local mail server needs no login.
+  const sentBefore = delivered.length;
+  await startPhp(
+    privateDir(`[
+      'host' => '127.0.0.1', 'port' => ${SMTP_PORT}, 'secure' => 'none',
+      'from' => 'web@colmillostudio.com', 'to' => 'hola@colmillostudio.com',
+      'salt' => 'otra', 'extra_hosts' => ['127.0.0.1:${PHP_PORT}'],
+    ]`),
+  );
+  res = await post(brief());
+  check(
+    'the local server is used without a login',
+    res.status === 200 && delivered.length === sentBefore + 1,
+    res.status,
+  );
+
+  // Plain SMTP to another machine is refused as unconfigured.
+  await startPhp(
+    privateDir(`[
+      'host' => 'smtp.example.com', 'port' => 25, 'secure' => 'none',
+      'from' => 'web@colmillostudio.com', 'to' => 'hola@colmillostudio.com',
+      'extra_hosts' => ['127.0.0.1:${PHP_PORT}'],
+    ]`),
+  );
+  res = await post(brief());
+  check(
+    'unencrypted SMTP to a remote host is never used',
+    res.status === 503,
+    res.status,
+  );
 } finally {
   php?.kill();
   smtp.close();
