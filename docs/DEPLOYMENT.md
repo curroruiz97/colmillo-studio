@@ -185,3 +185,34 @@ server account cannot do either):
 4. Plesk → Directorios protegidos con contraseña: protect it like `pre`
    while the catalogue is a demonstration.
 5. `./publicar.sh tienda`. Done 2026-09-29.
+
+## The contact form's email (2026-09-29)
+
+`/contacto/` posts to `/api/contacto.php` (source `public/api/contacto.php`,
+published with every build). It sends each brief to `hola@colmillostudio.com`
+through IONOS's SMTP (`smtp.ionos.es:587`, STARTTLS) from a dedicated mailbox,
+so the mail passes the domain's SPF (`include:_spf-eu.ionos.com`) and IONOS's
+DKIM instead of leaving the Plesk server unauthenticated. The domain's MX is
+IONOS, so nothing is delivered locally by Plesk.
+
+Credentials: `~/colmillo-private/mail-config.php` (folder 700, file 600), one
+level above every document root and outside Git. The endpoint finds it as
+`dirname(__DIR__, 2)/colmillo-private` from any docroot, or through the
+`COLMILLO_PRIVATE` environment variable. The file ships with a `CAMBIAR…`
+placeholder password; while it is there the endpoint answers 503 and the form
+says it could not send and shows the address. `contacto.log` in the same
+folder records one line per attempt (stage and code, never the brief).
+
+To finish the setup:
+
+1. IONOS → Correo: create the mailbox `web@colmillostudio.com` (or another
+   name, then change `username` in the file).
+2. Put its password in `~/colmillo-private/mail-config.php` (Plesk → Archivos
+   can edit it; it is in the subscription's home, not in a site's folder).
+3. Send a brief from `https://pre.colmillostudio.com/contacto/` and check it
+   reaches `hola@`, and that "Responder" answers the visitor.
+
+`npm run check:contact` runs the endpoint under PHP's built-in server against
+a fake SMTP: accepted brief, headers, the bot trap, the time trap, origin,
+validation, header injection, size, rate limit, missing credentials and an
+unreachable server.

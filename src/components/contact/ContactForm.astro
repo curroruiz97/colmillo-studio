@@ -27,9 +27,10 @@
  * - the form's `action` is the studio's own address. With no JavaScript the
  *   browser validates natively and hands the fields to the visitor's mail
  *   client; with JavaScript, `ContactPageMotion.ts` takes `novalidate`,
- *   validates with the copy in `src/data/contactPage.ts` and composes a far
- *   better draft. Nothing here ever claims a message was sent: see
- *   `contactFormEndpoint`.
+ *   validates with the copy in `src/data/contactPage.ts` and POSTs the brief
+ *   to `contactFormEndpoint` (`public/api/contacto.php`, since 2026-09-29),
+ *   which emails it to the studio. The form only says it was received when
+ *   the endpoint answers ok.
  *
  * The small orange ring at the form's left edge is the "contact pulse": it
  * glides to whichever field has focus. It is decorative and hidden from
@@ -113,6 +114,19 @@ const isExternal = (href: string) => /^https?:\/\//.test(href);
     >
       <span class="contact-form__pulse" aria-hidden="true" data-contact-pulse
       ></span>
+
+      {
+        /*
+         * A trap for bots: a field no person sees, reaches or fills. The
+         * endpoint drops any brief that arrives with it filled.
+         */
+      }
+      <div class="contact-form__trap" aria-hidden="true">
+        <label>
+          Web
+          <input type="text" name="website" tabindex="-1" autocomplete="off" />
+        </label>
+      </div>
 
       {
         contactFields.map((field) => {

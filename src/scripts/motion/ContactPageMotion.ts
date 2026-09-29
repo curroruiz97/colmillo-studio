@@ -462,9 +462,10 @@ function showProblem(field: HTMLElement, message: string | null): void {
  * On submit there are exactly two branches, and which one runs is decided by
  * `contactFormEndpoint` in `src/data/contactPage.ts`:
  *
- * - an endpoint exists — the brief is POSTed as JSON and the form reports what
- *   actually happened, `success` only on a response that came back ok;
- * - no endpoint, which is this repository's state today — the finished brief
+ * - an endpoint exists, which is this repository's state since 2026-09-29 —
+ *   the brief is POSTed as JSON and the form reports what actually happened,
+ *   `success` only on a response that came back ok;
+ * - no endpoint — the finished brief
  *   is handed to the visitor's own mail client as a prepared draft. The form
  *   then says exactly that and shows the address as well, so a blocked or
  *   missing mail client is never a dead end. It never says "sent".
@@ -509,6 +510,10 @@ function initForm(page: HTMLElement): () => void {
     return first;
   };
 
+  // How long the visitor has had the form: the endpoint drops a brief that
+  // was "filled in" faster than a person can.
+  const openedAt = Date.now();
+
   const payload = () => {
     const data = new FormData(form);
     const value = (name: string) => String(data.get(name) ?? '').trim();
@@ -522,6 +527,8 @@ function initForm(page: HTMLElement): () => void {
         contactServices.options.find((option) => option.value === service)
           ?.label ?? '',
       message: value('message'),
+      website: value('website'),
+      elapsed: Date.now() - openedAt,
     };
   };
 

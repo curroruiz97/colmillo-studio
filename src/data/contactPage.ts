@@ -133,19 +133,19 @@ export const contactServices = {
 export const contactSubmit = {
   label: 'Enviar mensaje',
   /** While the browser is handing the brief over. */
-  busy: 'Preparando…',
+  busy: 'Enviando…',
 } as const;
 
 /**
  * Status copy.
  *
- * `handoff` and `fallback` are what the page says today, and they describe
- * exactly what happened: the visitor's own mail client was handed a finished
- * draft. Nothing claims the site sent anything.
+ * `handoff` and `fallback` belong to the no-endpoint branch (the visitor's
+ * own mail client is handed a finished draft), which only runs if
+ * `contactFormEndpoint` is set back to null.
  *
- * `sent` and `failed` belong to the other branch and are only ever shown when
- * `contactFormEndpoint` holds a real endpoint that answered. While it is null
- * that branch never runs, so "Recibido" can never appear.
+ * `sent` and `failed` belong to the endpoint's branch, the one in use since
+ * 2026-09-29: "Recibido" is only shown when `contactFormEndpoint` answered
+ * ok, and `failed` offers the address whenever it did not.
  */
 export const contactStatus = {
   invalid: 'Revisa los campos marcados y volvemos a intentarlo.',
@@ -163,10 +163,9 @@ export const contactStatus = {
  * here: answering a brief the visitor sent is a pre-contractual measure taken
  * at their own request (art. 6.1.b RGPD), or the studio's legitimate interest
  * in replying (art. 6.1.f). A checkbox would ask for a permission that is not
- * needed and would imply the site transmits the brief, which it does not —
- * `contactFormEndpoint` is null and the browser composes a draft in the
- * visitor's own mail client. What the visitor does need is to be told, at the
- * moment of sending, what the data is for and where to read more.
+ * needed. What the visitor does need is to be told, at the moment of
+ * sending, what the data is for and where to read more; the privacy policy
+ * says how the brief travels (`src/data/legalPages.ts`).
  */
 export const contactPrivacy = {
   before:
@@ -206,18 +205,17 @@ export const contactDirect: { title: string; channels: PublishedChannel[] } = {
 };
 
 /**
- * Where a submitted brief would go.
+ * Where the form sends the brief.
  *
- * `null` is the current, verified state of this repository: the site is
- * `output: 'static'` with no adapter, no API route, no server action and no
- * mail provider anywhere in `src/`, `scripts/` or `package.json`. Nothing was
- * added: adding one needs the client's authorisation (`CLAUDE.md`,
- * `docs/CONTENT_NEEDED.md`).
+ * Since 2026-09-29 (client direction: what is written in the form reaches
+ * hola@colmillostudio.com) this is the site's one piece of server code,
+ * `public/api/contacto.php`, published with every build to the Plesk host.
+ * It validates the brief again, drops bots, limits abuse and emails it
+ * through IONOS's SMTP with the visitor as Reply-To. Its credentials live
+ * outside the repository (`docs/DEPLOYMENT.md`); without them it answers 503
+ * and the form says it could not send and shows the address.
  *
- * While it is null the form validates in the browser and then hands the
- * finished brief to the visitor's own mail client as a prepared draft
- * addressed to the studio. The site itself sends nothing and no state says
- * otherwise. Setting this to a real POST endpoint is the only change the
- * client-side code needs to start submitting for real.
+ * Set back to `null` and the form returns to handing a prepared draft to the
+ * visitor's own mail client, as it did before.
  */
-export const contactFormEndpoint: string | null = null;
+export const contactFormEndpoint: string | null = '/api/contacto.php';

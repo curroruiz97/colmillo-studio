@@ -793,3 +793,14 @@ html[data-motion='reduced'] .contact-orbit__line {
     stroke-dashoffset: 0;
   }
 }
+
+/* The bots' trap (ContactForm.astro): out of sight, out of reach. */
+.contact-form__trap {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  pointer-events: none;
+}

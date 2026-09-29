@@ -388,7 +388,9 @@ Also open:
 
 Verified, so it does NOT need to be requested from the client: the site sets no
 cookies, runs no analytics, tag manager, pixel or third-party embed, loads no
-external font, and has no form backend (`contactFormEndpoint` is null). The
+external font. The form's endpoint (since 2026-09-29) sets no cookie either;
+its brief and its ten-minute rate-limit hash are described in the privacy
+policy. The
 only browser storage is the `colmilloIntroPlayed` sessionStorage key. That is
 why no consent banner was built; see `docs/DECISIONS.md` (2026-09-16).
 
@@ -423,6 +425,11 @@ is waiting on three things:
   that basis: if the approved address is wrong, correct it in
   `src/config/contact.ts` and the whole site follows, including this page's
   left block, its form `action`, the composed draft and the status line.
+- **DONE 2026-09-29 — superseded by `public/api/contacto.php`** (see
+  `DECISIONS.md` and `DEPLOYMENT.md`). What remains from the client: the
+  dedicated IONOS mailbox's password in `~/colmillo-private/mail-config.php`,
+  a real test from the preview, and the privacy policy's pending items.
+  The original entry follows for the record.
 - **A decision on how a submitted brief is delivered.** There is no server, API
   route, server action or mail provider anywhere in this repository
   (`output: 'static'`, no adapter, no integration) and none was added: that

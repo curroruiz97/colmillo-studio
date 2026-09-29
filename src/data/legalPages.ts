@@ -26,10 +26,10 @@ import { contactChannels } from '@/config/contact';
  *   fetched from an external host; video is self-hosted under `public/`;
  * - Instagram is a plain outbound `<a>` (`InstagramBadge.astro`), not an
  *   embed, so Meta sets nothing while a visitor stays on this site;
- * - the contact form has no backend. `contactFormEndpoint` is `null`
- *   (`src/data/contactPage.ts`), the project is `output: 'static'` with no
- *   adapter or API route, and the form composes a draft in the visitor's own
- *   mail client. The site itself transmits and stores nothing.
+ * - the contact form posts to `public/api/contacto.php` (since 2026-09-29),
+ *   which emails the brief to the studio's mailbox and stores nothing; it
+ *   sets no cookie. Its only state is a salted hash of the sender's IP held
+ *   for ten minutes to limit abuse, disclosed in the privacy policy below.
  *
  * Consequently there is no consent banner: there is nothing to consent to.
  * That conclusion is recorded in `docs/DECISIONS.md` and must be revisited the
@@ -321,15 +321,15 @@ export const privacyPolicy: LegalDocument = {
       heading: 'Qué datos tratamos y cómo llegan hasta nosotros',
       blocks: [
         p(
-          'Conviene explicar antes cómo funciona este sitio, porque determina todo lo demás. Se trata de una web estática: no dispone de servidor de aplicación, de base de datos ni de ningún sistema que reciba y almacene formularios.',
+          'Conviene explicar antes cómo funciona este sitio, porque determina todo lo demás. Se trata de una web estática: no dispone de base de datos ni de ningún sistema que almacene los formularios que recibe.',
         ),
         p(
           'El formulario de la página de ',
           link('Contacto', '/contacto/'),
-          ' no envía nada por sí mismo. Al pulsar el botón, el navegador compone un borrador de correo en tu propio programa o servicio de correo electrónico, dirigido a la dirección del estudio. Ese mensaje sigues enviándolo tú, desde tu cuenta. Mientras no lo envíes, el estudio no recibe ningún dato.',
+          ' se envía al servidor del sitio cuando pulsas el botón. El servidor comprueba que está completo y, en ese mismo momento, lo reenvía como correo electrónico al buzón del estudio, indicando tu dirección para que podamos responderte. El sitio no guarda una copia del mensaje.',
         ),
         p(
-          'Por tanto, los datos personales que tratamos son los que tú decides incluir en ese correo, o en cualquier otro que nos dirijas. El formulario propone estos campos:',
+          'Por tanto, los datos personales que tratamos son los que tú decides incluir en el formulario, o en cualquier correo que nos dirijas. El formulario propone estos campos:',
         ),
         list(
           ['nombre (obligatorio para poder dirigirnos a ti);'],
@@ -346,6 +346,9 @@ export const privacyPolicy: LegalDocument = {
         h3('Datos de conexión'),
         p(
           'Como en cualquier sitio web, el proveedor de alojamiento registra datos técnicos de la conexión —entre ellos la dirección IP, la fecha y hora, la página solicitada y datos del navegador— en los registros del servidor, con la finalidad de servir las páginas y mantener la seguridad y la estabilidad del servicio. Esos registros los genera y conserva el proveedor de alojamiento conforme a sus propias políticas; el estudio no los utiliza para elaborar perfiles, medir audiencias ni identificar visitantes.',
+        ),
+        p(
+          'Para proteger el formulario frente a envíos abusivos, el servidor conserva durante diez minutos un código seudonimizado, calculado a partir de la dirección IP desde la que se envía y que no la muestra, con el único fin de limitar el número de envíos. Transcurrido ese tiempo se elimina.',
         ),
         note(
           'Este sitio no incorpora herramientas de analítica, publicidad, medición de audiencia, mapas de calor ni seguimiento de ningún tipo, ni propias ni de terceros.',
@@ -424,13 +427,11 @@ export const privacyPolicy: LegalDocument = {
         ),
         h3('Alojamiento del sitio web'),
         p(
-          'El sitio está alojado en la plataforma de Vercel Inc. Como proveedor de alojamiento y de red de entrega de contenidos, trata los datos técnicos de conexión descritos más arriba para servir las páginas y garantizar la seguridad del servicio.',
+          'El sitio está alojado en un servidor contratado con IONOS. Como proveedor de alojamiento, trata los datos técnicos de conexión descritos más arriba para servir las páginas y garantizar la seguridad del servicio, y por él pasa el mensaje del formulario en el momento de reenviarlo al buzón del estudio.',
         ),
         h3('Correo electrónico'),
         p(
-          'El correo que nos envías se recibe y se conserva en el proveedor de correo del estudio: ',
-          pending('PROVEEDOR DE CORREO ELECTRÓNICO'),
-          '. Recuerda que el envío parte de tu propio proveedor de correo, que trata el mensaje conforme a sus propias condiciones.',
+          'Los mensajes del formulario, y el correo que nos envíes directamente, se reciben y se conservan en el proveedor de correo del estudio, IONOS. Si nos escribes desde tu propia cuenta, el envío parte además de tu proveedor de correo, que trata el mensaje conforme a sus propias condiciones.',
         ),
         note(
           'Queda pendiente de aportar el detalle del contrato de encargo del tratamiento con cada proveedor, exigido por el artículo 28 del RGPD: ',
@@ -444,7 +445,7 @@ export const privacyPolicy: LegalDocument = {
       heading: 'Transferencias internacionales',
       blocks: [
         p(
-          'Vercel Inc. es una entidad con sede en los Estados Unidos, por lo que la prestación del servicio de alojamiento puede implicar una transferencia internacional de datos o el acceso a ellos desde fuera del Espacio Económico Europeo.',
+          'El alojamiento del sitio y el correo del estudio los presta IONOS. Si alguno de sus servicios implicara el tratamiento de datos o el acceso a ellos desde fuera del Espacio Económico Europeo, se trataría de una transferencia internacional de datos.',
         ),
         p(
           'Estas transferencias deben ampararse en alguna de las garantías previstas en el capítulo V del RGPD, como las cláusulas contractuales tipo de la Comisión Europea o un marco de adecuación aplicable al proveedor.',

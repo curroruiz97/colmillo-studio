@@ -471,12 +471,13 @@ licenses and publication approval before enabling client material.
   its close alone in the standard build.
 - Contact channels, legal/business text, approved copy/services/social/SEO data
   and canonical domain are absent.
-- `/contacto/` has no submit endpoint. This repository has no server, API
-  route, server action or mail provider, and none may be added without
-  authorisation. `contactFormEndpoint` in `src/data/contactPage.ts` is `null`,
-  so the form validates and then hands the brief to the visitor's own mail
-  client, saying exactly that; setting that constant is the only code change
-  needed to submit for real. See `docs/CONTENT_NEEDED.md`.
+- `/contacto/` submits for real since 2026-09-29 (client authorisation):
+  `public/api/contacto.php`, the site's only server code, emails the brief to
+  `hola@colmillostudio.com` through IONOS's SMTP from a dedicated mailbox. Its
+  credentials live in `~/colmillo-private/mail-config.php` on the server —
+  never in Git or a document root. `npm run check:contact` tests it with a
+  fake SMTP. Without JavaScript the form still hands a draft to the visitor's
+  mail client. See `docs/DEPLOYMENT.md`.
 - The route's copy is the user's provisional wording (2026-09-16) and is
   pending approval, and the approved address `hola@colmillostudio.com` differs
   by one letter from the one written in that request.

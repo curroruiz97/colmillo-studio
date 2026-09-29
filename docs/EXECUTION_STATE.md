@@ -6694,3 +6694,23 @@ group and mode onto the document roots (Plesk's `750 psaserv` became `755
 psacln` on both `pre.` and `tienda.`). Both still serve correctly; the server
 account cannot restore the `psaserv` group, which Plesk can (Repair or
 re-applying the hosting settings) if the client wants it back.
+
+## 2026-09-29 Session: The Contact Form Sends Real Email
+
+- `public/api/contacto.php` + `contactFormEndpoint = '/api/contacto.php'`;
+  hidden trap field and fill time in `ContactForm.astro` /
+  `ContactPageMotion.ts`; button reads "Enviando…" in flight.
+- `~/colmillo-private/mail-config.php` created on the server with a
+  placeholder password (700/600). Until the client puts the new mailbox's
+  password there, the endpoint answers 503 and the form shows the address.
+- Privacy policy brought in line with the real flow; Vercel removed from it.
+- Verified from the server: MX and SPF are IONOS; `smtp.ionos.es:587` answers
+  with STARTTLS from this host; PHP 8.3 has openssl, mbstring and json.
+- Tests: `npm run check:contact` 18/18 against a fake SMTP; `contacto.spec.ts`
+  now posts to a mocked endpoint (received, and a 503 that keeps the brief
+  and offers the address). Playwright `dist` 108 passed / 10 skipped;
+  `dist-demo` 183 passed / 72 skipped / the 3 pre-existing `fine-1440`
+  failures. `astro check`, ESLint, Prettier, `check:production` (67 files),
+  `check:links` pass.
+- Not verifiable from here: PHP through the preview's password and a real
+  delivery. Both need the mailbox password and a test by the client.

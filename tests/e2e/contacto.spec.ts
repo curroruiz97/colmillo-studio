@@ -240,12 +240,7 @@ test('validation answers under each field and never in a dialog', async ({
   );
 });
 
-test('a complete brief is handed to the mail client, and never called sent', async ({
-  page,
-}) => {
-  await page.goto('/contacto/');
-  await openBrief(page);
-
+const fillBrief = async (page: Page) => {
   await page.fill('#contact-name', 'Ada');
   await page.fill('#contact-email', 'ada@estudio.com');
   await page.fill('#contact-message', 'Queremos rehacer la identidad.');
@@ -254,19 +249,61 @@ test('a complete brief is handed to the mail client, and never called sent', asy
       .querySelector<HTMLFormElement>('[data-contact-form]')!
       .requestSubmit(),
   );
+};
+
+test('a complete brief is posted to the endpoint and only then called received', async ({
+  page,
+}) => {
+  /*
+   * Since 2026-09-29 the brief goes to `public/api/contacto.php`, which
+   * emails it to the studio. The static test server runs no PHP, so the
+   * endpoint is answered here; `npm run check:contact` tests the PHP itself.
+   */
+  let sent: Record<string, unknown> | null = null;
+  await page.route('**/api/contacto.php', async (route) => {
+    sent = route.request().postDataJSON() as Record<string, unknown>;
+    await route.fulfill({ status: 200, json: { ok: true } });
+  });
+  await page.goto('/contacto/');
+  await openBrief(page);
+  await fillBrief(page);
 
   const form = page.locator('[data-contact-form]');
-  await expect(form).toHaveAttribute('data-state', 'handoff');
+  await expect(form).toHaveAttribute('data-state', 'success');
+  await expect(page.locator('[data-contact-status]')).toContainText('Recibido');
+  expect(sent).toMatchObject({
+    name: 'Ada',
+    email: 'ada@estudio.com',
+    message: 'Queremos rehacer la identidad.',
+    website: '',
+  });
+  expect(Number(sent?.['elapsed'])).toBeGreaterThan(0);
+  // A received brief clears the form for the next one.
+  await expect(page.locator('#contact-name')).toHaveValue('');
+});
 
-  /*
-   * This repository has no server, API route or mail provider, so the site
-   * itself sends nothing. The status says exactly what happened and offers the
-   * address as well; the words "enviado" and "recibido" must never appear.
-   */
+test('a brief the endpoint cannot send is never called received', async ({
+  page,
+}) => {
+  await page.route('**/api/contacto.php', (route) =>
+    route.fulfill({
+      status: 503,
+      json: { ok: false, error: 'not_configured' },
+    }),
+  );
+  await page.goto('/contacto/');
+  await openBrief(page);
+  await fillBrief(page);
+
+  const form = page.locator('[data-contact-form]');
+  await expect(form).toHaveAttribute('data-state', 'error');
   const status = page.locator('[data-contact-status]');
-  await expect(status).toContainText('Hemos preparado el mensaje');
-  await expect(status).not.toContainText(/enviado|recibido/i);
+  await expect(status).toContainText('No hemos podido enviarlo');
+  await expect(status).not.toContainText(/recibido/i);
+  // The address is offered, so a failed send is never a dead end.
   await expect(status.locator('a')).toHaveAttribute('href', EMAIL);
+  // What was written is kept, to try again.
+  await expect(page.locator('#contact-name')).toHaveValue('Ada');
 });
 
 test('the page fits every target width with no horizontal overflow', async ({

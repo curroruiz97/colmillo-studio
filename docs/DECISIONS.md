@@ -3234,3 +3234,32 @@ categories are hidden (they do not fit the capsule), so phones and tablets
 have no category filter on screen; the footer's category links still filter.
 The demonstration is still stated on every card ("Demo"), every product page,
 at checkout and in the footer.
+
+## 2026-09-29 - The Contact Form Sends Through IONOS SMTP From A Dedicated Mailbox
+
+Decision (client request: what is written in the form reaches
+hola@colmillostudio.com): add the site's first server code,
+`public/api/contacto.php`, and point `contactFormEndpoint` at it. It sends
+through IONOS's authenticated SMTP from a mailbox created only for the web
+(`web@`, the client's choice over using `hola@` itself), with the visitor as
+Reply-To.
+
+Reason: the domain's mail is at IONOS (MX) and its SPF authorises only IONOS,
+so PHP's `mail()` from the Plesk host would fail SPF and land in spam, or be
+delivered locally if Plesk ever had mail enabled for the domain. A dedicated
+mailbox keeps `hola@`'s password off the server. No third-party form service,
+no dependency: a small SMTP client in the endpoint. The credentials live
+outside Git and every document root.
+
+Protection: same-origin check, JSON only, 20 KB cap, the form's own
+validation repeated, a hidden trap field and a 2.5 s minimum fill time (both
+answered "ok" and dropped silently), five sends per IP per ten minutes kept
+as a salted hash, control characters stripped from every header value and
+all headers RFC 2047-encoded. Without JavaScript the form keeps its native
+mail-client fallback.
+
+Consequence recorded in the privacy policy (`src/data/legalPages.ts`), which
+also still named Vercel as the host (stale since 2026-09-25): it now says how
+the brief travels, the ten-minute hash, and IONOS as host and mail provider —
+both verified from DNS. The processor contracts, region and transfer
+safeguards stay `pending(...)`.
