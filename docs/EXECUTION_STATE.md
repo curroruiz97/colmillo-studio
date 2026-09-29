@@ -6726,3 +6726,9 @@ re-applying the hosting settings) if the client wants it back.
   sendmail` (`mail()`), now the live config. A real test brief was accepted
   by the server (12:04 UTC); awaiting the client's confirmation from the
   `hola@` inbox. `npm run check:contact` 26/26.
+- Delivery confirmed 2026-09-29: a test brief sent through the same endpoint
+  and sendmail path (with a temporary copy of the config addressed to an
+  external inbox the client can read, at the client's request) arrived in
+  that inbox, not in spam. The `hola@` inbox itself was not checked (the
+  client has no access to it); the path to it is identical. The SPF TTL can
+  go back to 1 hour.
