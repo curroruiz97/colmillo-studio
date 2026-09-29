@@ -6706,7 +6706,7 @@ re-applying the hosting settings) if the client wants it back.
 - Privacy policy brought in line with the real flow; Vercel removed from it.
 - Verified from the server: MX and SPF are IONOS; `smtp.ionos.es:587` answers
   with STARTTLS from this host; PHP 8.3 has openssl, mbstring and json.
-- Tests: `npm run check:contact` 18/18 against a fake SMTP; `contacto.spec.ts`
+- Tests: `npm run check:contact` 20/20 against a fake SMTP; `contacto.spec.ts`
   now posts to a mocked endpoint (received, and a 503 that keeps the brief
   and offers the address). Playwright `dist` 108 passed / 10 skipped;
   `dist-demo` 183 passed / 72 skipped / the 3 pre-existing `fine-1440`
