@@ -23,7 +23,9 @@ publicar_tienda() {  # $1 destino, $2 base ("/" o "/tienda/")
   SHOP_BASE="$2" SHOP_OUT_DIR="../dist-shop-publicar" npm run build:shop
   [ -f dist-shop-publicar/index.html ] || { echo "Build de la tienda vacia, abortado"; exit 1; }
   mkdir -p "$1"
-  rsync -a --delete --exclude .well-known dist-shop-publicar/ "$1/"
+  # Plesk keeps its per-site PHP markers in the document root: never deleted.
+  rsync -rlt --delete --exclude .well-known --exclude .php-ini --exclude .php-version \
+    dist-shop-publicar/ "$1/"
   rm -rf dist-shop-publicar
   echo "== tienda publicada en $1: $(find "$1" -type f | wc -l) archivos =="
 }
@@ -60,7 +62,7 @@ else npm run check && npm run lint && npm run build:demo; SALIDA=dist-demo; fi
 
 echo "== publicando en $RUTA =="
 # La carpeta /tienda/ del preview es de la tienda: el --delete no la toca.
-rsync -a --delete --exclude .well-known --exclude /tienda/ "$SALIDA/" "$RUTA/"
+rsync -rlt --delete --exclude .well-known --exclude /tienda/ "$SALIDA/" "$RUTA/"
 echo "== hecho: $(find "$RUTA" -type f -not -path "$RUTA/tienda/*" | wc -l) archivos =="
 
 if [ "$DESTINO" = "pre" ]; then

@@ -184,4 +184,4 @@ server account cannot do either):
 3. Plesk → SSL/TLS: issue Let's Encrypt for it once the DNS resolves.
 4. Plesk → Directorios protegidos con contraseña: protect it like `pre`
    while the catalogue is a demonstration.
-5. `./publicar.sh tienda`.
+5. `./publicar.sh tienda`. Done 2026-09-29.

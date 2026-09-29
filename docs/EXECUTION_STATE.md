@@ -6678,3 +6678,19 @@ other) and the products still undecided.
 
 The client creates the subdomain (steps in `DEPLOYMENT.md`), chooses the
 platform and supplies the catalogue.
+
+## 2026-09-29: tienda.colmillostudio.com Is Live (Behind A Password)
+
+The client created the IONOS `A` record and the Plesk subdomain with a
+password. Verified from the server: `tienda` resolves to 212.227.90.205 at
+the IONOS nameservers, HTTP answers 301 to HTTPS, the certificate is the
+existing Sectigo wildcard `*.colmillostudio.com` (valid to 2026-12-19), and
+HTTPS answers 401 with Basic realm "tienda Colmillo". `./publicar.sh tienda`
+replaced Plesk's default page with the shop (19 files).
+
+`publicar.sh` now keeps Plesk's `.php-ini` / `.php-version` in the shop's
+root, and syncs with `rsync -rlt` instead of `-a`: `-a` had copied the build's
+group and mode onto the document roots (Plesk's `750 psaserv` became `755
+psacln` on both `pre.` and `tienda.`). Both still serve correctly; the server
+account cannot restore the `psaserv` group, which Plesk can (Repair or
+re-applying the hosting settings) if the client wants it back.
