@@ -32,9 +32,11 @@ test('the home is a flagged, unindexed demonstration', async ({ page }) => {
     'content',
     /noindex/,
   );
-  await expect(page.locator('.demo-band')).toContainText(
-    'No se vende ni se cobra nada',
-  );
+  // The top band went on 2026-09-29; the footer still says it, and every
+  // card below carries its own flag.
+  await expect(page.locator('.demo-band')).toHaveCount(0);
+  await expect(page.locator('.shop-footer')).toContainText('Sin pagos reales');
+  await expect(page.locator('.stage__kicker')).toHaveCount(0);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Tienda.');
 
   const cards = page.locator('[data-card]');
@@ -52,31 +54,31 @@ test('robots.txt blocks everything', async ({ request }) => {
   expect(await response.text()).toContain('Disallow: /');
 });
 
-test('the filter narrows the catalogue and keeps it in the address', async ({
+test('the bar categories are the only filter, and keep it in the address', async ({
   page,
+  isMobile,
 }) => {
   await page.goto('/');
   const grid = page.locator('[data-grid]');
-  await page.locator('[data-filter-value="Papel"]').click();
+  // The pill row under the title is gone (2026-09-29).
+  await expect(page.locator('[data-filter]')).toHaveCount(0);
 
-  await expect(page.locator('[data-filter-value="Papel"]')).toHaveAttribute(
-    'aria-pressed',
-    'true',
-  );
-  await expect(grid.locator('[data-card]:visible')).toHaveCount(3);
-  for (const card of await grid.locator('[data-card]:visible').all()) {
-    await expect(card).toHaveAttribute('data-category', 'Papel');
+  if (!isMobile) {
+    const papel = page.locator('.shop-bar__nav [data-category-link="Papel"]');
+    await papel.click();
+    await expect(papel).toHaveAttribute('aria-current', 'true');
+    await expect(grid.locator('[data-card]:visible')).toHaveCount(3);
+    for (const card of await grid.locator('[data-card]:visible').all()) {
+      await expect(card).toHaveAttribute('data-category', 'Papel');
+    }
+    await expect(page.locator('[data-catalog-count]')).toHaveText('3');
+    expect(new URL(page.url()).searchParams.get('categoria')).toBe('Papel');
   }
-  await expect(page.locator('[data-catalog-count]')).toHaveText('3');
-  expect(new URL(page.url()).searchParams.get('categoria')).toBe('Papel');
 
   // Arriving with a category applies it.
   await page.goto('/?categoria=Textil#catalogo');
   await expect(grid.locator('[data-card]:visible')).toHaveCount(3);
-  await expect(page.locator('[data-filter-value="Textil"]')).toHaveAttribute(
-    'aria-pressed',
-    'true',
-  );
+  await expect(page.locator('[data-catalog-count]')).toHaveText('3');
 });
 
 test('a quick add lands in the cart and survives a reload', async ({
@@ -254,8 +256,19 @@ test('without JavaScript the catalogue is whole and nothing is dead', async ({
   await page.goto('http://127.0.0.1:4324/');
   await expect(page.locator('[data-card]')).toHaveCount(9);
   await expect(page.locator('[data-card]').first()).toBeVisible();
-  await expect(page.locator('[data-filter]')).toBeHidden();
   await page.goto('http://127.0.0.1:4324/producto/demo-pin-colmillo/');
   await expect(page.locator('.buy__noscript')).toBeVisible();
   await context.close();
+});
+
+test('the mark leads to the studio, not to the shop', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.shop-bar__brand')).toHaveAttribute(
+    'href',
+    'https://colmillostudio.com/',
+  );
+  await expect(page.locator('.shop-footer__brand')).toHaveAttribute(
+    'href',
+    'https://colmillostudio.com/',
+  );
 });

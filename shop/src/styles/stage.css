@@ -24,23 +24,13 @@
 
 .stage__inner {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr) auto;
   min-block-size: 100svh;
   padding: calc(
       var(--shop-bar-top) + var(--shop-bar-h) + clamp(1.25rem, 3vw, 2.5rem)
     )
     var(--shop-gutter) clamp(1.5rem, 4svh, 3rem);
   transform-origin: 50% 30%;
-}
-
-.stage__kicker {
-  display: flex;
-  gap: 0.6rem;
-  margin: 0;
-  font-size: var(--font-label);
-  font-weight: 900;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
 }
 
 .stage__scene {

@@ -1,11 +1,13 @@
 /**
  * The catalogue's category filter.
  *
- * Published by this module (the group is `hidden` in the HTML), so a page
- * without JavaScript shows the whole catalogue and no dead control. The
- * category can also arrive in the address (`?categoria=Papel`), which is what
- * the bar's links carry; on the home those links filter in place instead of
- * reloading.
+ * Since 2026-09-29 (client direction) the only filter is the bar's category
+ * links ("Todo", "Papel", "Textil", …); the sticky pill row under the
+ * catalogue's title is gone. The links carry the category in the address
+ * (`?categoria=Papel#catalogo`), so without JavaScript they still load the
+ * page, which shows the whole catalogue. With it, on the home, they filter
+ * in place instead of reloading, and the current one is marked
+ * `aria-current`.
  *
  * Filtering hides the cards that leave, lets the grid repack, then carries
  * every card that stays from where it was to where it is now (FLIP, on the
@@ -16,26 +18,25 @@
 const PARAM = 'categoria';
 
 export function initFilter() {
-  const group = document.querySelector<HTMLElement>('[data-filter]');
   const grid = document.querySelector<HTMLElement>('[data-grid]');
-  if (!group || !grid) return;
-  const pills = [
-    ...group.querySelectorAll<HTMLButtonElement>('[data-filter-value]'),
-  ];
+  if (!grid) return;
   const cards = [...grid.querySelectorAll<HTMLElement>('[data-card]')];
   const count = document.querySelector<HTMLElement>('[data-catalog-count]');
   const reduced = () => document.documentElement.dataset.motion === 'reduced';
-  const known = new Set(pills.map((pill) => pill.dataset.filterValue ?? ''));
-  group.hidden = false;
+  const known = new Set(cards.map((card) => card.dataset.category ?? ''));
+  const links = [
+    ...document.querySelectorAll<HTMLAnchorElement>('[data-category-link]'),
+  ];
 
   const apply = (value: string, animate: boolean) => {
     const category = known.has(value) ? value : '';
-    pills.forEach((pill) =>
-      pill.setAttribute(
-        'aria-pressed',
-        String(pill.dataset.filterValue === category),
-      ),
-    );
+    links.forEach((link) => {
+      if (link.dataset.categoryLink === category) {
+        link.setAttribute('aria-current', 'true');
+      } else {
+        link.removeAttribute('aria-current');
+      }
+    });
 
     const before = new Map(
       cards
@@ -81,13 +82,6 @@ export function initFilter() {
       }
     });
   };
-
-  group.addEventListener('click', (event) => {
-    const pill = (event.target as Element).closest<HTMLButtonElement>(
-      '[data-filter-value]',
-    );
-    if (pill) apply(pill.dataset.filterValue ?? '', true);
-  });
 
   // The bar's category links: in place on this page, no reload.
   document.addEventListener('click', (event) => {

@@ -493,8 +493,7 @@ before it can sell anything:
   (`ProductArt.astro`); real photos replace it in the same 4:5 tile. At least
   one front and one detail per product, on a consistent ground.
 - **Copy.** Provisional and pending approval: the hero line "Objetos con
-  mordida, hechos por el estudio. Aprieta la pelota.", the kicker "Edición
-  01", the close line "La tienda es un trozo de lo que hacemos. El resto está
+  mordida, hechos por el estudio. Aprieta la pelota.", the close line "La tienda es un trozo de lo que hacemos. El resto está
   en el estudio." and the footer line "Todo lo que hay aquí, antes lo hemos
   mordido nosotros.". "Haz que tu marca muerda." and the manifesto's four
   verbs are the site's own.

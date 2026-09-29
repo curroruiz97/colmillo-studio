@@ -8,7 +8,7 @@
 import { contactChannels } from '@/config/contact';
 import { catalog } from '@shop/data/catalog';
 import wordmark from '../../../public/assets/brand/colmillo-wordmark-cream.png';
-import { categoryPath, shopPath } from '@shop/data/paths';
+import { categoryPath } from '@shop/data/paths';
 
 const email = contactChannels.email;
 const instagram = contactChannels.instagram;
@@ -16,7 +16,11 @@ const instagram = contactChannels.instagram;
 
 <footer class="shop-footer">
   <div class="shop-footer__top">
-    <a class="shop-footer__brand" href={shopPath()}>
+    <a
+      class="shop-footer__brand"
+      href="https://colmillostudio.com/"
+      aria-label="Colmillo Studio, ir a la web del estudio"
+    >
       <img
         src={wordmark.src}
         width={wordmark.width}

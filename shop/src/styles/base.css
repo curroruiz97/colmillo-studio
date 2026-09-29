@@ -28,34 +28,6 @@ main:focus {
   outline-offset: 3px;
 }
 
-/* ----------------------------------------------------------- demo band -- */
-
-.demo-band {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 0.35rem 0.75rem;
-  margin: 0;
-  padding: 0.55rem var(--shop-gutter);
-  background: var(--color-brand-ink);
-  color: var(--color-brand-cream);
-  font-size: 0.78rem;
-  line-height: 1.3;
-  text-align: center;
-}
-
-.demo-band__tag {
-  padding: 0.18rem 0.6rem;
-  border-radius: 999px;
-  background: var(--color-brand-orange);
-  color: var(--color-brand-ink);
-  font-size: 0.66rem;
-  font-weight: 900;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
 /* ---------------------------------------------------------- bite button -- */
 
 /*

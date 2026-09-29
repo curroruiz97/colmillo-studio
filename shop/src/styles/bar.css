@@ -68,6 +68,11 @@
     color var(--duration-fast) linear;
 }
 
+.shop-bar__nav a[aria-current] {
+  background: var(--color-brand-ink);
+  color: var(--color-brand-cream);
+}
+
 .shop-bar__studio {
   flex: 0 0 auto;
   margin-inline-start: auto;

@@ -28,7 +28,6 @@ import { artStyle } from '@shop/data/palette';
 import { productPath } from '@shop/data/paths';
 
 const products = catalog.products();
-const categories = catalog.categories();
 const featured = catalog.featured();
 const featuredVariant = firstAvailable(featured);
 
@@ -56,12 +55,6 @@ const verbs = ['Morder.', 'Presionar.', 'Romper.', 'Dejar marca.'];
 <ShopLayout>
   <section class="stage" data-stage aria-labelledby="stage-title">
     <div class="stage__inner">
-      <p class="stage__kicker">
-        <span>Colmillo Studio</span>
-        <span aria-hidden="true">·</span>
-        <span>Edición 01</span>
-      </p>
-
       <div class="stage__scene" data-stage-scene>
         <ShopBall />
         <h1 class="stage__word" id="stage-title" data-stage-word>
@@ -152,36 +145,6 @@ const verbs = ['Morder.', 'Presionar.', 'Romper.', 'Dejar marca.'];
           <span data-catalog-count>{products.length}</span> piezas
         </p>
       </header>
-
-      {/* Published by `filter.ts`: without it the whole catalogue shows. */}
-      <div
-        class="filter"
-        role="group"
-        aria-label="Filtrar por categoría"
-        data-filter
-        hidden
-      >
-        <button
-          class="filter__pill"
-          type="button"
-          aria-pressed="true"
-          data-filter-value=""
-        >
-          Todo
-        </button>
-        {
-          categories.map((category) => (
-            <button
-              class="filter__pill"
-              type="button"
-              aria-pressed="false"
-              data-filter-value={category}
-            >
-              {category}
-            </button>
-          ))
-        }
-      </div>
 
       <div class="grid" data-grid>
         {

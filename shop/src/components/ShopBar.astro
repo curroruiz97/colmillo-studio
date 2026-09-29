@@ -1,7 +1,8 @@
 ---
 /**
  * The shop's bar: one floating capsule across the top that reads on any
- * ground. Wordmark and "Tienda" on the left, the categories in the middle,
+ * ground. Wordmark and "Tienda" on the left (a link to the studio's site),
+ * the categories in the middle — the shop's only filter since 2026-09-29 —
  * the way back to the studio and the cart on the right.
  *
  * On touch the cart leaves the capsule and becomes the dock centred at the
@@ -11,17 +12,17 @@
  */
 import { catalog } from '@shop/data/catalog';
 import wordmark from '../../../public/assets/brand/colmillo-wordmark-orange.png';
-import { categoryPath, shopPath } from '@shop/data/paths';
+import { categoryPath } from '@shop/data/paths';
 
 const categories = catalog.categories();
-const home = Astro.url.pathname === shopPath();
 ---
 
 <header class="shop-bar" data-shop-bar>
+  {/* The mark leads to the studio's site (2026-09-29, client direction). */}
   <a
     class="shop-bar__brand"
-    href={shopPath()}
-    aria-current={home ? 'page' : undefined}
+    href="https://colmillostudio.com/"
+    aria-label="Colmillo Studio, ir a la web del estudio"
   >
     <img
       src={wordmark.src}
@@ -34,10 +35,12 @@ const home = Astro.url.pathname === shopPath();
   </a>
 
   <nav class="shop-bar__nav" aria-label="Categorías">
-    <a href={categoryPath()}>Todo</a>
+    <a href={categoryPath()} data-category-link="">Todo</a>
     {
       categories.map((category) => (
-        <a href={categoryPath(category)}>{category}</a>
+        <a href={categoryPath(category)} data-category-link={category}>
+          {category}
+        </a>
       ))
     }
   </nav>

@@ -3220,3 +3220,17 @@ reachable from the server account) the shop is published under the
 password-protected preview at `pre.colmillostudio.com/tienda/`, built with
 `SHOP_BASE=/tienda/`; every internal link goes through `shop/src/data/paths.ts`
 for that reason.
+
+## 2026-09-29 - The Shop Keeps One Filter, Loses Its Top Band, And Its Mark Leads Home
+
+Decision (client direction): the sticky pill row under "Catálogo" is removed;
+the bar's category links are the only filter (they filter in place on the
+home and mark the current one `aria-current`). The top band that read
+"Maqueta …" and the hero's "Colmillo Studio · Edición 01" are removed. The
+wordmark, in the bar and in the footer, links to https://colmillostudio.com/.
+
+Consequences, recorded rather than silently fixed: below 64rem the bar's
+categories are hidden (they do not fit the capsule), so phones and tablets
+have no category filter on screen; the footer's category links still filter.
+The demonstration is still stated on every card ("Demo"), every product page,
+at checkout and in the footer.
